@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# start commit message check
+echo "commit-msg 훅이 실행되었습니다!"
+
+# prefix list
+declare -A gitmoji_prefix_list=(
+    ["feat"]="✨"
+    ["fix"]="🐛" 
+    ["refactor"]="🔨"
+    ["style"]="💄"
+    ["chore"]="🎉"
+    ["wip"]="🚧"
+    ["docs"]="📚"
+    ["test"]="📝"
+    ["devops"]="🐳"
+    ["build"]="💡"
+    ["hotfix"]="🚑️"
+    ["release"]="🔖"
+    ["deploy"]="🚀"
+    ["init"]="🎉"
+)
+
+# change prefix to gitmoji
+commit_msg=$(cat "$1")
+commit_msg_prefix=$(echo "$commit_msg" | cut -d':' -f1 | xargs)
+found_prefix=false
+
+for prefix in "${!gitmoji_prefix_list[@]}"; do
+    if [ "$commit_msg_prefix" = "$prefix" ]; then
+        gitmoji="${gitmoji_prefix_list[$prefix]}"
+        new_msg="${gitmoji}"
+        found_prefix=true
+        if [ "$prefix" = "init" ]; then
+            new_msg="${new_msg} $(echo "$commit_msg" | cut -d':' -f2- | xargs)"
+            echo "$new_msg" > "$1"
+            exit 0
+        fi
+        break
+    fi
+done
+
+if [ "$found_prefix" = false ]; then
+    echo "💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩"
+    echo "허용된 깃모지 접두사가 없습니다. 다음과 같은 접두사를 사용해주세요."
+    for prefix in "${!gitmoji_prefix_list[@]}"; do
+        echo "- $prefix: ${gitmoji_prefix_list[$prefix]}"
+    done
+    echo "💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩"
+    exit 1
+fi
+
+# get issue number from branch name
+current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+issue_number=$(echo "$current_branch" | awk -F'/' '{print $NF}' | cut -d'-' -f1,2)
+
+# if can't find issue number
+if [ -z "$issue_number" ]; then
+    echo "💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩"
+    echo "이슈 번호를 찾을 수 없습니다."
+    echo "브랜치 이름 형식이 올바르지 않습니다."
+    echo "예시: feature/JIRA-1234-branch-name"
+    echo "💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩"
+    exit 1
+fi
+
+# add issue number to commit message
+new_msg="${new_msg} [JIRA-$issue_number] $(echo "$commit_msg" | cut -d':' -f2- | xargs)"
+echo "$new_msg" > "$1"
+
+exit 0
