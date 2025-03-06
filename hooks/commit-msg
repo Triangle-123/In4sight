@@ -19,6 +19,7 @@ declare -A gitmoji_prefix_list=(
     ["release"]="🔖"
     ["deploy"]="🚀"
     ["init"]="🎉"
+    ["git-config"]="🔧"
 )
 
 # change prefix to gitmoji
@@ -31,7 +32,7 @@ for prefix in "${!gitmoji_prefix_list[@]}"; do
         gitmoji="${gitmoji_prefix_list[$prefix]}"
         new_msg="${gitmoji}"
         found_prefix=true
-        if [ "$prefix" = "init" ]; then
+        if [ "$prefix" = "init" ] || [ "$prefix" = "git-config" ]; then
             new_msg="${new_msg} $(echo "$commit_msg" | cut -d':' -f2- | xargs)"
             echo "$new_msg" > "$1"
             exit 0

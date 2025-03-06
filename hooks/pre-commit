@@ -1,5 +1,182 @@
 #!/bin/bash
 
+# pre-commit 시나리오
+# 1. 스테이징 된 파일의 루트를 확인 -> 레포지토리 루트 바로 아래 디렉토리가 프로젝트 루트
+# 2. 스테이징 된 파일이 있는 루트의 프로젝트가 어떤 언어로 되어 있는지 확인
+# 3-1. 파이썬 프로젝트라면 파이썬 파일만 포매팅 및 Linting
+# 3-2. 자바 프로젝트라면 자바 파일만 Linting
+# 3-3. React 프로젝트라면 자바스크립트 파일만 포매팅 및 Linting
+# 4. 포매팅 및 Linting 후 스테이징
 
+echo "pre-commit 훅이 실행되었습니다!"
 
-exit 0
+REPO_ROOT=$(git rev-parse --show-toplevel)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# if there is no staged files, exit
+if [ -z "$STAGED_FILES" ]; then
+    echo "스테이징된 파일이 없습니다."
+    exit 0
+fi
+
+# staged files directory list
+STAGED_DIRS=$(echo "$STAGED_FILES" | xargs -n1 dirname | sort | uniq)
+
+# project root list
+PROJECT_ROOTS=()
+for dir in $STAGED_DIRS; do
+    project_dir=$(echo "$dir" | cut -d'/' -f1)
+    
+    # hooks directory or repository root directory not included
+    if [ "$project_dir" != "hooks" ] && [ "$project_dir" != "." ]; then
+        PROJECT_ROOTS+=("$project_dir")
+    fi
+done
+PROJECT_ROOTS=$(echo "$PROJECT_ROOTS" | sort | uniq)
+
+echo "감지된 프로젝트 루트: ${PROJECT_ROOTS[@]}"
+
+# error count
+error_count=0
+
+# project root list
+for project_root in "${PROJECT_ROOTS[@]}"; do
+    PROJECT_PATH="$REPO_ROOT/$project_root"
+    echo "프로젝트 경로: $PROJECT_PATH 처리 중..."
+    # project type detection
+    PROJECT_TYPE="unknown"
+    
+    # python project detection (requirements.txt, setup.py, pyproject.toml etc.)
+    if [ -f "$PROJECT_PATH/requirements.txt" ] || [ -f "$PROJECT_PATH/setup.py" ] || [ -f "$PROJECT_PATH/pyproject.toml" ]; then
+        PROJECT_TYPE="python"
+    # java project detection (pom.xml, build.gradle etc.)
+    elif [ -f "$PROJECT_PATH/pom.xml" ] || [ -f "$PROJECT_PATH/build.gradle" ]; then
+        PROJECT_TYPE="java"
+    # react project detection (package.json contains react)
+    elif [ -f "$PROJECT_PATH/package.json" ] && grep -q "\"react\"" "$PROJECT_PATH/package.json"; then
+        PROJECT_TYPE="react"
+    fi
+    
+    echo "감지된 프로젝트 타입: $PROJECT_TYPE"
+
+    case $PROJECT_TYPE in
+        "python")
+            # get all .py files from staged files
+            project_staged_py_files=$(echo "$STAGED_FILES" | grep "^$project_root/.*\.py$")
+            
+            # no python files
+            if [ -z "$project_staged_py_files" ]; then
+                echo "스테이징된 파이썬 파일이 없습니다."
+                continue
+            fi
+            
+            echo "다음 파이썬 파일들을 포매팅합니다:"
+            echo "$project_staged_py_files"
+            
+            # virtual environment path
+            VENV_PATH="$PROJECT_PATH/.venv"
+            
+            # Windows -> Scripts, Linux/MacOS -> bin
+            if [ -d "$VENV_PATH/Scripts" ]; then
+                VENV_BIN="$VENV_PATH/Scripts"
+                BLACK_PATH="$VENV_BIN/black.exe"
+                ISORT_PATH="$VENV_BIN/isort.exe"
+                PYLINT_PATH="$VENV_BIN/pylint.exe"
+            else
+                VENV_BIN="$VENV_PATH/bin"
+                BLACK_PATH="$VENV_BIN/black"
+                ISORT_PATH="$VENV_BIN/isort"
+                PYLINT_PATH="$VENV_BIN/pylint"
+            fi
+            
+            echo "-------------------------------- black 포매팅 시작 --------------------------------"
+            # black installation check
+            if [ ! -f "$BLACK_PATH" ] && [ ! -f "$VENV_BIN/black" ]; then
+                echo "⚠️ Black이 설치되어 있지 않습니다. 포매팅 오류 발생."
+                error_count=$((error_count + 1))
+            else
+                # black installation check
+                if [ ! -f "$BLACK_PATH" ] && [ -f "$VENV_BIN/black" ]; then
+                    BLACK_PATH="$VENV_BIN/black"
+                fi
+                
+                # python file formatting
+                for file in $project_staged_py_files; do
+                    echo "포매팅: $file"
+                    python "$BLACK_PATH" "$REPO_ROOT/$file"
+                    if [ $? -ne 0 ]; then
+                        # if direct execution fails, try python -m black
+                        "$VENV_BIN/python" -m black "$REPO_ROOT/$file"
+                    fi
+                done
+            fi
+
+            echo "-------------------------------- isort 포매팅 시작 --------------------------------"
+            # isort installation check
+            if [ ! -f "$ISORT_PATH" ] && [ ! -f "$VENV_BIN/isort" ]; then
+                echo "⚠️ isort이 설치되어 있지 않습니다. 포매팅 오류 발생."
+                error_count=$((error_count + 1))
+            else
+                # isort installation check
+                if [ ! -f "$ISORT_PATH" ] && [ -f "$VENV_BIN/isort" ]; then
+                    ISORT_PATH="$VENV_BIN/isort"
+                fi
+
+                # python file formatting
+                for file in $project_staged_py_files; do
+                    echo "포매팅: $file"
+                    python "$ISORT_PATH" "$REPO_ROOT/$file"
+                done
+            fi
+
+            echo "-------------------------------- pylint 린팅 시작 --------------------------------"
+            # pylint installation check
+            if [ ! -f "$PYLINT_PATH" ] && [ ! -f "$VENV_BIN/pylint" ]; then
+                echo "⚠️ pylint이 설치되어 있지 않습니다. 린팅 오류 발생."
+                error_count=$((error_count + 1))
+            else
+                # pylint installation check
+                if [ ! -f "$PYLINT_PATH" ] && [ -f "$VENV_BIN/pylint" ]; then
+                    PYLINT_PATH="$VENV_BIN/pylint"
+                fi
+
+                # python file linting
+                for file in $project_staged_py_files; do
+                    echo "린팅: $file"
+                    # venv pylint + pylintrc
+                    "$VENV_BIN/python" -m pylint --rcfile="$REPO_ROOT/$project_root/.pylintrc" "$REPO_ROOT/$file"
+                    pylint_result=$?
+                    
+                    # pylint has error or warning
+                    if [ $pylint_result -ne 0 ]; then
+                        echo "⚠️ $file 파일에서 pylint 경고 또는 오류가 발견되었습니다."
+                        echo "   코드를 수정한 후 다시 커밋해주세요."
+                        error_count=$((error_count + 1))
+                    fi
+                done
+            fi
+
+            # formatted files re-staging
+            echo "$project_staged_py_files" | xargs git add
+            
+            echo "✅ 파이썬 파일 처리 완료!"
+            ;;
+
+        "java")
+            echo "checkstyle을 통한 자바 린팅 로직 추가 필요"
+            ;;
+            
+        "react")
+            echo "eslint을 통한 자바스크립트 린팅 로직 추가 필요"
+            ;;
+    esac
+done
+
+# check error count
+if [ $error_count -gt 0 ]; then
+    echo "❌ $error_count개의 오류가 발생했습니다. 커밋을 취소합니다."
+    exit 1
+else
+    echo "✅ 모든 프로젝트 처리 완료!"
+    exit 0
+fi
