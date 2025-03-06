@@ -32,7 +32,7 @@ for dir in $STAGED_DIRS; do
         PROJECT_ROOTS+=("$project_dir")
     fi
 done
-PROJECT_ROOTS=$(echo "$PROJECT_ROOTS" | sort | uniq)
+PROJECT_ROOTS=($(printf "%s\n" "${PROJECT_ROOTS[@]}" | sort -u))
 
 echo "감지된 프로젝트 루트: ${PROJECT_ROOTS[@]}"
 
@@ -163,7 +163,39 @@ for project_root in "${PROJECT_ROOTS[@]}"; do
             ;;
 
         "java")
-            echo "checkstyle을 통한 자바 린팅 로직 추가 필요"
+            # get all .java files from staged files
+            project_staged_java_files=$(echo "$STAGED_FILES" | grep "^$project_root/.*\.java$")
+            
+            # no java files
+            if [ -z "$project_staged_java_files" ]; then
+                echo "스테이징된 자바 파일이 없습니다."
+                continue
+            fi
+
+            echo "다음 자바 파일들을 린팅합니다:"
+            echo "$project_staged_java_files"
+            
+            cd "$REPO_ROOT/$project_root"
+            echo "-------------------------------- checkstyle 린팅 시작 --------------------------------"
+            echo "Main Source Code 린팅 시작"
+            # checkstyleMain task
+            ./gradlew checkstyleMain
+            checkstyle_result=$?
+
+            echo "Test Source Code 린팅 시작"
+            # checkstyleTest task
+            ./gradlew checkstyleTest
+            checkstyle_result=$((checkstyle_result + $?))
+            
+            # checkstyle has error
+            if [ $checkstyle_result -ne 0 ]; then
+                echo "⚠️ checkstyle 검사에서 오류가 발견되었습니다."
+                echo "   코드를 수정한 후 다시 커밋해주세요."
+                error_count=$((error_count + 1))
+            fi
+            
+            # 원래 디렉토리로 복귀
+            cd "$REPO_ROOT"
             ;;
             
         "react")
