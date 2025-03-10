@@ -1,0 +1,14 @@
+# top-most EditorConfig file
+root = true
+
+# 설정이 필요한 파일을 []에 정규식 표현으로 삽입하여 사용가능
+
+# 개행문자를 LF로 통일
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+# 들여쓰기를 Tab으로 사용하고 그 크기가 2임
+[{*.java,*.py,*.js,*.jsx,*.ts,*.tsx}]
+indent_style = tab
+indent_size = 4
