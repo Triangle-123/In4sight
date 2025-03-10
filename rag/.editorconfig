@@ -8,7 +8,12 @@ root = true
 end_of_line = lf
 insert_final_newline = true
 
-# 들여쓰기를 Tab으로 사용하고 그 크기가 2임
-[{*.java,*.py, *.js.*.jsx,*.ts,*.tsx}]
+# 들여쓰기를 Tab으로 사용하고 그 크기가 4임
+[{*.java,*.js,*.jsx,*.ts,*.tsx}]
 indent_style = tab
+indent_size = 4
+
+# 들여쓰기를 Space로 사용하고 그 크기가 4임
+[*.py]
+indent_style = space
 indent_size = 4
