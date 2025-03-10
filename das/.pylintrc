@@ -1,0 +1,15 @@
+[MASTER]
+ignore = .venv
+
+[FORMAT]
+variable-rgx = ^[a-z][a-z0-9_]*$
+function-rgx = ^[a-z][a-zA-Z0-9]*$
+class-rgx = ^[A-Z][a-zA-Z0-9]*$
+
+[MESSAGES CONTROL]
+disable = too-many-arguments,
+        too-many-positional-arguments,
+        too-many-locals,
+        too-many-instance-attributes,
+        too-many-public-methods,
+        too-few-public-methods
