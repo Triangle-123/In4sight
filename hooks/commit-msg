@@ -22,19 +22,33 @@ declare -A gitmoji_prefix_list=(
     ["git-config"]="🔧"
 )
 
-# change prefix to gitmoji
+# all commit msg
 commit_msg=$(cat "$1")
-commit_msg_prefix=$(echo "$commit_msg" | cut -d':' -f1 | xargs)
+echo "${commit_msg}"
+
+# get head
+first_line=$(echo "$commit_msg" | head -n 1)
+commit_msg_prefix=$(echo "$first_line" | cut -d':' -f1 | xargs)
+echo "${commit_msg_prefix}"
+
 found_prefix=false
 
 for prefix in "${!gitmoji_prefix_list[@]}"; do
     if [ "$commit_msg_prefix" = "$prefix" ]; then
         gitmoji="${gitmoji_prefix_list[$prefix]}"
-        new_msg="${gitmoji}"
         found_prefix=true
         if [ "$prefix" = "init" ] || [ "$prefix" = "git-config" ]; then
-            new_msg="${new_msg} $(echo "$commit_msg" | cut -d':' -f2- | xargs)"
-            echo "$new_msg" > "$1"
+            # convert head
+            new_first_line="${gitmoji} $(echo "$first_line" | cut -d':' -f2- | xargs)"
+            rest_of_msg=$(echo "$commit_msg" | tail -n +2)
+
+            # new commit msg
+            if [ -n "$rest_of_msg" ]; then
+                echo "$new_first_line" > "$1"
+                echo "$rest_of_msg" >> "$1"
+            else
+                echo "$new_first_line" > "$1"
+            fi
             exit 0
         fi
         break
@@ -65,8 +79,16 @@ if [ -z "$issue_number" ]; then
     exit 1
 fi
 
-# add issue number to commit message
-new_msg="${new_msg} [JIRA-$issue_number] $(echo "$commit_msg" | cut -d':' -f2- | xargs)"
-echo "$new_msg" > "$1"
+# convert head
+new_first_line="${gitmoji} [JIRA-$issue_number] $(echo "$first_line" | cut -d':' -f2- | xargs)"
+rest_of_msg=$(echo "$commit_msg" | tail -n +2)
+
+# new commit msg
+if [ -n "$rest_of_msg" ]; then
+    echo "$new_first_line" > "$1"
+    echo "$rest_of_msg" >> "$1"
+else
+    echo "$new_first_line" > "$1"
+fi
 
 exit 0
