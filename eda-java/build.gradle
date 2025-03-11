@@ -31,10 +31,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     implementation 'org.springframework.kafka:spring-kafka'
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {

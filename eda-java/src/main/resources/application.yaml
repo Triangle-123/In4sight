@@ -4,3 +4,4 @@ spring:
 
 kafka:
   host: ${KAFKA_HOST}
+  consume-group: ${KAFKA_CONSUME_GROUP}
