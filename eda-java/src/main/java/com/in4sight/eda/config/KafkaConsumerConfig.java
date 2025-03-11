@@ -28,6 +28,8 @@ public class KafkaConsumerConfig {
 		Map<String, Object> configs = new HashMap<>();
 		configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaHost);
 		configs.put(ConsumerConfig.GROUP_ID_CONFIG, consumeGroup);
+		configs.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
+		configs.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 1000);
 
 		JsonDeserializer jsonDeserializer = new JsonDeserializer();
 		jsonDeserializer.trustedPackages("*");
