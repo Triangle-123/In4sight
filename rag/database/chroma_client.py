@@ -8,7 +8,7 @@ from typing import Optional
 
 import chromadb
 
-from ..core.config import settings
+from rag.core.config import settings
 
 # 로깅 설정
 logger = logging.getLogger(__name__)

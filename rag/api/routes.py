@@ -4,7 +4,7 @@
 
 from fastapi import APIRouter, HTTPException
 
-from ..database.chroma_client import chroma_db
+from rag.database.chroma_client import chroma_db
 
 router = APIRouter(tags=["검색"])
 
