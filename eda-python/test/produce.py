@@ -6,7 +6,7 @@ from datetime import datetime
 
 import eda
 
-producer = eda.create_producer(bootstrap_servers="localhost:9092")
+eda.create_producer(bootstrap_servers="localhost:9092")
 
 eda.event_broadcast(
     "test",
