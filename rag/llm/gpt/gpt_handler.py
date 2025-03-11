@@ -2,6 +2,7 @@
 GPT 요청 및 응답 처리 모듈
 """
 
+from ..rag_response import DiagnosticResult
 from .gpt_client import GPTClient
 from .prompt.base_prompts import BasePrompts
 
@@ -29,11 +30,19 @@ class GPTHandler:
             return {"success": False, "error": response["error"]}
 
         try:
-            return {
-                "success": True,
-                "content": response["choices"][0]["message"]["content"],
-                "usage": response.get("usage", {}),
-            }
+            content = response["choices"][0]["message"]["content"]
+            usage = response.get("usage", {})
+
+            try:
+                diagnostic_result = DiagnosticResult.from_json(content)
+
+                return {"success": True, "result": diagnostic_result, "usage": usage}
+            except ValueError as json_error:
+                return {
+                    "success": False,
+                    "error": f"DTO 변환 오류: {str(json_error)}",
+                    "raw_content": content,
+                }
         except (KeyError, IndexError) as e:
             return {"success": False, "error": f"응답 파싱 오류: {str(e)}"}
 
