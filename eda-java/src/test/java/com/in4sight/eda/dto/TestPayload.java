@@ -1,4 +1,4 @@
-package com.in4sight.eda;
+package com.in4sight.eda.dto;
 
 import lombok.Data;
 

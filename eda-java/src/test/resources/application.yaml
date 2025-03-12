@@ -1,0 +1,4 @@
+eda:
+  kafka:
+    bootstrap-server: "localhost:9092"
+    consumer-group: "test-group"
