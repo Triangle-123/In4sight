@@ -12,6 +12,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 
+import com.in4sight.eda.dto.TestPayload;
 import com.in4sight.eda.producer.KafkaProducer;
 
 @SpringBootTest
@@ -28,11 +29,10 @@ public class KafkaConsumerTests {
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 	private final String topicName = "test-topic";
-	private final String groupId = "test-group";
 	private TestPayload payload;
 
 
-	@KafkaListener(topics = topicName, groupId = groupId)
+	@KafkaListener(topics = topicName, groupId = "#{appProperties.getConsumerGroup()}")
 	public void listener(TestPayload message) {
 		this.payload = message;
 		latch.countDown();
@@ -46,7 +46,7 @@ public class KafkaConsumerTests {
 		testPayload.setName(testMessage);
 		kafkaProducer.broadcastEvent(topicName, testPayload);
 
-		boolean messageConsumed = latch.await(10, TimeUnit.SECONDS);
+		boolean messageConsumed = latch.await(5, TimeUnit.SECONDS);
 		Assertions.assertTrue(messageConsumed);
 		Assertions.assertEquals(testMessage, payload.getName());
 	}

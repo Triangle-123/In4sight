@@ -1,0 +1,26 @@
+{
+  "groups": [
+    {
+      "name": "eda.kafka",
+      "type": "com.example.config.AppProperties",
+      "sourceType": "com.example.config.AppProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "eda.kafka.bootstrap-server",
+      "type": "java.lang.String",
+      "description": "Kafka 주소",
+      "sourceType": "com.rest.config.AppProperties",
+      "defaultValue": "localhost:9092"
+    },
+    {
+      "name": "eda.kafka.consumer-group",
+      "type": "java.lang.String",
+      "description": "Kafka Consumer 그룹 이름",
+      "sourceType": "com.rest.config.AppProperties",
+      "defaultValue": "default_group"
+    }
+  ],
+  "hints": []
+}
