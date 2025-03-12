@@ -2,6 +2,7 @@
 in4sight-eda 패키지의 consumer 모듈
 """
 
+import threading
 from json import loads
 from typing import Callable, Optional
 
@@ -68,11 +69,19 @@ def event_subscribe(group_id: str, topic: str, callback: Callable) -> None:
         topic: 구독할 토픽 이름
         callback: 이벤트 처리 콜백 함수
     """
-    consumer = get_consumer(group_id)
-    if consumer is None:
-        raise ValueError("Consumer가 설정되지 않았습니다.")
 
-    consumer.subscribe([topic])
+    def consume_messages():
+        """
+        메시지 소비 스레드
+        """
+        consumer = get_consumer(group_id)
+        if consumer is None:
+            raise ValueError("Consumer가 설정되지 않았습니다.")
 
-    for message in consumer:
-        callback(message.value)
+        consumer.subscribe([topic])
+
+        for message in consumer:
+            callback(message.value)
+
+    consumer_thread = threading.Thread(target=consume_messages, daemon=True)
+    consumer_thread.start()
