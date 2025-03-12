@@ -1,0 +1,4 @@
+com.in4sight.eda.config.EnableConfiguration
+com.in4sight.eda.config.KafkaProducerConfig
+com.in4sight.eda.config.KafkaConsumerConfig
+com.in4sight.eda.producer.KafkaProducer

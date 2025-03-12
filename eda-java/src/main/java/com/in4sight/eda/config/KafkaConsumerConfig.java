@@ -5,29 +5,29 @@ import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-@Configuration
+@AutoConfiguration
 public class KafkaConsumerConfig {
+	private final AppProperties appProperties;
 
-	@Value("${kafka.host}")
-	private String kafkaHost;
-
-	@Value("${kafka.consume-group}")
-	private String consumeGroup;
+	@Autowired
+	public KafkaConsumerConfig(AppProperties appProperties) {
+		this.appProperties = appProperties;
+	}
 
 	@Bean
 	public ConsumerFactory<String, Object> consumerFactory() {
 		Map<String, Object> configs = new HashMap<>();
-		configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaHost);
-		configs.put(ConsumerConfig.GROUP_ID_CONFIG, consumeGroup);
+		configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, appProperties.getBootstrapServer());
+		configs.put(ConsumerConfig.GROUP_ID_CONFIG, appProperties.getConsumerGroup());
 		configs.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
 		configs.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 1000);
 
