@@ -1,15 +1,39 @@
 """
-FASTAPI APP 메인 파일
+Integration Test
+Producer와 Consumer를 통한 통합 테스트
 """
 
-from fastapi import FastAPI
+import time
+from typing import Any
 
-app = FastAPI()
+import eda
+
+eda.create_producer(bootstrap_servers="localhost:9092")
+eda.create_consumer(bootstrap_servers="localhost:9092", group_id="test-group")
+
+MESSAGE = None
 
 
-@app.get("/")
-async def root():
+def callback(message: Any) -> None:
     """
-    루트 경로 호출 시 반환되는 메시지
+    Event 수신 콜백 함수
     """
-    return {"message": "Hello World"}
+    # pylint: disable=global-statement
+    global MESSAGE
+    MESSAGE = message
+
+
+print("Subscribing to test event")
+eda.event_subscribe("test-group", "test", callback)
+print("Subscribed to test event")
+
+eda.event_broadcast("test", "Hello, World!")
+
+TIME_LIMIT = 5
+while TIME_LIMIT > 0:
+    if MESSAGE is not None:
+        break
+    TIME_LIMIT -= 1
+    time.sleep(1)
+
+assert MESSAGE == "Hello, World!"
