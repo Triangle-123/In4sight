@@ -4,7 +4,6 @@ GPT API 테스트용 라우터 모듈
 
 import logging
 import traceback
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -27,8 +26,8 @@ class GPTRequest(BaseModel):
     """
 
     query: str
-    system_message: Optional[str] = None
-    context: Optional[str] = None  # RAG용 컨텍스트
+    product_type: str
+    related_sensor: str
 
 
 @gpt_router.post("/")
@@ -65,17 +64,19 @@ async def test_gpt_rag(request: GPTRequest):
     """
     RAG 기반 GPT API 테스트를 위한 API
     """
-    if not request.context:
-        raise HTTPException(
-            status_code=400, detail="RAG 요청에는 컨텍스트가 필요합니다."
-        )
 
     try:
         client = GPTClient()
         handler = GPTHandler(client=client)
 
         # RAG 기반 GPT 완성 요청
-        response = handler.rag_completion(query=request.query, context=request.context)
+        query_data = {
+            "query_text": request.query,
+            "n_results": 10,
+            "where": {"product_type": request.product_type},
+            "query_embedding": None,
+        }
+        response = handler.rag_completion(query_data=query_data)
 
         if not response.get("success"):
             raise HTTPException(
@@ -83,7 +84,7 @@ async def test_gpt_rag(request: GPTRequest):
                 detail=response.get("error", "알 수 없는 오류가 발생했습니다."),
             )
 
-        return {"response": response.get("content"), "usage": response.get("usage", {})}
+        return {"response": response, "usage": response.get("usage", {})}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"RAG GPT 요청 처리 중 오류 발생: {str(e)}"
