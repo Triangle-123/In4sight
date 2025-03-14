@@ -3,3 +3,4 @@
 """
 
 from .chroma_client import chroma_db
+from .chroma_operation import ChromaDBOperations
