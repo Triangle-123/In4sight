@@ -27,12 +27,44 @@ repositories {
     mavenCentral()
 }
 
+// 환경변수를 가져와서 Private한 Package Repository 접근을 등록
+def env = new Properties()
+file('.env').withInputStream {  env.load(it) }
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url env.getProperty("PACKAGE_URL")
+        credentials {
+            username = env.getProperty("USERNAME")
+            password = env.getProperty("TOKEN")
+        }
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    testImplementation 'org.springframework.security:spring-security-test'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'com.in4sight:eda:0.1.0'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+
