@@ -12,6 +12,7 @@ export interface MetricType {
 
 export interface RecommendationType {
   title: string
+  summary: string
   description: string
   status: string
 }

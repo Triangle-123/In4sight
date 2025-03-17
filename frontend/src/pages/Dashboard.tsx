@@ -1,4 +1,5 @@
 import { Header } from '@/components/Header'
+import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
 import { appliances, callHistory, getApplianceData } from '@/lib/applianceService'
 import { useState } from 'react'
@@ -35,8 +36,8 @@ export default function Dashboard() {
           {selectedAppliance && applianceData ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
               {/* 왼쪽 섹션 - 제품 상태 모니터링 그래프들들 */}
-
               {/* 오른쪽 섹션 - 추천 솔루션(LLM) */}
+              <Recommendations applianceData={applianceData} />
             </div>
           ) : (
             <div className="h-full flex items-center justify-center">
