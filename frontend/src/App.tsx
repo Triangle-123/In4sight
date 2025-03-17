@@ -1,9 +1,5 @@
-function App() {
-  return (
-    <div>
-      <h1>Hello World</h1>
-    </div>
-  )
-}
+import Dashboard from '@/pages/Dashboard'
 
-export default App
+export default function Home() {
+  return <Dashboard />
+}
