@@ -13,6 +13,7 @@ interface SidebarProps {
   volumeEnabled: boolean
   setVolumeEnabled: (enabled: boolean) => void
   appliances: ApplianceType[]
+  callHistory: { date: string; time: string; topic: string }[]
 }
 
 export function Sidebar({
@@ -24,6 +25,7 @@ export function Sidebar({
   volumeEnabled,
   setVolumeEnabled,
   appliances,
+  callHistory,
 }: SidebarProps) {
   return (
     <div
@@ -34,7 +36,7 @@ export function Sidebar({
         <h2 className="font-semibold text-lg mb-2">고객 정보</h2>
         <div className="space-y-2 text-sm">
           <p>
-            <span className="font-medium">이름:</span> 조현준
+            <span className="font-medium">이름:</span> 김지은
           </p>
           <p>
             <span className="font-medium">전화번호:</span> 010-1234-5678
@@ -43,7 +45,7 @@ export function Sidebar({
             <span className="font-medium">주소:</span> 서울시 강남구 테헤란로 123
           </p>
           <p>
-            <span className="font-medium">문의 내용:</span> 에어컨이 작동하질 않는데요?
+            <span className="font-medium">문의 내용:</span> 가전제품 오작동
           </p>
         </div>
       </div>
@@ -69,6 +71,20 @@ export function Sidebar({
               />
               {appliance.name}
             </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-4 border-b">
+        <h2 className="font-semibold text-lg mb-2">통화 기록</h2>
+        <div className="space-y-2 text-sm">
+          {callHistory.map((call, index) => (
+            <div key={index} className="p-2 bg-background rounded-md">
+              <p className="font-medium">
+                {call.date} {call.time}
+              </p>
+              <p className="text-muted-foreground">{call.topic}</p>
+            </div>
           ))}
         </div>
       </div>

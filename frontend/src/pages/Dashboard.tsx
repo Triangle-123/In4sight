@@ -1,6 +1,6 @@
 import { Header } from '@/components/Header'
 import { Sidebar } from '@/components/Sidebar'
-import { appliances, getApplianceData } from '@/lib/applianceService'
+import { appliances, callHistory, getApplianceData } from '@/lib/applianceService'
 import { useState } from 'react'
 
 export default function Dashboard() {
@@ -23,6 +23,7 @@ export default function Dashboard() {
         volumeEnabled={volumeEnabled}
         setVolumeEnabled={setVolumeEnabled}
         appliances={appliances}
+        callHistory={callHistory}
       />
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
