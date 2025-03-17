@@ -1,0 +1,17 @@
+{
+  "semi": false,
+  "singleQuote": true,
+  "objectWrap": "collapse",
+  "proseWrap": "always",
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+
+  "importOrder": [
+    "^[A-Z](.*)$",
+    "^@store/(.*)$",
+    "^@common/(.*)$",
+    "^@ui/(.*)$",
+    "^[./]"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
+}
