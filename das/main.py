@@ -8,8 +8,10 @@ from typing import Any
 
 import eda
 
-eda.create_producer(bootstrap_servers="localhost:9092")
-eda.create_consumer(bootstrap_servers="localhost:9092", group_id="test-group")
+from app.config import KAFKA_URL
+
+eda.create_producer(bootstrap_servers=KAFKA_URL)
+eda.create_consumer(bootstrap_servers=KAFKA_URL, group_id="test-group")
 
 MESSAGE = None
 
@@ -24,10 +26,10 @@ def callback(message: Any) -> None:
 
 
 print("Subscribing to test event")
-eda.event_subscribe("test-group", "test", callback)
+eda.event_subscribe("test-group", "java", callback)
 print("Subscribed to test event")
 
-eda.event_broadcast("test", "Hello, World!")
+eda.event_broadcast("python", "Hello, World!")
 
 TIME_LIMIT = 5
 while TIME_LIMIT > 0:
