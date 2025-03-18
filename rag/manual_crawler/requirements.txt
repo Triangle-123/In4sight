@@ -1,0 +1,55 @@
+# 데이터 처리 및 분석
+numpy==2.2.4  # 수치 계산 및 배열 처리를 위한 기본 패키지
+pandas==2.2.3  # 데이터 분석 및 조작을 위한 패키지
+python-dateutil==2.9.0.post0  # 날짜/시간 처리 유틸리티
+pytz==2025.1  # 시간대 처리 라이브러리
+tzdata==2025.1  # 시간대 데이터베이스
+
+# 웹 크롤링 및 파싱
+beautifulsoup4==4.13.3  # HTML/XML 파싱 라이브러리
+requests==2.32.3  # HTTP 요청 처리 라이브러리
+urllib3==2.3.0  # HTTP 클라이언트 라이브러리
+soupsieve==2.6  # BeautifulSoup의 CSS 선택자 엔진
+charset-normalizer==3.4.1  # 문자 인코딩 감지/변환
+certifi==2025.1.31  # SSL/TLS 인증서 관리
+idna==3.10  # 국제화된 도메인 이름 처리
+
+# 파일 처리
+openpyxl==3.1.5  # Excel 파일 읽기/쓰기
+et_xmlfile==2.0.0  # OpenPyXL의 XML 파일 처리
+
+# 개발 도구 및 디버깅
+ipython==9.0.2  # 향상된 대화형 Python 셸
+ipykernel==6.29.5  # IPython 커널
+jupyter_client==8.6.3  # Jupyter 프로토콜 클라이언트
+jupyter_core==5.7.2  # Jupyter 핵심 기능
+debugpy==1.8.13  # 디버깅 도구
+pipdeptree==2.25.1  # pip 의존성 트리 시각화
+
+# 유틸리티 및 지원 라이브러리
+six==1.17.0  # Python 2/3 호환성 라이브러리
+colorama==0.4.6  # 터미널 색상 출력
+wcwidth==0.2.13  # 문자 폭 계산
+packaging==24.2  # Python 패키징 유틸리티
+typing_extensions==4.12.2  # 타입 힌팅 확장
+
+# IPython/Jupyter 관련 패키지
+asttokens==3.0.0  # AST 토큰화
+comm==0.2.2  # Jupyter 통신
+decorator==5.2.1  # 데코레이터 유틸리티
+executing==2.2.0  # Python 코드 실행 추적
+jedi==0.19.2  # 자동 완성 엔진
+matplotlib-inline==0.1.7  # Matplotlib 인라인 표시
+nest-asyncio==1.6.0  # 중첩된 이벤트 루프 지원
+parso==0.8.4  # Python 파서
+platformdirs==4.3.6  # 플랫폼별 디렉토리 처리
+prompt_toolkit==3.0.50  # 명령줄 인터페이스 도구
+psutil==7.0.0  # 시스템 모니터링
+pure_eval==0.2.3  # 표현식 평가
+Pygments==2.19.1  # 구문 강조
+pywin32==310  # Windows API 접근
+pyzmq==26.3.0  # ZeroMQ 바인딩
+stack-data==0.6.3  # 스택 트레이스 데이터
+tornado==6.4.2  # 웹 프레임워크/비동기 네트워킹
+traitlets==5.14.3  # 설정 시스템
+ipython_pygments_lexers==1.1.1  # IPython 구문 강조
