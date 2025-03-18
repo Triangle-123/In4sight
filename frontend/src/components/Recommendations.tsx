@@ -18,7 +18,7 @@ export function Recommendations({ applianceData }: RecommendationsProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-9 overflow-auto">
       <h2 className="text-xl font-semibold">권장 해결책</h2>
       <div className="space-y-3">
         {applianceData.recommendations.map((recommendation, index) => (

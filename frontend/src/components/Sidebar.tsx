@@ -90,12 +90,13 @@ export function Sidebar({
       </div>
 
       <div className="p-4 border-t flex justify-between">
-        <Button variant="outline" size="icon" onClick={() => setVolumeEnabled(!volumeEnabled)}>
+        {/* <Button variant="outline" size="icon" onClick={() => setVolumeEnabled(!volumeEnabled)}>
           {volumeEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
         </Button>
         <Button variant="outline" size="icon" onClick={() => setMicEnabled(!micEnabled)}>
           {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-        </Button>
+        </Button> */}
+        <p>전자연계 S004</p>
       </div>
     </div>
   )

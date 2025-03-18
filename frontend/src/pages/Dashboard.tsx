@@ -1,3 +1,4 @@
+import { DeviceStatus } from '@/components/DeviceStatus'
 import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
@@ -35,7 +36,9 @@ export default function Dashboard() {
         <main className="flex-1 p-4 overflow-hidden">
           {selectedAppliance && applianceData ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
-              {/* 왼쪽 섹션 - 제품 상태 모니터링 그래프들들 */}
+              {/* 왼쪽 섹션 - 제품 상태 모니터링 그래프들 */}
+              <DeviceStatus applianceData={applianceData} />
+
               {/* 오른쪽 섹션 - 추천 솔루션(LLM) */}
               <Recommendations applianceData={applianceData} />
             </div>
