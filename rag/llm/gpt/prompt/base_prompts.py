@@ -2,6 +2,8 @@
 기본 프롬프트 템플릿 모음
 """
 
+import re
+
 
 class BasePrompts:
     """기본 프롬프트 템플릿을 관리하는 클래스"""
@@ -66,33 +68,57 @@ class BasePrompts:
     @staticmethod
     def format_rag_prompt(context, query):
         """RAG 프롬프트 포맷팅 함수"""
+        # 정규식을 사용하여 문서 정보를 추출
 
-        # RAG 결과에서 필요한 데이터 추출
-        manuals = context["metadatas"][0]
-        distances = context["distances"][0]
+        # 각 문서 블록을 추출하는 패턴
+        pattern = r"--- 문서 (\d+) \[(.*?)\] \(유사도: ([\d.]+)\) ---\s*(.*?)(?=(?:--- 문서 \d+)|$)"
+        matches = re.findall(pattern, context, re.DOTALL)
 
+        # 메타데이터, 유사도, 문서 내용 추출
+        documents = []
+        metadatas = []
+        distances = []
+
+        for match in matches:
+            meta_str = match[1]
+            similarity = float(match[2])
+            content = match[3].strip()
+
+            # 메타데이터 파싱 - 키:값 쌍으로 구성
+            metadata = {}
+            # 쉼표로 구분된 키:값 쌍 찾기
+            meta_parts = re.findall(r"([^,]+?):\s*([^,]+?)(?:,|$)", meta_str)
+            for key, value in meta_parts:
+                metadata[key.strip()] = value.strip()
+
+            documents.append(content)
+            metadatas.append(metadata)
+            distances.append(similarity)
         # 벡터 거리 → 심각도 변환 (1 - 거리) * 100%
         severity_scores = [f"{(1 - dist) * 100:.0f}%" for dist in distances]
 
         # JSON 구조를 유지하면서 개별 메뉴얼을 생성
-        structured_manuals = [
-            {
-                "status": manual[
-                    "response_type"
-                ],  # 현재 모든 응답이 비고장이므로 기본값 설정
-                "issue": manual["title"],
-                "cause": manual["cause"],
-                "recommended_solution": f"**{manual['title']}**\n\n{manual['solution']}",
-                "severity": severity_scores[i],
-            }
-            for i, manual in enumerate(manuals)
-        ]
+        structured_manuals = []
+        for i, metadata in enumerate(metadatas):
+            # 필요한 키가 있는지 확인
+            if all(
+                key in metadata
+                for key in ["response_type", "title", "cause", "solution"]
+            ):
+                manual = {
+                    "status": metadata["response_type"],
+                    "issue": metadata["title"],
+                    "cause": metadata["cause"],
+                    "recommended_solution": f"**{metadata['title']}**\n\n{metadata['solution']}",
+                    "severity": severity_scores[i],
+                }
+                structured_manuals.append(manual)
 
-        formatted_context = f"{structured_manuals}"
+        formatted_context = str(structured_manuals)
 
         return f"""
         제품 고장/비고장 매뉴얼:
         {formatted_context}
-
+        
         유저의 질문: {query}
         """
