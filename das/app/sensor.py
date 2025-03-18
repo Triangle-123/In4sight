@@ -3,11 +3,17 @@
 """
 
 import json
+from datetime import timedelta
 
+import pandas as pd
 from influxdb_client import InfluxDBClient
 
-from app.config import (INFLUXDB_BUCKET_SENSOR, INFLUXDB_ORG, INFLUXDB_TOKEN,
-                        INFLUXDB_URL)
+from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
+                        INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
+from util import convert_to_iso_utc
+
+LIMIT_OPEN_NUMBER = 50
+LIMIT_MAX_INTERVAL = 20 * 60 * 10**9
 
 # influxdb 연결
 client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
@@ -16,7 +22,7 @@ client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG
 query_api = client.query_api()
 
 
-def get_refrigerator_sensors_data():
+def get_refrigerator_analyze(serial_number, startday, endday):
     """
     influxDB에서 모든 냉장고 시계열 데이터 가져오는 함수  (냉장실 + 냉동실)
     """
@@ -29,28 +35,40 @@ def get_refrigerator_sensors_data():
 
     result = {}
 
-    # (현재 기준 3시간 전 데이터 ~ 지금까지 데이터)
-    query = f"""
+    startday = convert_to_iso_utc(startday)
+    endday = convert_to_iso_utc(endday)
+
+    sensors_query = f"""
     from(bucket: "{INFLUXDB_BUCKET_SENSOR}")
-    |> range(start: -3h)
-    |> filter(fn: (r) => r._measurement == "refrigerator")
+    |> range(start: time(v: "{startday}"), stop: time(v: "{endday}"))
+    |> filter(fn: (r) => r._measurement == "refrigerator" and r.serial_number == "{serial_number}")
+    |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+    |> yield()
+    """
+
+    event_query = f"""
+    from(bucket: "{INFLUXDB_BUCKET_EVENT}")
+    |> range(start: time(v: "{startday}"), stop: time(v: "{endday}"))
+    |> filter(fn: (r) => r._measurement == "refrigerator" and r.serial_number == "{serial_number}")
     |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
     |> yield()
     """
 
     # 쿼리 실행 후 pandas DataFrame으로 변환
-    df = query_api.query_data_frame(org=INFLUXDB_ORG, query=query)
+    df_sensor = query_api.query_data_frame(org=INFLUXDB_ORG, query=sensors_query)
+    df_event = query_api.query_data_frame(org=INFLUXDB_ORG, query=event_query)
 
     # 온도 관련 이상치 감지
-    temp_anomalies, temp_sensors = detect_temperature_anomalies(df)
-    anomaly_prompts.extend(temp_anomalies)
-    related_sensor.extend(temp_sensors)
+    detect_temperature_anomalies(df_sensor, df_event, anomaly_prompts, related_sensor)
+
+    # 도어 센서 이상치 감지지
+    check_door_anormality(df_event, anomaly_prompts, related_sensor)
 
     result["anomaly_prompts"] = anomaly_prompts
 
     result["product_type"] = "냉장고"
 
-    result["related_sensor"] = related_sensor
+    result["related_sensor"] = list(set(related_sensor))
 
     formatted_json = json.dumps(
         result,
@@ -64,43 +82,94 @@ def get_refrigerator_sensors_data():
     return formatted_json
 
 
-def detect_temperature_anomalies(df):
+def detect_temperature_anomalies(df_sensor, df_event, anomaly_prompts, related_sensor):
     """
     온도 관련 이상 감지 로직
     """
-    anomaly_prompts = []
-    related_sensor = ["온도"]
+    # 이벤트 데이터에서 문 열림/닫힘 시간 추출
+    df_open_time = df_event[df_event["event_type"] == "door_open"]
+    df_close_time = df_event[df_event["event_type"] == "door_close"]
+    open_times = list(df_open_time["_time"])
+    close_times = list(df_close_time["_time"])
 
-    # 내부 온도 이상치 감지
-    if "location" in df.columns and "temp_internal" in df.columns:
+    # 주어진 시간이 문 열림 이벤트 구간에 포함되는지 확인
+    def is_door_open(time):
+        for open_time, close_time in zip(open_times, close_times):
+            if open_time <= time < close_time + timedelta(hours=1):
+                return True
+        return False
 
-        # 냉장실 데이터만 가져오기
-        fridge_data = df[df["location"] == "fridge"]
+    # 온도 관련 컬럼과 location이 존재하는 경우에만 처리
+    if "location" in df_sensor.columns and "temp_internal" in df_sensor.columns:
 
-        # 냉장실 내부 온도 이상치 감지
-        fridge_anomaly_temp_internal = fridge_data[fridge_data["temp_internal"] > 10]
+        # === 냉장실 (fridge) 처리 ===
+        fridge_data = df_sensor[df_sensor["location"] == "fridge"]
+        valid_fridge_rows = []
+        for _, row in fridge_data.iterrows():
+            if not is_door_open(row["_time"]):
+                valid_fridge_rows.append(row)
 
-        if not fridge_anomaly_temp_internal.empty:
-            anomaly_prompts.append("내부 온도(냉장실) 이상 고온 감지")
+        valid_fridge_df = pd.DataFrame(valid_fridge_rows)
 
-        # 냉동실 데이터만 가져오기
-        freezer_data = df[df["location"] == "freezer"]
+        # 냉장실 내부 온도가 10도 이상이면 이상치로 판단
+        if not valid_fridge_df.empty:
+            fridge_anomaly = valid_fridge_df[valid_fridge_df["temp_internal"] >= 10]
+            if not fridge_anomaly.empty:
+                print("hi")
+                anomaly_prompts.append("내부 온도(냉장실) 이상 고온 감지")
+                related_sensor.append("온도")
 
-        # 냉동실 내부 온도 이상치 감지
-        freezer_anomaly_temp_internal = freezer_data[
-            freezer_data["temp_internal"] > -17
-        ]
+        # === 냉동실 (freezer) 처리 ===
+        freezer_data = df_sensor[df_sensor["location"] == "freezer"]
+        valid_freezer_rows = []
+        for _, row in freezer_data.iterrows():
+            if not is_door_open(row["_time"]):
+                valid_freezer_rows.append(row)
 
-        if not freezer_anomaly_temp_internal.empty:
-            anomaly_prompts.append("내부 온도(냉동실) 이상 고온 감지")
+        valid_freezer_df = pd.DataFrame(valid_freezer_rows)
 
-        row_anomaly_temp_external = df[df["temp_external"] < 5]
-        high_anomaly_temp_external = df[df["temp_external"] > 45]
+        # 냉동실 내부 온도가 -17도 이상이면 이상치로 판단
+        if not valid_freezer_df.empty:
+            freezer_anomaly = valid_freezer_df[valid_freezer_df["temp_internal"] >= -17]
+            if not freezer_anomaly.empty:
+                anomaly_prompts.append("내부 온도(냉동실) 이상 고온 감지")
+                related_sensor.append("온도")
 
-        if not row_anomaly_temp_external.empty:
+    # === 외부 온도 감지 (문 열림 이벤트 고려 없이 판별) ===
+    if "temp_external" in df_sensor.columns:
+        low_external = df_sensor[df_sensor["temp_external"] < 5]
+        high_external = df_sensor[df_sensor["temp_external"] > 45]
+        if not low_external.empty:
             anomaly_prompts.append("외부 온도 이상 저온 감지")
-
-        if not high_anomaly_temp_external.empty:
+            related_sensor.append("온도")
+        if not high_external.empty:
             anomaly_prompts.append("외부 온도 이상 고온 감지")
+            related_sensor.append("온도")
 
-    return anomaly_prompts, related_sensor
+
+def check_door_anormality(df_event, anormality_list, related_sensor):
+    """
+    냉장실의 도어 센서의 이상치를 판단하는 로직입니다.
+    """
+    df_open_time = df_event[df_event["event_type"] == "door_open"]
+    df_close_time = df_event[df_event["event_type"] == "door_close"]
+
+    open_times = list(df_open_time["_time"])
+    close_times = list(df_close_time["_time"])
+
+    open_number = len(open_times)
+    max_interval = 0
+    open_times_length = len(open_times)
+
+    for index in range(open_times_length):
+        max_interval = max(
+            max_interval, int((close_times[index] - open_times[index]).value)
+        )
+
+    if open_number >= LIMIT_OPEN_NUMBER:
+        anormality_list.append("문 열림 횟수가 너무 많음")
+        related_sensor.append("문")
+
+    if max_interval >= LIMIT_MAX_INTERVAL:
+        anormality_list.append("문이 너무 오래 열려 있었거나 문이 잘 닫히지 않았음")
+        related_sensor.append("문")
