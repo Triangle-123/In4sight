@@ -8,8 +8,10 @@ from typing import Any
 
 import eda
 
-eda.create_producer(bootstrap_servers="j12s004.p.ssafy.io:8003")
-eda.create_consumer(bootstrap_servers="j12s004.p.ssafy.io:8003", group_id="test-group")
+from app.config import KAFKA_URL
+
+eda.create_producer(bootstrap_servers=KAFKA_URL)
+eda.create_consumer(bootstrap_servers=KAFKA_URL, group_id="test-group")
 
 MESSAGE = None
 
@@ -20,9 +22,6 @@ def callback(message: Any) -> None:
     """
     # pylint: disable=global-statement
     global MESSAGE
-    print("success")
-    print("message : " + message)
-    message = "Hello, World!"
     MESSAGE = message
 
 
@@ -32,7 +31,7 @@ print("Subscribed to test event")
 
 eda.event_broadcast("python", "Hello, World!")
 
-TIME_LIMIT = 1000
+TIME_LIMIT = 5
 while TIME_LIMIT > 0:
     if MESSAGE is not None:
         break
