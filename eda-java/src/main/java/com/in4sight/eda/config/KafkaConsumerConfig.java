@@ -31,7 +31,7 @@ public class KafkaConsumerConfig {
 		configs.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
 		configs.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 1000);
 
-		JsonDeserializer jsonDeserializer = new JsonDeserializer();
+		JsonDeserializer jsonDeserializer = new CustomJsonDeserializer(Object.class);
 		jsonDeserializer.trustedPackages("*");
 
 		ErrorHandlingDeserializer<Object> errorHandlingDeserializer =

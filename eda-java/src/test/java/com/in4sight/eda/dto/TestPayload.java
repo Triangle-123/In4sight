@@ -4,5 +4,10 @@ import lombok.Data;
 
 @Data
 public class TestPayload {
-	String name;
+	Child name;
+
+	@Data
+	public static class Child {
+		private String child;
+	}
 }

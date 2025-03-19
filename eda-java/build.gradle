@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'com.in4sight'
-version = '0.1.0'
+version = '0.1.1'
 
 compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'
@@ -30,6 +30,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.kafka:spring-kafka'
     annotationProcessor 'org.projectlombok:lombok'
     compileOnly 'org.projectlombok:lombok'
@@ -42,7 +43,7 @@ dependencies {
 }
 
 def env = new Properties()
-file('.publish-info').withInputStream {  env.load(it) }
+file('.env').withInputStream {  env.load(it) }
 
 publishing {
     publications {
