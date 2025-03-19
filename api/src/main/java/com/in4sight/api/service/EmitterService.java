@@ -67,7 +67,7 @@ public class EmitterService {
 			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
 			List<CustomerDevice> devices = new ArrayList<>();
 			List<String> serialNumbers = new ArrayList<>();
-			for(DeviceResponseDto device : deviceResponse) {
+			for (DeviceResponseDto device : deviceResponse) {
 				devices.add(
 					new CustomerDevice(
 						device.getProductType(),
