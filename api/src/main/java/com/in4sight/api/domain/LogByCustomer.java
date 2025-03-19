@@ -1,6 +1,5 @@
 package com.in4sight.api.domain;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
