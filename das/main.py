@@ -131,7 +131,7 @@ def detect_temperature_anomalies(
             anomaly_sensors.append("temp_external")
 
 
-def check_door_anormality(df_event, anormality_list, related_sensor):
+def check_door_anormality(df_event, anormality_list, related_sensor, event_cols):
     """
     냉장실, 냉동실의 도어 센서 이상치를 판단하는 로직입니다.
     """
@@ -150,15 +150,19 @@ def check_door_anormality(df_event, anormality_list, related_sensor):
 
         # 문 열림 횟수 이상
         if open_number >= LIMIT_OPEN_NUMBER:
-            anormality_list.append(f"{location_name} 문 열림 횟수가 너무 많음")
+            anormality_list.append(f"{location_name} 문 열림 횟수가 너무 많음.")
             related_sensor.append("문")
+            event_cols.append(f"{location_name} 문 열림 횟수가 너무 많음.")
 
         # 문이 너무 오래 열려 있거나 닫히지 않은 경우
         if max_interval >= LIMIT_MAX_INTERVAL:
             anormality_list.append(
-                f"{location_name} 문이 너무 오래 열려 있었거나 문이 잘 닫히지 않았음"
+                f"{location_name} 문이 너무 오래 열려 있었거나 문이 잘 닫히지 않았음."
             )
             related_sensor.append("문")
+            event_cols.append(
+                f"{location_name} 문이 너무 오래 열려 있었거나 문이 잘 닫히지 않았음."
+            )
 
     # 냉장실과 냉동실 각각 검사
     check_location_door("냉장실", open_times_fridge, close_times_fridge)
@@ -172,8 +176,9 @@ def get_refrigerator_analyze(serial_number, startday, endday):
 
     anomaly_prompts = []
     related_sensor = []
-    default_cols = ["_time", "location"]
+    default_cols = ["_time", "location", "serial_number"]
     sensor_cols = []  # 온도 이상 감지 시 여기에 센서 컬럼명이 append 됨.
+    event_cols = []
     result = {}
 
     # 날짜를 RFC3339(ISO) 형식으로 변환
@@ -202,6 +207,7 @@ def get_refrigerator_analyze(serial_number, startday, endday):
     df_sensor = query_api.query_data_frame(org=INFLUXDB_ORG, query=sensors_query)
     df_event = query_api.query_data_frame(org=INFLUXDB_ORG, query=event_query)
 
+    # 데이터프레임이 여러개 나온다면 하나로 합친다
     if isinstance(df_sensor, list):
         df_sensor = pd.concat(df_sensor)
 
@@ -211,7 +217,7 @@ def get_refrigerator_analyze(serial_number, startday, endday):
     )
 
     # 도어 센서 이상치 감지
-    check_door_anormality(df_event, anomaly_prompts, related_sensor)
+    check_door_anormality(df_event, anomaly_prompts, related_sensor, event_cols)
 
     # sensor_cols가 비어있는지 리스트의 길이로 체크
     if sensor_cols:
@@ -222,7 +228,9 @@ def get_refrigerator_analyze(serial_number, startday, endday):
 
         # wide format -> long format 변환: _time, location은 id_vars, 나머지 센서 컬럼은 value_vars로 처리
         sensor_long = sensor.melt(
-            id_vars=["_time", "location"], var_name="sensor", value_name="value"
+            id_vars=["_time", "location", "serial_number"],
+            var_name="sensor",
+            value_name="value",
         ).rename(columns={"_time": "time"})
 
         # value가 null인 행 제거
@@ -235,20 +243,19 @@ def get_refrigerator_analyze(serial_number, startday, endday):
 
         print(request_sensor)
 
-        event = (
-            df_event[["_time", "event_type", "location"]]
-            .sort_values("_time")
-            .rename(columns={"_time": "time"})
-        )
-
-        request_event = event.to_json(
-            orient="records", date_format="iso", date_unit="s", indent=4
-        )
-
         eda.event_broadcast("data_sensor", request_sensor)
-        eda.event_broadcast("data_event", request_event)
     else:
-        eda.event_broadcast("data_sensor", "정상")
+        eda.event_broadcast("data_sensor", "센서 데이터 정상")
+
+    if event_cols:
+
+        event_cols = dumps(event_cols, indent=4, ensure_ascii=False)
+
+        print(event_cols)
+
+        eda.event_broadcast("data_event", event_cols)
+    else:
+        eda.event_broadcast("data_event", "이벤트 데이터 정상")
 
     result["anomaly_prompts"] = anomaly_prompts
     result["product_type"] = "냉장고"
