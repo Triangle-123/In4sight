@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.in4sight.api.domain.CustomerDevice;
 import com.in4sight.api.domain.LogByCustomer;
-import com.in4sight.api.dto.CounsellingRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.TimeseriesDataDto;
@@ -76,7 +75,7 @@ public class EmitterService {
 			counsellingRepository.deleteAll();
 			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
 			List<CustomerDevice> devices = new ArrayList<>();
-			List<CounsellingRequestDto> request = new ArrayList<>();
+			List<String> serialNumbers = new ArrayList<>();
 			for (DeviceResponseDto device : deviceResponse) {
 				devices.add(
 					new CustomerDevice(
@@ -84,18 +83,14 @@ public class EmitterService {
 						device.getModelSuffix(),
 						device.getSerialNumber(),
 						new ArrayList<>()));
-				request.add(new CounsellingRequestDto(device.getSerialNumber(), device.getProductType()));
+				serialNumbers.add(device.getSerialNumber());
 			}
 			counsellingRepository.save(
 				new LogByCustomer(
 					customerResponseDto.getCustomerId(),
 					LocalDate.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd")),
 					devices));
-//			kafkaProducer.broadcastEvent("counsellingRequest", request);
-			List<String> serialNumber = new ArrayList<>();
-			serialNumber.add("test_002");
-			serialNumber.add("test_008");
-			kafkaProducer.broadcastEvent("java-1", serialNumber);
+			kafkaProducer.broadcastEvent("java-1", serialNumbers);
 		});
 
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();
@@ -107,7 +102,6 @@ public class EmitterService {
 		List<TimeseriesDataDto> data = new ObjectMapper().readValue(
 			messages, new TypeReference<List<TimeseriesDataDto>>() {
 			});
-//		latch.countDown();
 		log.info(data.get(0).toString());
 		log.info(String.valueOf(data.size()));
 	}
@@ -115,8 +109,6 @@ public class EmitterService {
 	@KafkaListener(topics = "python", groupId = "#{appProperties.getConsumerGroup()}")
 	public void eventListener(String messages) {
 		log.info("event received");
-
 		log.info(messages);
-//		latch.countDown();
 	}
 }
