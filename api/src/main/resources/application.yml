@@ -27,12 +27,13 @@ spring:
     mongodb:
       uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_APPNAME}.b2pc5.mongodb.net/?retryWrites=true&w=majority&appName=${MONGODB_APPNAME}
       database: ${MONGODB_SCHEMA}
+
 server:
   port: 8080
 
 eda:
   kafka:
-    bootstrap-server: localhost:9092
+    bootstrap-server: j12s004.p.ssafy.io:8003
     consumer-group: consumer-java
 
 

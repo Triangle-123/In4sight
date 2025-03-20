@@ -14,13 +14,13 @@ import lombok.ToString;
 public class CustomerDevice {
 
 	@Field("product_type")
-	private final String productType;
+	private String productType;
 
 	@Field("model_suffix")
-	private final String modelSuffix;
+	private String modelSuffix;
 
 	@Field("serial_number")
-	private final String serialNumber;
+	private String serialNumber;
 
 	private List<Issue> issues;
 }

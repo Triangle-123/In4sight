@@ -37,6 +37,9 @@ public class Device {
 	@Column(name = "model_suffix", nullable = false)
 	private String modelSuffix;
 
+	@Column(name = "model_name", nullable = false)
+	private String modelName;
+
 	@Column(name = "launch_date", nullable = false)
 	private LocalDate launchDate;
 }

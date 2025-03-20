@@ -26,6 +26,7 @@ public class DeviceService {
 				.serialNumber(device.getSerialNumber())
 				.productType(device.getProductType())
 				.modelSuffix(device.getModelSuffix())
+				.modelName(device.getModelName())
 				.launchDate(device.getLaunchDate())
 				.build());
 		}

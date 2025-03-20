@@ -1,7 +1,10 @@
 package com.in4sight.api.controller;
 
+import java.util.NoSuchElementException;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +22,8 @@ import com.in4sight.api.service.EmitterService;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/counselling")
-public class CounsellingController {
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+public class CounselingController {
 
 	private final CustomerService customerService;
 	private final EmitterService emitterService;
@@ -41,14 +45,13 @@ public class CounsellingController {
 		@RequestBody
 		CustomerRequestDto customerRequestDto
 	) {
-
 		try {
 			emitterService.startProcess(taskId, customerService.findCustomer(customerRequestDto));
-			return ResponseEntity.ok().build();
+			return ResponseEntity.ok().body("솔루션 요청 성공");
+		} catch (NoSuchElementException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
 			return ResponseEntity.internalServerError().body("SSE 통신 중 에러 발생");
 		}
 	}
-
-
 }

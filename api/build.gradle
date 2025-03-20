@@ -58,7 +58,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'com.in4sight:eda:0.1.0'
+    implementation 'com.in4sight:eda:0.1.1'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
