@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle, CircleUserRound, XCircle } from 'lucide-react'
 
 interface StatusBadgeProps {
   status: string
@@ -25,6 +25,13 @@ export function StatusBadge({ status }: StatusBadgeProps) {
         <div className="flex items-center space-x-2 text-red-600">
           <XCircle className="w-5 h-5" />
           <span>오류</span>
+        </div>
+      )
+    case 'user':
+      return (
+        <div className="flex items-center space-x-2 text-blue-600">
+          <CircleUserRound className="w-5 h-5" />
+          <span>질문</span>
         </div>
       )
     default:

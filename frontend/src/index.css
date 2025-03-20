@@ -24,6 +24,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.625rem;
+    font-family: Pretendard, system-ui, sans-serif;
   }
 
   .dark {
@@ -47,6 +48,14 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('fonts/Pretendard-Medium.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 * {

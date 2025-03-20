@@ -7,10 +7,63 @@ import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 import { StatusBadge } from './StatusBadge'
 
 interface DeviceStatusProps {
-  applianceData: ApplianceDataType
+  applianceData?: ApplianceDataType
+  isLoading?: boolean
 }
 
-export function DeviceStatus({ applianceData }: DeviceStatusProps) {
+// 스켈레톤 컴포넌트들
+const SkeletonLine = () => <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
+
+const SkeletonCard = () => (
+  <Card>
+    <CardContent className="p-4">
+      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2 mb-2" />
+      <div className="h-8 bg-gray-200 rounded animate-pulse w-1/3" />
+    </CardContent>
+  </Card>
+)
+
+const SkeletonChart = () => (
+  <Card>
+    <CardHeader className="pb-2">
+      <div className="flex items-center">
+        <div className="h-4 w-4 bg-gray-200 rounded animate-pulse mr-2" />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3" />
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="h-[200px] bg-gray-200 rounded animate-pulse w-full" />
+    </CardContent>
+  </Card>
+)
+
+export function DeviceStatus({ applianceData, isLoading = false }: DeviceStatusProps) {
+  if (isLoading || !applianceData) {
+    return (
+      <div className="lg:col-span-2 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-6 bg-gray-200 rounded animate-pulse w-48 mb-2" />
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-32" />
+          </div>
+          <div className="h-6 w-20 bg-gray-200 rounded-full animate-pulse" />
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <SkeletonChart key={index} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="lg:col-span-2 space-y-4">
       <div className="flex items-center justify-between">
