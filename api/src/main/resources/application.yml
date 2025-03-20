@@ -32,7 +32,7 @@ server:
 
 eda:
   kafka:
-    bootstrap-server: localhost:9092
+    bootstrap-server: j12s004.p.ssafy.io:8003
     consumer-group: consumer-java
 
 

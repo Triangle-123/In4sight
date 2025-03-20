@@ -15,5 +15,6 @@ public class DeviceResponseDto {
 	String serialNumber;
 	String productType;
 	String modelSuffix;
+	String modelName;
 	LocalDate launchDate;
 }
