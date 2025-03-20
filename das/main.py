@@ -24,11 +24,12 @@ def callback(message: Any) -> None:
     Event 수신 콜백 함수
     """
     print(message)
-    get_refrigerator_analyze(message, "2024-03-01", "2024-03-02")
+    for number in message:
+        get_refrigerator_analyze(number, "2024-03-01", "2024-03-02")
 
 
 print("Subscribing to test event")
-eda.event_subscribe("test-group", "java-1", callback)
+eda.event_subscribe("test-group", "counseling_request", callback)
 print("Subscribed to test event")
 
 
@@ -234,16 +235,20 @@ def get_refrigerator_analyze(serial_number, startday, endday):
 
         print(request_sensor)
 
-        event = df_event[["_time", "event_type", "location"]].sort_values("_time")
+        event = (
+            df_event[["_time", "event_type", "location"]]
+            .sort_values("_time")
+            .rename(columns={"_time": "time"})
+        )
 
         request_event = event.to_json(
             orient="records", date_format="iso", date_unit="s", indent=4
         )
 
-        eda.event_broadcast("python-sensor", request_sensor)
-        eda.event_broadcast("python", request_event)
+        eda.event_broadcast("data_sensor", request_sensor)
+        eda.event_broadcast("data_event", request_event)
     else:
-        eda.event_broadcast("python", "none")
+        eda.event_broadcast("data_sensor", "정상")
 
     result["anomaly_prompts"] = anomaly_prompts
     result["product_type"] = "냉장고"
