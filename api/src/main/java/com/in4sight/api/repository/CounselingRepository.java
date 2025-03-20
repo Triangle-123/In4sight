@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.in4sight.api.domain.LogByCustomer;
 
 @Repository
-public interface CounsellingRepository extends MongoRepository<LogByCustomer, String> {
+public interface CounselingRepository extends MongoRepository<LogByCustomer, String> {
 	LogByCustomer findByCustomerId(String customerId);
 }

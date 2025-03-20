@@ -23,7 +23,7 @@ import com.in4sight.api.domain.LogByCustomer;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.TimeseriesDataDto;
-import com.in4sight.api.repository.CounsellingRepository;
+import com.in4sight.api.repository.CounselingRepository;
 import com.in4sight.eda.producer.KafkaProducer;
 
 @Slf4j
@@ -33,7 +33,7 @@ public class EmitterService {
 
 	private final ConcurrentHashMap<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 	private final DeviceService deviceService;
-	private final CounsellingRepository counsellingRepository;
+	private final CounselingRepository counselingRepository;
 	private final KafkaProducer kafkaProducer;
 
 	public SseEmitter addEmitter(String taskId, SseEmitter emitter) throws Exception {
@@ -72,7 +72,7 @@ public class EmitterService {
 		});
 
 		CompletableFuture<Void> sendCounsellingRequest = CompletableFuture.runAsync(() -> {
-			counsellingRepository.deleteAll();
+			counselingRepository.deleteAll();
 			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
 			List<CustomerDevice> devices = new ArrayList<>();
 			List<String> serialNumbers = new ArrayList<>();
@@ -85,18 +85,18 @@ public class EmitterService {
 						new ArrayList<>()));
 				serialNumbers.add(device.getSerialNumber());
 			}
-			counsellingRepository.save(
+			counselingRepository.save(
 				new LogByCustomer(
 					customerResponseDto.getCustomerId(),
 					LocalDate.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd")),
 					devices));
-			kafkaProducer.broadcastEvent("java-1", serialNumbers);
+			kafkaProducer.broadcastEvent("counseling_request", serialNumbers);
 		});
 
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();
 	}
 
-	@KafkaListener(topics = "python-sensor", groupId = "#{appProperties.getConsumerGroup()}")
+	@KafkaListener(topics = "data_sensor", groupId = "#{appProperties.getConsumerGroup()}")
 	public void sensorListener(String messages) throws Exception {
 		log.info("sensor received");
 		List<TimeseriesDataDto> data = new ObjectMapper().readValue(
@@ -106,7 +106,7 @@ public class EmitterService {
 		log.info(String.valueOf(data.size()));
 	}
 
-	@KafkaListener(topics = "python", groupId = "#{appProperties.getConsumerGroup()}")
+	@KafkaListener(topics = "data_event", groupId = "#{appProperties.getConsumerGroup()}")
 	public void eventListener(String messages) {
 		log.info("event received");
 		log.info(messages);

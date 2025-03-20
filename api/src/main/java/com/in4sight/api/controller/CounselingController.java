@@ -23,7 +23,7 @@ import com.in4sight.api.service.EmitterService;
 @AllArgsConstructor
 @RequestMapping("/counselling")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class CounsellingController {
+public class CounselingController {
 
 	private final CustomerService customerService;
 	private final EmitterService emitterService;
