@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-
 # 환경 변수 설정
 INFLUXDB_URL = os.getenv("INFLUXDB_URL", "http://localhost:8086")
 INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN", "your-token-here")
