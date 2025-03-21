@@ -1,9 +1,5 @@
 package com.in4sight.api.service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,11 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import com.in4sight.api.domain.CustomerDevice;
-import com.in4sight.api.domain.LogByCustomer;
-import com.in4sight.api.dto.CounselingRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
-import com.in4sight.api.dto.DeviceResponseDto;
+import com.in4sight.api.dto.EventDataDto;
 import com.in4sight.api.dto.SolutionDto;
 import com.in4sight.api.dto.TimeseriesDataDto;
 import com.in4sight.api.repository.CounselingRepository;
@@ -73,27 +66,27 @@ public class EmitterService {
 		});
 
 		CompletableFuture<Void> sendCounsellingRequest = CompletableFuture.runAsync(() -> {
-			counselingRepository.deleteAll();
-			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
-			List<CustomerDevice> devices = new ArrayList<>();
-			List<String> serialNumbers = new ArrayList<>();
-			for (DeviceResponseDto device : deviceResponse) {
-				devices.add(
-					new CustomerDevice(
-						device.getProductType(),
-						device.getModelSuffix(),
-						device.getSerialNumber(),
-						new ArrayList<>()));
-				serialNumbers.add(device.getSerialNumber());
-			}
-			counselingRepository.save(
-				new LogByCustomer(
-					customerResponseDto.getCustomerId(),
-					LocalDate.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd")),
-					devices));
-
-			log.info("counseling request");
-			kafkaProducer.broadcastEvent("counseling_request", new CounselingRequestDto(taskId, serialNumbers));
+//			counselingRepository.deleteAll();
+//			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
+//			List<CustomerDevice> devices = new ArrayList<>();
+//			List<String> serialNumbers = new ArrayList<>();
+//			for (DeviceResponseDto device : deviceResponse) {
+//				devices.add(
+//					new CustomerDevice(
+//						device.getProductType(),
+//						device.getModelSuffix(),
+//						device.getSerialNumber(),
+//						new ArrayList<>()));
+//				serialNumbers.add(device.getSerialNumber());
+//			}
+//			counselingRepository.save(
+//				new LogByCustomer(
+//					customerResponseDto.getCustomerId(),
+//					LocalDate.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd")),
+//					devices));
+//
+//			log.info("counseling request");
+//			kafkaProducer.broadcastEvent("counseling_request", new CounselingRequestDto(taskId, serialNumbers));
 		});
 
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();
@@ -116,7 +109,16 @@ public class EmitterService {
 
 	@KafkaListener(topics = "data_event", groupId = "#{appProperties.getConsumerGroup()}")
 	public void eventListener(String messages) throws Exception {
-		log.info("event received");
+		if (!messages.equals("이벤트 데이터 정상")) {
+			EventDataDto data = new ObjectMapper().readValue(messages, EventDataDto.class);
+			log.info(data.getTaskId());
+			log.info(data.getEvent().toString());
+			SseEmitter emitter = emitters.get(data.getTaskId());
+			SseEmitter.SseEventBuilder event = SseEmitter.event()
+				.name("event-data")
+				.data(data.getEvent());
+			emitter.send(event);
+		}
 		log.info(messages);
 
 	}
