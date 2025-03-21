@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EventDataDto {
 	private String taskId;
-	private List<String> Event;
+	private List<String> event;
 }
