@@ -9,24 +9,23 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TimeseriesDataDto {
+public class SolutionDto {
 
 	private String taskId;
-	private List<Data> data;
+	private List<Result> result;
 
-	@lombok.Data
+	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-	private static class Data {
-		private String serialNumber;
-		private String time;
-		private String location;
-		private String sensor;
-		private Double value;
+	private static class Result {
+		private String status;
+		private String issue;
+		private String recommendedSolution;
 	}
+
+
 }
