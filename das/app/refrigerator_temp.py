@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import pandas as pd
 
-from .util import get_door_times
+from app.util import get_door_times
 
 
 def is_door_open(time, open_times, close_times):

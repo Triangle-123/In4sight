@@ -9,8 +9,8 @@ from fastapi import FastAPI
 
 import eda
 
-from .config import KAFKA_URL
-from .sensor import get_refrigerator_analyze
+from app.config import KAFKA_URL
+from app.sensor import get_refrigerator_analyze
 
 
 @asynccontextmanager

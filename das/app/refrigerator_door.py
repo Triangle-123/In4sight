@@ -2,7 +2,7 @@
 냉장고 문 관련 이상치를 판단하는 모듈입니다.
 """
 
-from .util import get_door_times
+from app.util import get_door_times
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산

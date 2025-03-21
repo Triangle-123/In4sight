@@ -8,17 +8,17 @@ import eda
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
-from .config import (
+from app.config import (
     INFLUXDB_BUCKET_EVENT,
     INFLUXDB_BUCKET_SENSOR,
     INFLUXDB_ORG,
     INFLUXDB_TOKEN,
     INFLUXDB_URL,
 )
-from .util import convert_to_iso_utc
+from app.util import convert_to_iso_utc
 
-from .refrigerator_door import check_door_anormality
-from .refrigerator_temp import detect_temperature_anomalies
+from app.refrigerator_door import check_door_anormality
+from app.refrigerator_temp import detect_temperature_anomalies
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
