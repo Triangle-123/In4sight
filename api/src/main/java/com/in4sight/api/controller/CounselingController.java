@@ -21,7 +21,7 @@ import com.in4sight.api.service.EmitterService;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/counselling")
+@RequestMapping("/api/v1/counseling")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class CounselingController {
 

@@ -12,7 +12,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
@@ -20,8 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.in4sight.api.domain.CustomerDevice;
 import com.in4sight.api.domain.LogByCustomer;
+import com.in4sight.api.dto.CounselingRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
+import com.in4sight.api.dto.SolutionDto;
 import com.in4sight.api.dto.TimeseriesDataDto;
 import com.in4sight.api.repository.CounselingRepository;
 import com.in4sight.eda.producer.KafkaProducer;
@@ -90,7 +91,9 @@ public class EmitterService {
 					customerResponseDto.getCustomerId(),
 					LocalDate.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd")),
 					devices));
-			kafkaProducer.broadcastEvent("counseling_request", serialNumbers);
+
+			log.info("counseling request");
+			kafkaProducer.broadcastEvent("counseling_request", new CounselingRequestDto(taskId, serialNumbers));
 		});
 
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();
@@ -99,16 +102,34 @@ public class EmitterService {
 	@KafkaListener(topics = "data_sensor", groupId = "#{appProperties.getConsumerGroup()}")
 	public void sensorListener(String messages) throws Exception {
 		log.info("sensor received");
-		List<TimeseriesDataDto> data = new ObjectMapper().readValue(
-			messages, new TypeReference<List<TimeseriesDataDto>>() {
-			});
-		log.info(data.get(0).toString());
-		log.info(String.valueOf(data.size()));
+		if (!messages.equals("센서 데이터 정상")) {
+			TimeseriesDataDto data = new ObjectMapper().readValue(messages, TimeseriesDataDto.class);
+			log.info(data.getTaskId());
+			log.info(String.valueOf(data.getData().size()));
+			SseEmitter emitter = emitters.get(data.getTaskId());
+			SseEmitter.SseEventBuilder event = SseEmitter.event()
+				.name("sensor-data")
+				.data(data.getData());
+			emitter.send(event);
+		}
 	}
 
 	@KafkaListener(topics = "data_event", groupId = "#{appProperties.getConsumerGroup()}")
-	public void eventListener(String messages) {
+	public void eventListener(String messages) throws Exception {
 		log.info("event received");
 		log.info(messages);
+
+	}
+
+	@KafkaListener(topics = "rag_solution", groupId = "#{appProperties.getConsumerGroup()}")
+	public void solutionListener(String messages) throws Exception {
+		log.info("solution received");
+		log.info(messages);
+		SolutionDto data = new ObjectMapper().readValue(messages, SolutionDto.class);
+		SseEmitter emitter = emitters.get(data.getTaskId());
+		SseEmitter.SseEventBuilder event = SseEmitter.event()
+				.name("solution")
+				.data(data.getResult());
+		emitter.send(event);
 	}
 }
