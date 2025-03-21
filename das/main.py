@@ -265,6 +265,8 @@ def get_refrigerator_analyze(serial_number, startday, endday):
 
     print(formatted_json)
 
+    eda.event_broadcast("das_result", formatted_json)
+
 
 if __name__ == "__main__":
     while True:
