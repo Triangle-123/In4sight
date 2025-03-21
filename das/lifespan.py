@@ -16,7 +16,7 @@ from .sensor import get_refrigerator_analyze
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Kafka의 lifecycle에서 원하는 행동을 지정하는 함수
+    FastAPI의 lifecycle에서 원하는 행동을 지정하는 함수
     Java Spring에서 kafka-config 같은 느낌
     """
     producer = eda.create_producer(bootstrap_servers=KAFKA_URL)
