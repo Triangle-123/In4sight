@@ -263,7 +263,7 @@ def get_refrigerator_analyze(serial_number, startday, endday):
 
     formatted_json = dumps(result, indent=4, sort_keys=True, ensure_ascii=False)
 
-    print(formatted_json)
+    eda.event_broadcast("das_result", formatted_json)
 
 
 if __name__ == "__main__":
