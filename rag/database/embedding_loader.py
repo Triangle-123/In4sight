@@ -47,7 +47,7 @@ class SentenceTransformerEmbeddings(EmbeddingFunction):
         ChromaDB의 EmbeddingFunction 인터페이스에 맞춘 호출 메서드
 
         Args:
-            input: 임베딩할 텍스트 리스트
+            text: 임베딩할 텍스트 리스트
 
         Returns:
             임베딩 벡터 리스트

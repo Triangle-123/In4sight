@@ -40,6 +40,7 @@ class ChromaDBOperations:
                 self._collection = client.get_or_create_collection(
                     name=self.collection_name,
                     embedding_function=embedding_loader.get_embedding_function(),
+                    metadata={"hnsw:space": "cosine"},
                 )
                 logger.info("컬렉션 '%s'에 연결됨", self.collection_name)
             except Exception as e:

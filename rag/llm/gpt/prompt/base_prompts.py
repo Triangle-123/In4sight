@@ -17,22 +17,28 @@ class BasePrompts:
     DIAGNOSTIC_SYSTEM = """당신은 가전제품 진단을 전문으로 하는 AI 어시스턴트입니다.
         주어진 제품 고장/비고장 매뉴얼을 기반으로만 응답하며, 충분한 정보가 없으면
         "정확한 정보를 제공하기 어렵습니다."라고 답변하세요.
+        절대! 임의로 추측해서 답변하면 안 됩니다. 메뉴얼을 기반으로만 응답해주세요.
         항상 존댓말을 사용하며, 아래 JSON 형식을 엄격하게 지켜 주세요:
 
         [
             {
-                "status": "정상" 또는 "고장",
+                "status": "정상" 또는 "주의" 또는 "고장"",
                 "issue": "문제 상황",
-                "cause": "문제 원인",
-                "recommended_solution": "메뉴얼 내용 (마크다운 형식)",
-                "severity": "심각도%"
+                "recommended_solution": "메뉴얼 내용 (마크다운 형식)"
             },
             {
                 "status": "정상" 또는 "고장",
                 "issue": "문제 상황",
-                "cause": "문제 원인",
-                "recommended_solution": "메뉴얼 내용 (마크다운 형식)",
-                "severity": "심각도%"
+                "recommended_solution": "메뉴얼 내용 (마크다운 형식)"
+            }
+        ]
+
+        아래는 예시입니다. 아래와 같은 형식으로 응답해주세요.
+        [
+            {
+                "status": "주의",
+                "issue": "에어컨 필터가 오염되어 청소가 필요합니다. 필터 오염은 냉방 효율을 떨어뜨리고 전력 소비를 증가시킬 수 있습니다.",
+                "recommended_solution": "권장 조치 단계\n→ 에어컨 전원을 끄고 필터 분리 방법 안내\n→ 필터 청소 방법 설명 (미지근한 물로 세척 후 완전 건조)\n → 필터 재장착 방법 안내 \n → 청소 후 에어컨 재시작 방법 설명"
             }
         ]
 
@@ -50,25 +56,13 @@ class BasePrompts:
             1️⃣ 냉장고 문을 열고 닫을 때의 소리를 주의 깊게 들어보세요.
             2️⃣ 만약 일정 시간이 지나도 지속되면, 제품 설치 환경을 확인하세요.
             ```
-
-        3. **severity는 벡터 거리 기반 심각도 값을 의미합니다.**
-        - 0%에 가까울수록 문제 발생 가능성이 낮음
-        - 100%에 가까울수록 고장 가능성이 높음
-        - status가 정상일 경우 0%에 가까워야 합니다.
-
-        4. **cause는 문제 상황에 대한 원인을 의미합니다.**
-        - 상담사가 한 번에 이해할 수 있도록 쉽게 문장을 구성하세요
-        - 예시:
-            ```markdown
-            냉장고에서 '쉭~' 또는 '뚜둑' 하는 소리가 나는 경우,
-            내부 압력 변화로 인해 발생할 수 있습니다.
-            ```
+        
+        3. status 필드는 충분히 고려하여 설정해주세요. 고장이 아닌 경우에 고장으로 반환하면 굉장한 혼란이 올 수 있기 때문입니다.
     """
 
     @staticmethod
     def format_rag_prompt(context, query):
         """RAG 프롬프트 포맷팅 함수"""
-        # 정규식을 사용하여 문서 정보를 추출
 
         # 각 문서 블록을 추출하는 패턴
         pattern = r"--- 문서 (\d+) \[(.*?)\] \(유사도: ([\d.]+)\) ---\s*(.*?)(?=(?:--- 문서 \d+)|$)"
@@ -94,23 +88,18 @@ class BasePrompts:
             documents.append(content)
             metadatas.append(metadata)
             distances.append(similarity)
-        # 벡터 거리 → 심각도 변환 (1 - 거리) * 100%
-        severity_scores = [f"{(1 - dist) * 100:.0f}%" for dist in distances]
 
         # JSON 구조를 유지하면서 개별 메뉴얼을 생성
         structured_manuals = []
-        for i, metadata in enumerate(metadatas):
+
+        for metadata in metadatas:
             # 필요한 키가 있는지 확인
-            if all(
-                key in metadata
-                for key in ["response_type", "title", "cause", "solution"]
-            ):
+            if any(key in metadata for key in ["response_type", "title", "solution"]):
+
                 manual = {
                     "status": metadata["response_type"],
                     "issue": metadata["title"],
-                    "cause": metadata["cause"],
                     "recommended_solution": f"**{metadata['title']}**\n\n{metadata['solution']}",
-                    "severity": severity_scores[i],
                 }
                 structured_manuals.append(manual)
 
