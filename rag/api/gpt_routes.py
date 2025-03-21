@@ -3,6 +3,7 @@ GPT API 테스트용 라우터 모듈
 """
 
 import logging
+import time
 import traceback
 
 from fastapi import APIRouter, HTTPException
@@ -16,7 +17,7 @@ gpt_router = APIRouter(
 )
 
 # 로깅 설정
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -64,7 +65,7 @@ async def test_gpt_rag(request: GPTRequest):
     """
     RAG 기반 GPT API 테스트를 위한 API
     """
-
+    start = time.time()
     try:
         client = GPTClient()
         handler = GPTHandler(client=client)
@@ -72,7 +73,7 @@ async def test_gpt_rag(request: GPTRequest):
         # RAG 기반 GPT 완성 요청
         query_data = {
             "query_text": request.query,
-            "n_results": 10,
+            "n_results": 5,
             "where": {"product_type": request.product_type},
             "query_embedding": None,
         }
@@ -83,8 +84,11 @@ async def test_gpt_rag(request: GPTRequest):
                 status_code=500,
                 detail=response.get("error", "알 수 없는 오류가 발생했습니다."),
             )
+        end = time.time()
 
-        return {"response": response, "usage": response.get("usage", {})}
+        print("걸린 시간: %d", end - start)
+
+        return {"response": response}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"RAG GPT 요청 처리 중 오류 발생: {str(e)}"
