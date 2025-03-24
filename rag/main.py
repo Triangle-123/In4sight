@@ -16,10 +16,13 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.append(str(Path(__file__).parent.parent))
 
 # pylint: disable=wrong-import-position
+import eda
+
 from rag.api.gpt_routes import gpt_router
 from rag.api.routes import router
 from rag.core.config import settings
 from rag.database.chroma_client import chroma_db
+from rag.llm.rag_service import process_data_analysis_event
 
 # pylint: enable=wrong-import-position
 
@@ -35,6 +38,8 @@ try:
 
     if os.getenv("OPENAI_API_KEY"):
         os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+    if os.getenv("KAFKA_BOOTSTRAP_SERVER"):
+        os.environ["KAFKA_BOOTSTRAP_SERVER"] = os.getenv("KAFKA_BOOTSTRAP_SERVER")
 except Exception as e:  # pylint: disable=broad-except
     logger.error("환경 변수 로드 실패: %s", e)
 
@@ -46,6 +51,29 @@ async def lifespan(app_instance: FastAPI):  # pylint: disable=unused-argument
     """
     # 앱 시작 시 데이터베이스의 연결 초기화
     chroma_db.initialize()
+
+    # Kafka 컨슈머 초기화 및 이벤트 구독 설정
+    try:
+        bootstrap_servers = os.environ["KAFKA_BOOTSTRAP_SERVER"]
+        group_id = "rag-server-group"
+
+        # Kafka 컨슈머 생성
+        eda.create_consumer(
+            bootstrap_servers=bootstrap_servers,
+            group_id=group_id,
+            enable_auto_commit=True,
+        )
+
+        eda.create_producer(bootstrap_servers=bootstrap_servers)
+
+        # DAS 이벤트 구독
+        eda.event_subscribe(
+            group_id=group_id, topic="das_result", callback=process_data_analysis_event
+        )
+
+        logger.info("Kafka 이벤트 구독이 성공적으로 설정되었습니다.")
+    except Exception as e:  # pylint: disable=broad-except
+        logger.error("Kafka 이벤트 구독 설정 실패: %s", e)
 
     yield  # FastAPI 앱이 실행됨
 
@@ -79,4 +107,9 @@ async def root():
     """
     루트 경로 호출 시 반환되는 메시지
     """
+    kafka_server = os.getenv("KAFKA_BOOTSTRAP_SERVER")
+
+    eda.create_producer(kafka_server)
+    eda.event_broadcast("data-analysis-completed", "ㅇㅇ")
+
     return {"message": "가전제품 RAG API 서버가 실행 중입니다", "api": "/api"}

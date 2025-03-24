@@ -38,12 +38,11 @@ class GPTHandler:
 
         try:
             content = response["choices"][0]["message"]["content"]
-            usage = response.get("usage", {})
 
             try:
                 diagnostic_result = DiagnosticResult.from_json(content)
 
-                return {"success": True, "result": diagnostic_result, "usage": usage}
+                return {"success": True, "result": diagnostic_result}
             except ValueError as json_error:
                 return {
                     "success": False,
@@ -107,6 +106,7 @@ class GPTHandler:
                     query_embedding=query_embedding,
                 )
                 logger.info("시맨틱 검색 완료 (임베딩 벡터 사용)")
+
             else:
                 # 기본 검색 사용 (텍스트 기반)
                 results = self.db_ops.query_documents(
