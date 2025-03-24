@@ -7,7 +7,8 @@ import logging
 from typing import Any, Dict
 
 # Kafka에 이벤트 발행 (프로듀서 로직 필요)
-from eda.producer import event_broadcast, get_producer
+import eda
+from eda.producer import get_producer
 
 from rag.llm.gpt.gpt_client import GPTClient
 from rag.llm.gpt.gpt_handler import GPTHandler
@@ -15,6 +16,31 @@ from rag.llm.gpt.gpt_handler import GPTHandler
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def suggest_additional_questions(message: Dict[str, Any]) -> None:
+    """
+    상담사의 추가 질문 이벤트를 처리합니다.
+
+    Args:
+        message: Kafks 메시지 내용
+    """
+    try:
+        logger.info("상담사 추가 질문 이벤트 수신: %s", message)
+
+        # 메시지에서 필요한 데이터 내용 추출
+        analysis_id = message.get("analysis_id")
+        # user_query = message.get("user_query")
+        # 어떤 추가 정보를 받을까?
+        # 현재 어떤 제품에 대해 질문하고 있는지??? -> LLM 서버 토큰 줄이기
+        # 해당 제품의 시계열 데이터를 바탕으로 DAS에서 '적당히' 분석해서 LLM에 던져주면, LLM을 통해 추론하는 방식도 괜찮을거 같긴 합니다.
+        # 약간 챗봇 느낌
+
+        if not analysis_id:
+            logger.error("유효하지 않은 메시지 형식: analysis_id가 없습니다")
+            return
+    except Exception as e:  # pylint: disable=broad-except
+        logger.error("추가 질문 이벤트 처리 중 오류 발생: %s", e, exc_info=True)
 
 
 def process_data_analysis_event(message: Dict[str, Any]) -> None:
@@ -104,7 +130,7 @@ def publish_rag_completed_event(analysis_id: str, result: str) -> None:
 
         producer = get_producer()
         if producer:
-            event_broadcast("rag-result", event_data)
+            eda.event_broadcast("rag-result", event_data)
             logger.info("RAG 분석 완료 이벤트가 성공적으로 발행되었습니다.")
         else:
             logger.error("Kafka 프로듀서가 설정되지 않았습니다.")
