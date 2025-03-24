@@ -17,9 +17,11 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
         </Button>
         <h1 className="font-semibold text-lg">고객 지원 대시보드</h1>
       </div>
-      <div className="text-sm text-muted-foreground">
-        <span className="mr-4">상담사: 김민서 (서울 센터)</span>
-        <span>IP: 192.168.1.45</span>
+      <div className="flex items-center gap-4">
+        <div className="text-sm text-muted-foreground">
+          <span className="mr-4">상담사: 김민서 (서울 센터)</span>
+          <span>IP: 192.168.1.45</span>
+        </div>
       </div>
     </header>
   )

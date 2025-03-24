@@ -36,7 +36,7 @@ export function Sidebar({
         <h2 className="font-semibold text-lg mb-2">고객 정보</h2>
         <div className="space-y-2 text-sm">
           <p>
-            <span className="font-medium">이름:</span> 김지은
+            <span className="font-medium">이름:</span> 윤상민
           </p>
           <p>
             <span className="font-medium">전화번호:</span> 010-1234-5678
@@ -45,7 +45,7 @@ export function Sidebar({
             <span className="font-medium">주소:</span> 서울시 강남구 테헤란로 123
           </p>
           <p>
-            <span className="font-medium">문의 내용:</span> 가전제품 오작동
+            <p className="font-medium">문의 내용:</p> 에어컨 틀었는데 하나도 안 시원한데요???? 빨리 해결해주세요!!!
           </p>
         </div>
       </div>
