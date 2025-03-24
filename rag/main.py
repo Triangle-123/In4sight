@@ -16,8 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.append(str(Path(__file__).parent.parent))
 
 # pylint: disable=wrong-import-position
-from eda.consumer import create_consumer, event_subscribe
-from eda.producer import create_producer, event_broadcast
+import eda
 
 from rag.api.gpt_routes import gpt_router
 from rag.api.routes import router
@@ -59,16 +58,16 @@ async def lifespan(app_instance: FastAPI):  # pylint: disable=unused-argument
         group_id = "rag-server-group"
 
         # Kafka 컨슈머 생성
-        create_consumer(
+        eda.create_consumer(
             bootstrap_servers=bootstrap_servers,
             group_id=group_id,
             enable_auto_commit=True,
         )
 
-        create_producer(bootstrap_servers=bootstrap_servers)
+        eda.create_producer(bootstrap_servers=bootstrap_servers)
 
         # DAS 이벤트 구독
-        event_subscribe(
+        eda.event_subscribe(
             group_id=group_id, topic="das_result", callback=process_data_analysis_event
         )
 
@@ -110,7 +109,7 @@ async def root():
     """
     kafka_server = os.getenv("KAFKA_BOOTSTRAP_SERVER")
 
-    create_producer(kafka_server)
-    event_broadcast("data-analysis-completed", "ㅇㅇ")
+    eda.create_producer(kafka_server)
+    eda.event_broadcast("data-analysis-completed", "ㅇㅇ")
 
     return {"message": "가전제품 RAG API 서버가 실행 중입니다", "api": "/api"}
