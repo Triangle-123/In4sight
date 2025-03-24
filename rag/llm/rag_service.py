@@ -3,6 +3,7 @@ RAG 서비스 모듈 - Kafka 이벤트 처리 및 RAG 로직
 """
 
 import datetime
+import json
 import logging
 from typing import Any, Dict
 
@@ -53,20 +54,47 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
     try:
         logger.info("데이터 분석 완료 이벤트 수신: %s", message)
 
+        if isinstance(message, str):
+            try:
+
+                message = json.loads(message)
+            except json.JSONDecodeError:
+                logger.error("메시지를 JSON으로 파싱할 수 없습니다: %s", message)
+                return
+        if isinstance(message, dict) and "data" in message:
+            data = message["data"]
+        else:
+            data = message
+
+        if isinstance(data, str):
+            try:
+
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                logger.error("데이터를 JSON으로 파싱할 수 없습니다: %s", data)
+                return
+
+        logger.info("데이터 타입: %s", type(data))
+        logger.info("내용: %s", data)
+
         # 메시지에서 필요한 데이터 추출
-        analysis_id = message.get("analysis_id")
-        product_type = message.get("product_type")
-        analysis_results = message.get("results", {})
+        analysis_id = data.get("taskId")
+        product_type = data.get("product_type")
+        anomaly_prompts = data.get("anomaly_prompts", [])
+        related_sensor = data.get("related_sensor", [])
+
+        analysis_results = {
+            "anomaly_prompts": anomaly_prompts,
+            "related_sensor": related_sensor,
+        }
 
         if not analysis_id:
             logger.error("유효하지 않은 메시지 형식: analysis_id가 없습니다")
             return
 
-        # GPT 클라이언트 및 핸들러 초기화
         client = GPTClient()
         handler = GPTHandler(client=client)
 
-        # RAG 기반 GPT 완성 요청
         query_data = {
             "query_text": generate_query_from_analysis(analysis_results),
             "n_results": 5,
@@ -80,7 +108,6 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
             logger.error("RAG 처리 실패: %s", response.get("error"))
             return
 
-        # RAG 분석 완료 이벤트 발행
         publish_rag_completed_event(analysis_id, response.get("content", ""))
 
         logger.info("RAG 분석 및 이벤트 발행 완료: %s", analysis_id)

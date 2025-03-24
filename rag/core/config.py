@@ -24,14 +24,12 @@ class Settings(BaseSettings):
     # ChromaDB 관련 설정
     CHROMA_MAX_CONNECTION_AGE: int = 3600  # 1시간
 
-    class Config:
-        """
-        env 파일 설정
-        """
-
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": True,
+        "extra": "allow",  # 추가 필드 허용
+    }
 
 
 # 설정 인스턴스 생성

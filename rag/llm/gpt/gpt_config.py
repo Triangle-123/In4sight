@@ -5,7 +5,7 @@ GPT API 설정 관리 모듈
 import logging
 
 # 로깅 설정
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
