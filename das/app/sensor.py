@@ -22,14 +22,8 @@ from app.refrigerator_temp import detect_temperature_anomalies
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
 
-SENSOR_DATA_LIST = [
-    "temp_internal",
-    "temp_external",
-    "_time",
-    "location",
-    "serial_number",
-]
-DEFAULT_DATA_LIST = ["_time", "location", "serial_number"]
+SENSOR_DATA_LIST = ["temp_internal", "temp_external", "_time", "location"]
+DEFAULT_DATA_LIST = ["_time", "location"]
 
 # influxdb 연결
 client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
