@@ -7,17 +7,12 @@ from json import loads
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
-from app.config import (
-    INFLUXDB_BUCKET_EVENT,
-    INFLUXDB_BUCKET_SENSOR,
-    INFLUXDB_ORG,
-    INFLUXDB_TOKEN,
-    INFLUXDB_URL,
-)
-from app.util import convert_to_iso_utc, broadcast_message
-
+from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
+                        INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
 from app.refrigerator_door import check_door_anormality
+from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
+from app.util import broadcast_message, convert_to_iso_utc
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
@@ -76,6 +71,9 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
 
     # 도어 센서 이상치 감지
     check_door_anormality(df_event, anomaly_prompts, related_sensor)
+
+    # 적재량 이상치 감지
+    check_loading_rate_anormality(df_event, anomaly_prompts, related_sensor)
 
     # anomaly_sensors에 포함된 컬럼 선택 및 정렬
     sensor = df_sensor[SENSOR_DATA_LIST].sort_values(["_time"])
