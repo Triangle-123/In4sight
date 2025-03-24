@@ -1,6 +1,6 @@
-FROM python:3.11-alpine
+FROM python:3.10-slim
 
-WORKDIR /app
+WORKDIR /rag
 
 ARG GITLAB_TOKEN
 ARG PROJECT_ID

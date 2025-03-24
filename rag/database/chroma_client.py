@@ -64,7 +64,10 @@ class ChromaDBClient:
                         )
 
                 # 새 클라이언트를 생성한다.
-                self._client = chromadb.Client()
+                self._client = chromadb.HttpClient(
+                    host="chromadb",
+                    port=8000,
+                )
                 # 마지막 연결 시각을 갱신한다.
                 self._last_connection_time = current_time
                 logger.info("ChromaDB 새 연결 수립 완료")

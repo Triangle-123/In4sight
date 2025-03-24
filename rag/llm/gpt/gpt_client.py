@@ -11,7 +11,7 @@ import requests
 from rag.llm.gpt.gpt_config import GPTConfig
 
 # 로깅 설정
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
