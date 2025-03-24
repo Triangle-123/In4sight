@@ -34,7 +34,7 @@ server:
 eda:
   kafka:
     bootstrap-server: j12s004.p.ssafy.io:8003
-    consumer-group: consumer-java
+    consumer-group: consumer-javaman
 
 
 

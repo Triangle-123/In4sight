@@ -13,17 +13,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TimeseriesDataDto {
+public class TimeSeriesDataDto {
 
 	private String taskId;
-	private List<Data> data;
+	private String serialNumber;
+	private List<SensorData> data;
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-	private static class Data {
-		private String serialNumber;
+	public static class SensorData {
 		private String time;
 		private String location;
 		private String sensor;
