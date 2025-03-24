@@ -37,5 +37,5 @@ def callback(message: Any) -> None:
     Event 수신 콜백 함수
     """
     print(message)
-    for number in message:
-        get_refrigerator_analyze(number, "2024-03-01", "2024-03-02")
+    for number in message["serialNumbers"]:
+        get_refrigerator_analyze(message["taskId"], number, "2024-03-01", "2024-03-02")

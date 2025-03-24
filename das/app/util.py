@@ -3,6 +3,9 @@
 """
 
 from datetime import datetime, timedelta
+from json import dumps
+
+import eda
 
 
 def convert_to_iso_utc(date_str):
@@ -33,3 +36,16 @@ def get_door_times(df_event, location):
     open_times = list(df_loc[df_loc["event_type"] == "door_open"]["_time"])
     close_times = list(df_loc[df_loc["event_type"] == "door_close"]["_time"])
     return open_times, close_times
+
+
+def broadcast_message(task_id, serial_number, topic, data):
+    """
+    eda를 통해 메시지를 broadcast를 해주는 함수입니다.
+    """
+    message = {}
+
+    message["taskId"] = task_id
+    message["serialNumber"] = serial_number
+    message["data"] = data
+
+    eda.event_broadcast(topic, dumps(message, ensure_ascii=False, indent=4))

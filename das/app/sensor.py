@@ -2,9 +2,8 @@
 이 모듈은 데이터 분석과 이상치 감지 하고 eda로 다른 서버의 분석 결과를 보내는 모듈입니다.
 """
 
-from json import dumps
+from json import loads
 
-import eda
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
@@ -15,7 +14,7 @@ from app.config import (
     INFLUXDB_TOKEN,
     INFLUXDB_URL,
 )
-from app.util import convert_to_iso_utc
+from app.util import convert_to_iso_utc, broadcast_message
 
 from app.refrigerator_door import check_door_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
@@ -37,7 +36,7 @@ client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG
 query_api = client.query_api()
 
 
-def get_refrigerator_analyze(serial_number, startday, endday):
+def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     """
     이 함수는 냉장고 센서 데이터를 분석하고 결과를 eda 통신으로 보내는 역할을 합니다
     """
@@ -95,12 +94,7 @@ def get_refrigerator_analyze(serial_number, startday, endday):
     # value가 null인 행 제거
     sensor = sensor.dropna(subset=["value"])
 
-    # JSON 변환 (pretty-print)
-    sensor = sensor.to_json(
-        orient="records", date_format="iso", date_unit="s", indent=4
-    )
-
-    print(sensor)
+    sensor = loads(sensor.to_json(orient="records", date_format="iso", date_unit="s"))
 
     event = (
         df_event[["_time", "event_type", "location"]]
@@ -108,17 +102,15 @@ def get_refrigerator_analyze(serial_number, startday, endday):
         .rename(columns={"_time": "time"})
     )
 
-    event = event.to_json(orient="records", date_format="iso", date_unit="s", indent=4)
+    event = loads(event.to_json(orient="records", date_format="iso", date_unit="s"))
 
-    eda.event_broadcast("data_sensor", sensor)
-    eda.event_broadcast("data_event", event)
+    broadcast_message(task_id, serial_number, "data_sensor", sensor)
+    broadcast_message(task_id, serial_number, "data_event", event)
 
+    result["taskId"] = task_id
+    result["serialNumber"] = serial_number
     result["anomaly_prompts"] = anomaly_prompts
     result["product_type"] = "냉장고"
     result["related_sensor"] = list(set(related_sensor))
 
-    formatted_json = dumps(result, indent=4, sort_keys=True, ensure_ascii=False)
-
-    print(formatted_json)
-
-    eda.event_broadcast("das_result", formatted_json)
+    broadcast_message(task_id, serial_number, "das_result", result)
