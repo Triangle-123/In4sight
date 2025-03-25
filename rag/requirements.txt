@@ -16,7 +16,7 @@ Deprecated==1.2.18
 distro==1.9.0
 dotenv==0.9.9
 durationpy==0.9
-eda-python==0.1.1
+eda-python==0.1.2
 fastapi==0.115.12
 filelock==3.18.0
 flatbuffers==25.2.10
