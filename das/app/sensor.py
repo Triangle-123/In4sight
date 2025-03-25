@@ -2,6 +2,7 @@
 이 모듈은 데이터 분석과 이상치 감지 하고 eda로 다른 서버의 분석 결과를 보내는 모듈입니다.
 """
 
+import logging
 from json import loads
 
 import pandas as pd
@@ -10,6 +11,8 @@ from influxdb_client import InfluxDBClient
 from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
                         INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
 from app.refrigerator_door import check_door_anormality
+from app.refrigerator_fan import check_fan_rpm_anormality
+from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
 from app.util import broadcast_message, convert_to_iso_utc
@@ -73,15 +76,33 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     check_door_anormality(df_event, anomaly_prompts, related_sensor)
 
     # 적재량 이상치 감지
-    check_loading_rate_anormality(df_event, anomaly_prompts, related_sensor)
+    check_loading_rate_anormality(df_sensor, anomaly_prompts, related_sensor)
+
+    # 히터 이상치 감지
+    detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor)
+
+    # fan rpm 이상치 감지
+    if "fan_rpm" in df_sensor.columns:
+        check_fan_rpm_anormality(df_sensor, anomaly_prompts, related_sensor)
 
     # anomaly_sensors에 포함된 컬럼 선택 및 정렬
-    sensor = df_sensor[SENSOR_DATA_LIST].sort_values(["_time"])
+    existing_sensor_cols = [col for col in SENSOR_DATA_LIST if col in df_sensor.columns]
+    if not existing_sensor_cols:
+        logging.warning(
+            "[센서 데이터 없음] SENSOR_DATA_LIST에서 존재하는 컬럼이 없습니다."
+        )
+        return
 
-    # wide format -> long format 변환: _time, location은 id_vars, 나머지 센서 컬럼은 value_vars로 처리
-    sensor = sensor.melt(
-        id_vars=DEFAULT_DATA_LIST, var_name="sensor", value_name="value"
-    ).rename(columns={"_time": "time"})
+    # 2. 시간 컬럼 포함해서 선택
+    sensor = df_sensor[existing_sensor_cols].sort_values(["_time"])
+
+    # 3. melt용 ID 컬럼 확인
+    id_vars = [col for col in DEFAULT_DATA_LIST if col in sensor.columns]
+
+    # 4. melt
+    sensor = sensor.melt(id_vars=id_vars, var_name="sensor", value_name="value").rename(
+        columns={"_time": "time"}
+    )
 
     # value가 null인 행 제거
     sensor = sensor.dropna(subset=["value"])
@@ -104,5 +125,7 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     result["anomaly_prompts"] = anomaly_prompts
     result["product_type"] = "냉장고"
     result["related_sensor"] = list(set(related_sensor))
+
+    logging.info("[LLM에 반환하는 결과] : %s", result)
 
     broadcast_message(task_id, serial_number, "das_result", result)

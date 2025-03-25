@@ -14,9 +14,7 @@ logging.basicConfig(
 )
 
 
-def detect_heater_anomalies(
-    df_sensor, anomaly_prompts, related_sensor, anomaly_sensors
-):
+def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor):
     """
     히터 센서 온도 데이터를 분석하여 고온 지속 또는 제상 시간 외 고온 구간을 감지하고,
     이상 여부를 anomaly 목록에 기록합니다.
@@ -27,11 +25,11 @@ def detect_heater_anomalies(
     high_temp_streaks = []  # 고온 구간 리스트
     current_streak = []  # 현재 고온 연속 리스트
 
-    logging.debug("[히터 감지] 센서 데이터 총 개수: %d", len(df_sensor))
+    logging.debug("[히터 감지] 센서 데이터 총 개수: %d", len(df_sensor["heater_temp"]))
 
     # 연속 고온 구간 탐지
     for i in range(len(df_sensor)):
-        temp = df_sensor.iloc[i, "heater_temp"]
+        temp = df_sensor.iloc[i]["heater_temp"]
         if temp >= threshold_temp:
             current_streak.append(df_sensor.iloc[i])
         else:
@@ -59,10 +57,6 @@ def detect_heater_anomalies(
         timestamps_kst = [ts + timedelta(hours=9) for ts in timestamps]
         hours = [ts.hour for ts in timestamps_kst]
 
-        logging.debug("[시간 변환] UTC: %s", timestamps)
-        logging.debug("[시간 변환] KST: %s", timestamps_kst)
-        logging.debug("[시간 검토] KST 시각: %s", hours)
-
         # 제상 시간(6시~7시)에만 해당하면 정상
         if not all(6 <= hour <= 7 for hour in hours):
             start_time = min(timestamps_kst)
@@ -76,6 +70,10 @@ def detect_heater_anomalies(
             outside_defrost_ranges.append((start_time, end_time))
             high_temp_outside_defrost += 1
         else:
+            logging.debug(
+                "[정상 제상 시간] 고온이지만 제상 시간(6~7시)에 해당: %s",
+                timestamps_kst,
+            )
             new_high_temp_streaks.append(streak)
 
     high_temp_streaks = new_high_temp_streaks
@@ -93,10 +91,8 @@ def detect_heater_anomalies(
 
         anomaly_prompts.append(result_msg)
         related_sensor.append("히터")
-        anomaly_sensors.append("heater_temp")
 
         logging.debug("관련 센서 추가됨: %s", related_sensor)
-        logging.debug("이상 항목 추가됨: %s", anomaly_sensors)
     else:
 
         logging.info("[히터 센서 정상] 이상 없음.")

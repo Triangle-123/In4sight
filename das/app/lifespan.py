@@ -5,9 +5,8 @@ FastAPI 서버가 켜짐과 동시에 Kafka 연결을 하는 코드입니다.
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI
-
 import eda
+from fastapi import FastAPI
 
 from app.config import KAFKA_URL
 from app.sensor import get_refrigerator_analyze
@@ -36,6 +35,5 @@ def callback(message: Any) -> None:
     """
     Event 수신 콜백 함수
     """
-    print(message)
     for number in message["serialNumbers"]:
         get_refrigerator_analyze(message["taskId"], number, "2024-03-01", "2024-03-02")
