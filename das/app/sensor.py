@@ -8,9 +8,14 @@ from json import loads
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
-from app.comp_pressure import detect_pressure_anomalies
-from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
-                        INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
+from app.refrigerator_comp_pressure import detect_pressure_anomalies
+from app.config import (
+    INFLUXDB_BUCKET_EVENT,
+    INFLUXDB_BUCKET_SENSOR,
+    INFLUXDB_ORG,
+    INFLUXDB_TOKEN,
+    INFLUXDB_URL,
+)
 from app.refrigerator_door import check_door_anormality
 from app.refrigerator_fan import check_fan_rpm_anormality
 from app.refrigerator_heater import detect_heater_anomalies
@@ -21,7 +26,16 @@ from app.util import broadcast_message, convert_to_iso_utc
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
 
-SENSOR_DATA_LIST = ["temp_internal", "temp_external", "_time", "location"]
+SENSOR_DATA_LIST = [
+    "temp_internal",
+    "temp_external",
+    "load_percent",
+    "refrigerant_pressure",
+    "fan_rpm",
+    "heater_temp",
+    "_time",
+    "location",
+]
 DEFAULT_DATA_LIST = ["_time", "location"]
 
 # influxdb 연결

@@ -76,6 +76,15 @@ def process_fridge_temperature(
                 anomaly_sensors,
             )
 
+        if not fridge_data[fridge_data["temp_internal"] >= 20].empty:
+            record_anomaly(
+                "뜨거운 음식을 넣었을 가능성이 있음",
+                "temp_internal",
+                anomaly_prompts,
+                related_sensor,
+                anomaly_sensors,
+            )
+
 
 def process_freezer_temperature(
     df_sensor, is_door_open_freezer, anomaly_prompts, related_sensor, anomaly_sensors
