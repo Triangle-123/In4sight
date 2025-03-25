@@ -1,22 +1,31 @@
 """
-    냉장고 히터 센서의 이상치를 감지하는 로직입니다.
+냉장고 히터 센서의 이상치를 감지하는 로직입니다.
 """
 
-import pandas as pd
-from datetime import timedelta
 import logging
+from datetime import timedelta
+
+import pandas as pd
 
 logging.basicConfig(
-    format='%(asctime)s:%(levelname)s:%(message)s',
-    datefmt='%Y/%m/%d %I:%M:%S%p',
-    level=logging.INFO
+    format="%(asctime)s:%(levelname)s:%(message)s",
+    datefmt="%Y/%m/%d %I:%M:%S%p",
+    level=logging.INFO,
 )
 
-def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_sensors):
-    threshold_temp = 50         # 이상 판단 기준 온도
-    min_duration = 3            # 15분 간격 x 3 = 45분
-    high_temp_streaks = []      # 고온 구간 리스트
-    current_streak = []         # 현재 고온 연속 리스트
+
+def detect_heater_anomalies(
+    df_sensor, anomaly_prompts, related_sensor, anomaly_sensors
+):
+    """
+    히터 센서 온도 데이터를 분석하여 고온 지속 또는 제상 시간 외 고온 구간을 감지하고,
+    이상 여부를 anomaly 목록에 기록합니다.
+    """
+
+    threshold_temp = 50  # 이상 판단 기준 온도
+    min_duration = 3  # 15분 간격 x 3 = 45분
+    high_temp_streaks = []  # 고온 구간 리스트
+    current_streak = []  # 현재 고온 연속 리스트
 
     logging.debug("[히터 감지] 센서 데이터 총 개수: %d", len(df_sensor))
 
@@ -28,13 +37,17 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
         else:
             if len(current_streak) >= min_duration:
                 high_temp_streaks.append(current_streak)
-                logging.debug("[고온 지속 감지] streak 추가 (길이: %d)", len(current_streak))
+                logging.debug(
+                    "[고온 지속 감지] streak 추가 (길이: %d)", len(current_streak)
+                )
             current_streak = []
 
     # 마지막 streak 추가 여부 확인
     if len(current_streak) >= min_duration:
         high_temp_streaks.append(current_streak)
-        logging.debug("[고온 지속 감지] 마지막 streak 추가 (길이: %d)", len(current_streak))
+        logging.debug(
+            "[고온 지속 감지] 마지막 streak 추가 (길이: %d)", len(current_streak)
+        )
 
     num_high_streaks = len(high_temp_streaks)
     high_temp_outside_defrost = 0
@@ -55,7 +68,11 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
             start_time = min(timestamps_kst)
             end_time = max(timestamps_kst)
 
-            logging.info("[제상 시간 외 고온 구간] %s ~ %s", start_time.isoformat(), end_time.isoformat())
+            logging.info(
+                "[제상 시간 외 고온 구간] %s ~ %s",
+                start_time.isoformat(),
+                end_time.isoformat(),
+            )
             outside_defrost_ranges.append((start_time, end_time))
             high_temp_outside_defrost += 1
         else:
@@ -67,7 +84,11 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
     is_abnormal = num_high_streaks >= 3 or high_temp_outside_defrost >= 1
 
     if is_abnormal:
-        result_msg = f"[히터 센서 이상] 고온 지속 구간: {num_high_streaks}회, 제상 시간 외 고온: {high_temp_outside_defrost}회"
+        result_msg = (
+            f"[히터 센서 이상] 고온 지속 구간: {num_high_streaks}회, "
+            f"제상 시간 외 고온: {high_temp_outside_defrost}회"
+        )
+
         logging.info(result_msg)
 
         anomaly_prompts.append(result_msg)
@@ -77,6 +98,5 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
         logging.debug("관련 센서 추가됨: %s", related_sensor)
         logging.debug("이상 항목 추가됨: %s", anomaly_sensors)
     else:
+
         logging.info("[히터 센서 정상] 이상 없음.")
-
-
