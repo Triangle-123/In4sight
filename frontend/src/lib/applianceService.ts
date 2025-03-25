@@ -1,19 +1,22 @@
 /* 예시 데이터 */
 import type { ApplianceDataType } from './types'
+import type { ApplianceType } from './types'
+import type { GraphType } from './types'
 
-export function getApplianceData(selectedAppliance: string | null): ApplianceDataType | null {
+export function getApplianceData(selectedAppliance: ApplianceType | null, graphData): ApplianceDataType | null {
   // 냉장고
-  if (selectedAppliance === 'refrigerator') {
+  if (selectedAppliance?.productType === 'REF') {
     return {
       name: '냉장고',
-      model: '삼성 RS27T5561SR',
+      model: selectedAppliance.modelName,
       status: 'normal',
-      metrics: [
-        { name: '온도', value: '3°C', status: 'normal' },
-        { name: '습도', value: '42%', status: 'normal' },
-        { name: '전력 소비', value: '120W', status: 'normal' },
-        { name: '도어 열림', value: '8회/일', status: 'normal' },
-      ],
+      // metrics: [
+      //   { name: '온도', value: '3°C', status: 'normal' },
+      //   { name: '습도', value: '42%', status: 'normal' },
+      //   { name: '전력 소비', value: '120W', status: 'normal' },
+      //   { name: '도어 열림', value: '8회/일', status: 'normal' },
+      // ],
+      metrics: null,
       recommendations: [
         {
           title: '정기 점검 안내',
@@ -28,31 +31,40 @@ export function getApplianceData(selectedAppliance: string | null): ApplianceDat
           status: 'normal',
         },
       ],
+      // temperatureData: [
+      //   { name: '00:00', value: 3.2 },
+      //   { name: '04:00', value: 3.5 },
+      //   { name: '08:00', value: 4.1 },
+      //   { name: '12:00', value: 3.8 },
+      //   { name: '16:00', value: 3.2 },
+      //   { name: '20:00', value: 3.0 },
+      //   { name: '현재', value: 3.0 },
+      // ],
       temperatureData: [
-        { name: '00:00', value: 3.2 },
-        { name: '04:00', value: 3.5 },
-        { name: '08:00', value: 4.1 },
-        { name: '12:00', value: 3.8 },
-        { name: '16:00', value: 3.2 },
-        { name: '20:00', value: 3.0 },
-        { name: '현재', value: 3.0 },
+        { name: '00:00', value: 0 },
+        { name: '04:00', value: 0 },
+        { name: '08:00', value: 0 },
+        { name: '12:00', value: 0 },
+        { name: '16:00', value: 0 },
+        { name: '20:00', value: 0 },
+        { name: '현재', value: 0 },
       ],
       powerData: [
-        { name: '00:00', value: 110 },
-        { name: '04:00', value: 105 },
-        { name: '08:00', value: 130 },
-        { name: '12:00', value: 145 },
-        { name: '16:00', value: 125 },
-        { name: '20:00', value: 115 },
-        { name: '현재', value: 120 },
+        { name: '00:00', value: 0 },
+        { name: '04:00', value: 0 },
+        { name: '08:00', value: 0 },
+        { name: '12:00', value: 0 },
+        { name: '16:00', value: 0 },
+        { name: '20:00', value: 0 },
+        { name: '현재', value: 0 },
       ],
       usageData: [
-        { name: '냉장실', value: 65 },
-        { name: '냉동실', value: 35 },
+        { name: '냉장실', value: 50 },
+        { name: '냉동실', value: 50 },
       ],
     }
     // 세탁기
-  } else if (selectedAppliance === 'washer') {
+  } else if (selectedAppliance?.productType === 'washer') {
     return {
       name: '세탁기',
       model: 'LG F4V9RWP2E',
@@ -104,7 +116,7 @@ export function getApplianceData(selectedAppliance: string | null): ApplianceDat
       ],
     }
     // 에어컨
-  } else if (selectedAppliance === 'aircon') {
+  } else if (selectedAppliance?.productType === 'aircon') {
     return {
       name: '에어컨',
       model: 'LG DUALCOOL S12EQ',

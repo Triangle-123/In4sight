@@ -1,7 +1,18 @@
 export interface ApplianceType {
-  id: string
-  name: string
+  serialNumber: string
+  productType: string
+  modelSuffix: string
+
+  modelName: string
   status: string
+  launchDate: string
+}
+
+export interface CustomerType {
+  customerId: number
+  customerName: string
+  phoneNumber: string
+  address: string
 }
 
 export interface MetricType {
