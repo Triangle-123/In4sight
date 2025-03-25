@@ -69,8 +69,8 @@ def detect_anomalies_range(df_sensor):
 
         for i in range(len(df_sensor)):
             if (
-                df_sensor["filtered_pressure"][i] > MAX_PRESSURE
-                or df_sensor["filtered_pressure"][i] < MIN_PRESSURE
+                df_sensor["filtered_pressure"].iloc[i] > MAX_PRESSURE
+                or df_sensor["filtered_pressure"].iloc[i] < MIN_PRESSURE
             ):
                 if countinues:
                     error_duration["end"] = df_sensor["_time"].iloc[i]
