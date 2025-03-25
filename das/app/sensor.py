@@ -8,6 +8,7 @@ from json import loads
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
+from app.comp_pressure import detect_pressure_anomalies
 from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
                         INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
 from app.refrigerator_door import check_door_anormality
@@ -84,6 +85,9 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     # fan rpm 이상치 감지
     if "fan_rpm" in df_sensor.columns:
         check_fan_rpm_anormality(df_sensor, anomaly_prompts, related_sensor)
+
+    # 컴프레서 압력 이상치 감지
+    detect_pressure_anomalies(df_sensor, anomaly_prompts, related_sensor)
 
     # anomaly_sensors에 포함된 컬럼 선택 및 정렬
     existing_sensor_cols = [col for col in SENSOR_DATA_LIST if col in df_sensor.columns]
