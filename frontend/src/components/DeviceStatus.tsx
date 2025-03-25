@@ -75,18 +75,32 @@ export function DeviceStatus({ applianceData, isLoading = false }: DeviceStatusP
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {applianceData.metrics.map((metric, index) => (
-          <Card key={index}>
-            <CardContent className="p-4">
-              <p className="text-sm font-medium">{metric.name}</p>
-              <p className={`text-2xl font-bold`}>{metric.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {applianceData.metrics
+          ? // metrics가 있으면 실제 데이터 표시
+            applianceData.metrics.map((metric, index) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium">{metric.name}</p>
+                  <p className={`text-2xl font-bold`}>{metric.value}</p>
+                </CardContent>
+              </Card>
+            ))
+          : // metrics가 null이면 스켈레톤 UI 표시
+            // 4개의 스켈레톤 카드 생성 (md:grid-cols-4에 맞춰서)
+            Array(4)
+              .fill(0)
+              .map((_, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {applianceData.temperatureData && (
+        {applianceData.temperatureData ? (
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center">
@@ -103,6 +117,15 @@ export function DeviceStatus({ applianceData, isLoading = false }: DeviceStatusP
                 valueFormatter={(value: number) => `${value}°C`}
                 className="h-[200px]"
               />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="h-5 bg-gray-200 rounded animate-pulse w-1/3"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[200px] bg-gray-200 rounded animate-pulse"></div>
             </CardContent>
           </Card>
         )}

@@ -2,30 +2,25 @@
 
 import { Button } from '@/components/ui/button'
 import type { ApplianceType } from '@/lib/types'
-import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
+import type { CustomerType } from '@/lib/types'
+import { Refrigerator, WashingMachine } from 'lucide-react'
 
 interface SidebarProps {
   sidebarOpen: boolean
-  selectedAppliance: string | null
-  setSelectedAppliance: (id: string) => void
-  micEnabled: boolean
-  setMicEnabled: (enabled: boolean) => void
-  volumeEnabled: boolean
-  setVolumeEnabled: (enabled: boolean) => void
-  appliances: ApplianceType[]
+  selectedAppliance: ApplianceType | null
+  setSelectedAppliance: (appliance: ApplianceType) => void
+  appliances: ApplianceType[] | null
   callHistory: { date: string; time: string; topic: string }[]
+  customerInfo: CustomerType | null
 }
 
 export function Sidebar({
   sidebarOpen,
   selectedAppliance,
   setSelectedAppliance,
-  micEnabled,
-  setMicEnabled,
-  volumeEnabled,
-  setVolumeEnabled,
   appliances,
   callHistory,
+  customerInfo,
 }: SidebarProps) {
   return (
     <div
@@ -36,32 +31,39 @@ export function Sidebar({
         <h2 className="font-semibold text-lg mb-2">고객 정보</h2>
         <div className="space-y-2 text-sm">
           <p>
-            <span className="font-medium">이름:</span> 윤상민
+            <span className="font-medium">이름:</span> {customerInfo ? customerInfo.customerName : ''}
           </p>
           <p>
-            <span className="font-medium">전화번호:</span> 010-1234-5678
+            <span className="font-medium">전화번호:</span> {customerInfo ? customerInfo.phoneNumber : ''}
           </p>
           <p>
-            <span className="font-medium">주소:</span> 서울시 강남구 테헤란로 123
+            <span className="font-medium">주소:</span> {customerInfo ? customerInfo.address : ''}
           </p>
-          <p>
+          {/* <p>
             <p className="font-medium">문의 내용:</p> 에어컨 틀었는데 하나도 안 시원한데요???? 빨리 해결해주세요!!!
-          </p>
+          </p> */}
         </div>
       </div>
 
       <div className="p-4 flex-1">
         <h2 className="font-semibold text-lg mb-2">고객 가전제품</h2>
         <div className="space-y-2">
-          {appliances.map((appliance) => (
+          {appliances?.map((appliance) => (
             <Button
-              key={appliance.id}
-              variant={selectedAppliance === appliance.id ? 'default' : 'outline'}
-              className="w-full justify-start"
-              onClick={() => setSelectedAppliance(appliance.id)}
+              key={appliance.serialNumber}
+              variant={selectedAppliance === appliance ? 'default' : 'outline'}
+              className="w-full justify-start overflow-hidden"
+              onClick={() => setSelectedAppliance(appliance)}
             >
+              {appliance.productType === 'REF' ? (
+                <Refrigerator />
+              ) : appliance.productType === 'WASH' ? (
+                <WashingMachine />
+              ) : (
+                <div>기타 가전</div>
+              )}
               <span
-                className={`mr-2 h-2 w-2 rounded-full ${
+                className={`h-2 w-2 rounded-full${
                   appliance.status === 'normal'
                     ? 'bg-green-500'
                     : appliance.status === 'warning'
@@ -69,7 +71,7 @@ export function Sidebar({
                       : 'bg-red-500'
                 }`}
               />
-              {appliance.name}
+              {appliance.modelName}
             </Button>
           ))}
         </div>

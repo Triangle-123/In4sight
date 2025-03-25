@@ -2,16 +2,14 @@ import { DeviceStatus } from '@/components/DeviceStatus'
 import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
-import { appliances, callHistory, getApplianceData } from '@/lib/applianceService'
+import { callHistory, getApplianceData } from '@/lib/applianceService'
+import { ApplianceDataType, ApplianceType } from '@/lib/types'
 import { useEffect, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [selectedAppliance, setSelectedAppliance] = useState<string | null>(null)
-  const [micEnabled, setMicEnabled] = useState(true)
-  const [volumeEnabled, setVolumeEnabled] = useState(true)
-  const [sseData, setSseData] = useState<any>(null)
+  const [selectedAppliance, setSelectedAppliance] = useState<ApplianceType | null>(null)
   const [taskId, setTaskId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -21,7 +19,16 @@ export default function Dashboard() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
 
-  const applianceData = getApplianceData(selectedAppliance)
+  const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(null)
+  const [graphData, setGraphData] = useState(null)
+
+  useEffect(() => {
+    if (selectedAppliance) {
+      setApplianceData(getApplianceData(selectedAppliance, graphData))
+    }
+  }, [selectedAppliance])
+  const [customerInfo, setCustomerInfo] = useState(null)
+  const [appliances, setAppliances] = useState(null)
 
   const createSseConnection = (currentTaskId: string) => {
     if (eventSourceRef.current) {
@@ -31,7 +38,7 @@ export default function Dashboard() {
     console.log(`SSE 연결을 시도합니다: ${reconnectCount + 1} of ${maxReconnectAttempts}`)
 
     const API_URL = import.meta.env.VITE_API_BASE_URL
-    const eventSource = new EventSource(`${API_URL}/counselling/${currentTaskId}`)
+    const eventSource = new EventSource(`${API_URL}/counseling/${currentTaskId}`)
     eventSourceRef.current = eventSource
 
     eventSource.onopen = () => {
@@ -43,12 +50,9 @@ export default function Dashboard() {
 
     eventSource.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data)
-        console.log('SSE 데이터 수신:', data)
-        setSseData(data)
+        console.log('SSE 데이터 수신:', event.data)
       } catch (err) {
         console.error('SSE 데이터 파싱 에러:', event.data, err)
-        setSseData(event.data)
       }
     }
 
@@ -77,14 +81,62 @@ export default function Dashboard() {
       }
     }
 
+    eventSource.addEventListener('customer-info', (event) => {
+      try {
+        console.log('고객 정보 수신:', event.data)
+        const customerData = JSON.parse(event.data)
+        // 고객 정보 상태 업데이트
+        setCustomerInfo(customerData)
+      } catch (err) {
+        console.error('고객 정보 파싱 에러:', event.data, err)
+      }
+    })
+
+    eventSource.addEventListener('device-info', (event) => {
+      try {
+        console.log('기기기 정보 수신:', event.data)
+        const applianceData = JSON.parse(event.data)
+        // 기기기 정보 상태 업데이트
+        setAppliances(applianceData)
+      } catch (err) {
+        console.error('기기 정보 파싱 에러:', event.data, err)
+      }
+    })
+
+    eventSource.addEventListener('sensor-data', (event) => {
+      try {
+        console.log('머선 정보 수신:', event.data)
+        const Data = JSON.parse(event.data)
+        console.log(Data)
+        // 기기기 정보 상태 업데이트
+        // setCustomerInfo(customerData)
+      } catch (err) {
+        console.error('기기 정보 파싱 에러:', event.data, err)
+      }
+    })
+
+    eventSource.addEventListener('event-data', (event) => {
+      try {
+        console.log('머선 정보 수신:', event.data)
+        const Data = JSON.parse(event.data)
+        console.log(Data)
+        // 기기기 정보 상태 업데이트
+        // setCustomerInfo(customerData)
+      } catch (err) {
+        console.error('기기 정보 파싱 에러:', event.data, err)
+      }
+    })
+
     return eventSource
   }
 
   useEffect(() => {
-    const newTaskId = uuidv4()
+    const newTaskId = '192.168.1.45'
     setTaskId(newTaskId)
 
     const eventSource = createSseConnection(newTaskId)
+
+    startCounselling(newTaskId)
 
     return () => {
       console.log('SSE connection 제거')
@@ -97,22 +149,17 @@ export default function Dashboard() {
     }
   }, [])
 
-  useEffect(() => {
-    if (selectedAppliance && taskId) {
-      startCounselling()
-    }
-  }, [selectedAppliance, taskId])
-
-  const startCounselling = async () => {
-    if (!selectedAppliance || !taskId) return
+  const startCounselling = async (id: String) => {
+    const currentTaskId = id || taskId
+    if (!currentTaskId) return
 
     setLoading(true)
     setError(null)
 
     try {
-      const customerRequestDto = { customerId: '고객ID', applianceId: selectedAppliance }
+      const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
 
-      const response = await fetch(`/api/counselling/${taskId}`, {
+      const response = await fetch(import.meta.env.VITE_API_BASE_URL + `/counseling/${currentTaskId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(customerRequestDto),
@@ -139,10 +186,7 @@ export default function Dashboard() {
         sidebarOpen={sidebarOpen}
         selectedAppliance={selectedAppliance}
         setSelectedAppliance={setSelectedAppliance}
-        micEnabled={micEnabled}
-        setMicEnabled={setMicEnabled}
-        volumeEnabled={volumeEnabled}
-        setVolumeEnabled={setVolumeEnabled}
+        customerInfo={customerInfo}
         appliances={appliances}
         callHistory={callHistory}
       />

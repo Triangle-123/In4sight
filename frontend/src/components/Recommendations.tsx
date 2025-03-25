@@ -69,7 +69,7 @@ export function Recommendations({ applianceData }: RecommendationsProps) {
     const newQuestion: UserQuestion = {
       title: inputValue,
       summary: 'AI 분석 결과입니다.',
-      description: '커스텀 문의 입니다.',
+      description: '똥먹기.',
       status: 'user',
       isLoading: true,
     }
