@@ -25,8 +25,7 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_APPNAME}.b2pc5.mongodb.net/?retryWrites=true&w=majority&appName=${MONGODB_APPNAME}
-      database: ${MONGODB_SCHEMA}
+      uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_URL}/${MONGODB_DATABASE}?authSource=admin
 
 server:
   port: 8080

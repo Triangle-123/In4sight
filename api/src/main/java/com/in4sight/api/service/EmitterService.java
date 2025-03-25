@@ -3,6 +3,7 @@ package com.in4sight.api.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
@@ -24,7 +25,6 @@ import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.EventDataDto;
 import com.in4sight.api.dto.EventDataResponseDto;
-import com.in4sight.api.dto.SolutionDto;
 import com.in4sight.api.dto.TimeSeriesDataDto;
 import com.in4sight.api.dto.TimeSeriesDataResponseDto;
 import com.in4sight.api.repository.CounselingRepository;
@@ -89,6 +89,7 @@ public class EmitterService {
 						new ArrayList<>()));
 				serialNumbers.add(device.getSerialNumber());
 			}
+//				serialNumbers.add("test_015");
 			counselingRepository.save(
 				new LogByCustomer(
 					customerResponseDto.getCustomerId(),
@@ -126,7 +127,7 @@ public class EmitterService {
 		log.info("event received");
 		EventDataDto data = new ObjectMapper().readValue(messages, EventDataDto.class);
 		log.info(data.getTaskId());
-		log.info(data.getData().toString());
+		log.info(String.valueOf(data.getData().size()));
 		SseEmitter emitter = emitters.get(data.getTaskId());
 		SseEmitter.SseEventBuilder event = SseEmitter.event()
 			.name("event-data")
@@ -135,20 +136,17 @@ public class EmitterService {
 				.data(data.getData())
 				.build());
 		emitter.send(event);
-
-		log.info(messages);
-
 	}
 
-	@KafkaListener(topics = "rag_solution", groupId = "#{appProperties.getConsumerGroup()}")
-	public void solutionListener(String messages) throws Exception {
-		log.info("solution received");
-		log.info(messages);
-		SolutionDto data = new ObjectMapper().readValue(messages, SolutionDto.class);
-		SseEmitter emitter = emitters.get(data.getTaskId());
-		SseEmitter.SseEventBuilder event = SseEmitter.event()
-			.name("solution")
-			.data(data.getResult());
-		emitter.send(event);
+	@KafkaListener(topics = "rag-result", groupId = "#{appProperties.getConsumerGroup()}")
+	public void solutionListener(LinkedHashMap messages) throws Exception {
+		log.info("result received");
+		log.info(messages.toString());
+//		SolutionDto data = new ObjectMapper().readValue(messages, SolutionDto.class);
+//		SseEmitter emitter = emitters.get(data.getTaskId());
+//		SseEmitter.SseEventBuilder event = SseEmitter.event()
+//			.name("solution")
+//			.data(data.getResult());
+//		emitter.send(event);
 	}
 }
