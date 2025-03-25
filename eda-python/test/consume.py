@@ -16,6 +16,7 @@ def callback(message: Any) -> None:
     이벤트에서 timestamp 필드를 출력합니다.
     """
     print(message)
+    raise Exception("test")  # pylint: disable=broad-exception-raised
 
 
 eda.event_subscribe("test", "test", callback)

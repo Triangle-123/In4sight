@@ -2,12 +2,15 @@
 in4sight-eda 패키지의 consumer 모듈
 """
 
+import logging
 import threading
+import time
 from json import loads
 from typing import Callable, Optional
 
 from kafka import KafkaConsumer
 
+_logger = logging.getLogger(__name__)
 _consumer: dict[str, KafkaConsumer] = {}
 
 
@@ -81,7 +84,21 @@ def event_subscribe(group_id: str, topic: str, callback: Callable) -> None:
         consumer.subscribe([topic])
 
         for message in consumer:
-            callback(message.value)
+            _logger.info("Received message: %s", message.value)
+            try:
+                callback(message.value)
+            except Exception as e:  # pylint: disable=broad-except
+                _logger.error("Error in callback: %s", e)
+                count = 1
+                while count <= 5:
+                    time.sleep(1)
+                    _logger.info("retrying... %s", count)
+                    try:
+                        callback(message.value)
+                        break
+                    except Exception as retry_error:  # pylint: disable=broad-except
+                        _logger.error("Error in callback: %s", retry_error)
+                        count += 1
 
     consumer_thread = threading.Thread(target=consume_messages, daemon=True)
     consumer_thread.start()
