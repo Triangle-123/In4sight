@@ -30,13 +30,6 @@ def check_door_anormality(df_event, anormality_list, related_sensor):
             anormality_list.append(f"{location_name} 문 열림 횟수가 너무 많음")
             related_sensor.append("문")
 
-        # 문이 너무 오래 열려 있거나 닫히지 않은 경우
-        if max_interval >= LIMIT_MAX_INTERVAL:
-            anormality_list.append(
-                f"{location_name} 문이 너무 오래 열려 있었거나 문이 잘 닫히지 않았음"
-            )
-            related_sensor.append("문")
-
     # 냉장실과 냉동실 각각 검사
     check_location_door("냉장실", open_times_fridge, close_times_fridge)
     check_location_door("냉동실", open_times_freezer, close_times_freezer)

@@ -2,6 +2,7 @@
 다수의 모듈에서 사용하는 함수들을 모아놓은 곳입니다.
 """
 
+import logging
 from datetime import datetime, timedelta
 from json import dumps
 
@@ -32,9 +33,22 @@ def get_door_times(df_event, location):
     """
     지정한 location에 해당하는 문 이벤트의 open/close 시간 리스트를 반환합니다.
     """
+
+    if "location" not in df_event.columns:
+        logging.warning("[get_door_times] 'location' 컬럼이 존재하지 않습니다.")
+        return [], []
+
     df_loc = df_event[df_event["location"] == location]
+
+    if df_loc.empty:
+        logging.warning(
+            "[get_door_times] '%s' 위치의 이벤트 데이터가 없습니다.", location
+        )
+        return [], []
+
     open_times = list(df_loc[df_loc["event_type"] == "door_open"]["_time"])
     close_times = list(df_loc[df_loc["event_type"] == "door_close"]["_time"])
+
     return open_times, close_times
 
 
