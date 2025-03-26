@@ -41,7 +41,7 @@ public class EmitterService {
 	private final KafkaProducer kafkaProducer;
 
 	public SseEmitter addEmitter(String taskId, SseEmitter emitter) throws Exception {
-		emitters.put(taskId, emitter);
+		emitters.computeIfAbsent(taskId, key -> new SseEmitter());
 		emitter.onCompletion(() -> emitters.remove(taskId));
 		emitter.onTimeout(() -> emitters.remove(taskId));
 		emitter.send("SSE connect");
@@ -89,14 +89,13 @@ public class EmitterService {
 						new ArrayList<>()));
 				serialNumbers.add(device.getSerialNumber());
 			}
-//				serialNumbers.add("test_015");
 			counselingRepository.save(
 				new LogByCustomer(
 					customerResponseDto.getCustomerId(),
 					LocalDate.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd")),
 					devices));
 
-			log.info("counseling request");
+			log.info("counseling request: {}", serialNumbers);
 			kafkaProducer.broadcastEvent("counseling_request", new CounselingRequestDto(taskId, serialNumbers));
 		});
 

@@ -17,11 +17,20 @@ public class SolutionDto {
 	private String taskId;
 	private List<Result> result;
 
-	@Data
+	@lombok.Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@JsonNaming
+	private static class Result {
+		private String serialNumber;
+		private List<SolutionDto.Data> data;
+	}
+
+	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-	private static class Result {
+	private static class Data {
 		private String status;
 		private String issue;
 		private String recommendedSolution;
