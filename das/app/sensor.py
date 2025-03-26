@@ -20,7 +20,7 @@ from app.refrigerator_fan import check_fan_rpm_anormality
 from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
-from app.util import broadcast_message, convert_to_iso_utc
+from app.util import broadcast_sensor_message, convert_to_iso_utc
 from app.rag_data_sending import broadcast_rag_message
 from app.api_data_sending import api_data_refine
 
@@ -118,7 +118,9 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     # 컴프레서 압력 이상치 감지
     detect_pressure_anomalies(df_sensor.copy(), anomaly_prompts, related_sensor)
 
-    broadcast_message(task_id, serial_number, "data_sensor", api_data_refine(sensor))
+    broadcast_sensor_message(
+        task_id, serial_number, "data_sensor", api_data_refine(sensor)
+    )
     # broadcast_message(task_id, serial_number, "data_event",
     #    api_data_refine(df_event, EVENT_DATA_LIST))
 
