@@ -89,7 +89,7 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor):
 
         logging.info(result_msg)
 
-        anomaly_prompts.append(result_msg)
+        anomaly_prompts.append(3)
         related_sensor.append("히터")
 
         logging.debug("관련 센서 추가됨: %s", related_sensor)

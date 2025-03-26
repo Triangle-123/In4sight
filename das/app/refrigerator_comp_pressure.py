@@ -31,8 +31,7 @@ def detect_pressure_anomalies(df_sensor, anomaly_prompts, related_sensor):
         logger.info("[컴프레서 압력 이상치 범위] %s", anormality_range)
         related_sensor.append("컴프레서 압력")
 
-        for start, end in anormality_range:
-            anomaly_prompts.append(f"[컴프레서 압력 이상치 범위] {start} ~ {end}")
+        anomaly_prompts.append(0)
 
     else:
         logger.info("[컴프레서 압력 정상] 압력 이상치 없음")
