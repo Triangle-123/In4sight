@@ -22,6 +22,7 @@ from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
 from app.util import broadcast_message, convert_to_iso_utc
+from app.rag_data_sending import broadcast_rag_message
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
@@ -50,7 +51,6 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
 
     anomaly_prompts = []
     related_sensor = []
-    sensor_cols = []  # 온도 이상 감지 시 여기에 센서 컬럼명이 append 됨.
     result = {}
 
     # 날짜를 RFC3339(ISO) 형식으로 변환
@@ -83,9 +83,7 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
         df_sensor = pd.concat(df_sensor)
 
     # 온도 관련 이상치 감지 (sensor_cols에 센서 컬럼명이 append됨)
-    detect_temperature_anomalies(
-        df_sensor, df_event, anomaly_prompts, related_sensor, sensor_cols
-    )
+    detect_temperature_anomalies(df_sensor, df_event, anomaly_prompts, related_sensor)
 
     # 도어 센서 이상치 감지
     check_door_anormality(df_event, anomaly_prompts, related_sensor)
@@ -146,4 +144,4 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
 
     logging.info("[LLM에 반환하는 결과] : %s", result)
 
-    broadcast_message(task_id, serial_number, "das_result", result)
+    broadcast_rag_message(task_id, serial_number, "das_result", anomaly_prompts)
