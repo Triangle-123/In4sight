@@ -52,7 +52,7 @@ def get_door_times(df_event, location):
     return open_times, close_times
 
 
-def broadcast_message(task_id, serial_number, topic, data):
+def broadcast_sensor_message(task_id, serial_number, topic, data):
     """
     eda를 통해 메시지를 broadcast를 해주는 함수입니다.
     """
@@ -60,6 +60,6 @@ def broadcast_message(task_id, serial_number, topic, data):
 
     message["taskId"] = task_id
     message["serialNumber"] = serial_number
-    message["data"] = data
+    message["sensor_data"] = data
 
     eda.event_broadcast(topic, dumps(message, ensure_ascii=False, indent=4))
