@@ -41,7 +41,7 @@ public class EmitterService {
 	private final KafkaProducer kafkaProducer;
 
 	public SseEmitter addEmitter(String taskId, SseEmitter emitter) throws Exception {
-		emitters.computeIfAbsent(taskId, key -> new SseEmitter());
+		emitters.computeIfAbsent(taskId, key -> emitter);
 		emitter.onCompletion(() -> emitters.remove(taskId));
 		emitter.onTimeout(() -> emitters.remove(taskId));
 		emitter.send("SSE connect");
@@ -111,14 +111,13 @@ public class EmitterService {
 		log.info("sensor received");
 
 		TimeSeriesDataDto data = new ObjectMapper().readValue(messages, TimeSeriesDataDto.class);
-		log.info(data.getTaskId());
-		log.info(String.valueOf(data.getData().size()));
+		log.info(data.getTaskId(), data.getSerialNumber());
 		SseEmitter emitter = emitters.get(data.getTaskId());
 		SseEmitter.SseEventBuilder event = SseEmitter.event()
 			.name("sensor-data")
 			.data(TimeSeriesDataResponseDto.builder()
 				.serialNumber(data.getSerialNumber())
-				.data(data.getData())
+				.sensorData(data.getSensorData())
 				.build());
 		emitter.send(event);
 
@@ -129,8 +128,7 @@ public class EmitterService {
 
 		log.info("event received");
 		EventDataDto data = new ObjectMapper().readValue(messages, EventDataDto.class);
-		log.info(data.getTaskId());
-		log.info(String.valueOf(data.getData().size()));
+		log.info(data.getTaskId(), data.getSerialNumber());
 		SseEmitter emitter = emitters.get(data.getTaskId());
 		SseEmitter.SseEventBuilder event = SseEmitter.event()
 			.name("event-data")

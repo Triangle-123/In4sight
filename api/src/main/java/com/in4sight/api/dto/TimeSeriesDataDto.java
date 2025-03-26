@@ -2,6 +2,7 @@ package com.in4sight.api.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -17,16 +18,25 @@ public class TimeSeriesDataDto {
 
 	private String taskId;
 	private String serialNumber;
-	private List<SensorData> data;
+
+	@JsonProperty("sensor_data")
+	private List<SensorData> sensorData;
+
+
+	@lombok.Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class SensorData {
+		private String field;
+		private List<Data> data;
+	}
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-	public static class SensorData {
+	public static class Data {
 		private String time;
-		private String location;
-		private String sensor;
 		private Double value;
 	}
 }

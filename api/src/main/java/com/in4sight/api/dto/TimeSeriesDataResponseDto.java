@@ -15,5 +15,5 @@ import lombok.ToString;
 @Builder
 public class TimeSeriesDataResponseDto {
 	private String serialNumber;
-	private List<TimeSeriesDataDto.SensorData> data;
+	private List<TimeSeriesDataDto.SensorData> sensorData;
 }
