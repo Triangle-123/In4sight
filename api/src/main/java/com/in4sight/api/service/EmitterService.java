@@ -48,6 +48,10 @@ public class EmitterService {
 		return emitter;
 	}
 
+	public SseEmitter getEmitter(String taskId) {
+		return emitters.getOrDefault(taskId, null);
+	}
+
 	public void startProcess(String taskId, CustomerResponseDto customerResponseDto) throws Exception {
 		SseEmitter emitter = emitters.get(taskId);
 		if (emitter == null) {
