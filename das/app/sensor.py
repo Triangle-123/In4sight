@@ -2,7 +2,6 @@
 이 모듈은 데이터 분석과 이상치 감지 하고 eda로 다른 서버의 분석 결과를 보내는 모듈입니다.
 """
 
-import logging
 from json import loads
 
 import pandas as pd
@@ -22,6 +21,8 @@ from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
 from app.util import broadcast_message, convert_to_iso_utc
+from app.rag_data_sending import broadcast_rag_message
+from app.api_data_sending import api_data_refine
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
@@ -36,6 +37,10 @@ SENSOR_DATA_LIST = [
     "_time",
     "location",
 ]
+
+
+EVENT_DATA_LIST = ["door_open", "door_close"]
+
 DEFAULT_DATA_LIST = ["_time", "location"]
 
 # influxdb 연결
@@ -50,8 +55,6 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
 
     anomaly_prompts = []
     related_sensor = []
-    sensor_cols = []  # 온도 이상 감지 시 여기에 센서 컬럼명이 append 됨.
-    result = {}
 
     # 날짜를 RFC3339(ISO) 형식으로 변환
     startday = convert_to_iso_utc(startday)
@@ -80,39 +83,9 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     df_event = query_api.query_data_frame(org=INFLUXDB_ORG, query=event_query)
 
     if isinstance(df_sensor, list):
-        df_sensor = pd.concat(df_sensor)
+        df_sensor = pd.concat(df_sensor, ignore_index=True)
 
-    # 온도 관련 이상치 감지 (sensor_cols에 센서 컬럼명이 append됨)
-    detect_temperature_anomalies(
-        df_sensor, df_event, anomaly_prompts, related_sensor, sensor_cols
-    )
-
-    # 도어 센서 이상치 감지
-    check_door_anormality(df_event, anomaly_prompts, related_sensor)
-
-    # 적재량 이상치 감지
-    check_loading_rate_anormality(df_sensor, anomaly_prompts, related_sensor)
-
-    # 히터 이상치 감지
-    detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor)
-
-    # fan rpm 이상치 감지
-    if "fan_rpm" in df_sensor.columns:
-        check_fan_rpm_anormality(df_sensor, anomaly_prompts, related_sensor)
-
-    # 컴프레서 압력 이상치 감지
-    detect_pressure_anomalies(df_sensor, anomaly_prompts, related_sensor)
-
-    # anomaly_sensors에 포함된 컬럼 선택 및 정렬
-    existing_sensor_cols = [col for col in SENSOR_DATA_LIST if col in df_sensor.columns]
-    if not existing_sensor_cols:
-        logging.warning(
-            "[센서 데이터 없음] SENSOR_DATA_LIST에서 존재하는 컬럼이 없습니다."
-        )
-        return
-
-    # 2. 시간 컬럼 포함해서 선택
-    sensor = df_sensor[existing_sensor_cols].sort_values(["_time"])
+    sensor = df_sensor[SENSOR_DATA_LIST].sort_values(["_time"])
 
     # 3. melt용 ID 컬럼 확인
     id_vars = [col for col in DEFAULT_DATA_LIST if col in sensor.columns]
@@ -127,23 +100,26 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
 
     sensor = loads(sensor.to_json(orient="records", date_format="iso", date_unit="s"))
 
-    event = (
-        df_event[["_time", "event_type", "location"]]
-        .sort_values("_time")
-        .rename(columns={"_time": "time"})
-    )
+    print(sensor)
+    # 온도 관련 이상치 감지 (sensor_cols에 센서 컬럼명이 append됨)
+    detect_temperature_anomalies(df_sensor, df_event, anomaly_prompts, related_sensor)
 
-    event = loads(event.to_json(orient="records", date_format="iso", date_unit="s"))
+    # 도어 센서 이상치 감지
+    check_door_anormality(df_event, anomaly_prompts, related_sensor)
 
-    broadcast_message(task_id, serial_number, "data_sensor", sensor)
-    broadcast_message(task_id, serial_number, "data_event", event)
+    # 적재량 이상치 감지
+    check_loading_rate_anormality(df_sensor, anomaly_prompts, related_sensor)
 
-    result["taskId"] = task_id
-    result["serialNumber"] = serial_number
-    result["anomaly_prompts"] = anomaly_prompts
-    result["product_type"] = "냉장고"
-    result["related_sensor"] = list(set(related_sensor))
+    # 히터 이상치 감지
+    detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor)
 
-    logging.info("[LLM에 반환하는 결과] : %s", result)
+    check_fan_rpm_anormality(df_sensor, anomaly_prompts, related_sensor)
 
-    broadcast_message(task_id, serial_number, "das_result", result)
+    # 컴프레서 압력 이상치 감지
+    detect_pressure_anomalies(df_sensor.copy(), anomaly_prompts, related_sensor)
+
+    broadcast_message(task_id, serial_number, "data_sensor", api_data_refine(sensor))
+    # broadcast_message(task_id, serial_number, "data_event",
+    #    api_data_refine(df_event, EVENT_DATA_LIST))
+
+    broadcast_rag_message(task_id, serial_number, "das_result", anomaly_prompts)
