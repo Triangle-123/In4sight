@@ -107,6 +107,25 @@ public class EmitterService {
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();
 	}
 
+	/**
+	 * SSE 이벤트 보내는 메서드
+	 * @param taskId SSE Emitter TaskID
+	 * @param eventName 전달한 이벤트 대분류
+	 * @param eventDataDto 이벤트 데이터
+	 * @param <E> 이벤트 자료구조
+	 */
+	public <E> void sendEvent(String taskId, String eventName, E eventDataDto) {
+		try {
+			SseEmitter emitter = getEmitter(taskId);
+			SseEmitter.SseEventBuilder event = SseEmitter.event()
+				.name(eventName)
+				.data(eventDataDto);
+			emitter.send(event);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+	}
+
 	@KafkaListener(topics = "data_sensor", groupId = "#{appProperties.getConsumerGroup()}")
 	public void sensorListener(String messages) throws Exception {
 		log.info("sensor received");
