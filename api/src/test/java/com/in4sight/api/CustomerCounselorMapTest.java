@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -24,7 +23,7 @@ import com.in4sight.api.uttil.CustomerCounselorMap;
 
 
 @DisplayName("고객과 상담사 매칭 자료구조 테스트")
-@SpringBootTest
+//@SpringBootTest
 public class CustomerCounselorMapTest {
 	private final CustomerCounselorMap customerCounselorMap;
 
