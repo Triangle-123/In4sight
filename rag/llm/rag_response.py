@@ -4,8 +4,8 @@ LLM API의 JSON 문자열 응답으로부터 DTO 객체를 생성하는 모듈
 
 import json
 import re
-from dataclasses import dataclass
-from typing import List
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -15,14 +15,22 @@ class DiagnosticResult:
     """
 
     status: str
-    issue: List[str]
     recommended_solution: List[str]
 
+    def to_dict(self) -> Dict[str, Any]:
+        """객체를 딕셔너리로 변환"""
+        return asdict(self)
+
+    def __str__(self) -> str:
+        """객체를 문자열로 변환"""
+        return json.dumps(self.to_dict(), ensure_ascii=False)
+
     @classmethod
-    def from_json(cls, json_str: str) -> List["DiagnosticResult"]:
+    def from_json(
+        cls, json_str: str
+    ) -> Optional[List["DiagnosticResult"] | "DiagnosticResult"]:
         """JSON 문자열에서 DiagnosticResult 객체 파싱 (단일 객체 또는 배열 처리)"""
         try:
-
             json_str = re.sub(
                 r"^(```json|\'\'\'|```|\'\'\')|\n(```json|\'\'\'|```|\'\'\')$",
                 "",
@@ -40,11 +48,6 @@ class DiagnosticResult:
                 return [
                     cls(
                         status=item.get("status", ""),
-                        issue=(
-                            [item.get("issue")]
-                            if isinstance(item.get("issue"), str)
-                            else item.get("issue", [])
-                        ),
                         recommended_solution=(
                             [item.get("recommended_solution")]
                             if isinstance(item.get("recommended_solution"), str)
@@ -57,11 +60,6 @@ class DiagnosticResult:
             # 단일 객체인 경우
             return cls(
                 status=data.get("status", ""),
-                issue=(
-                    [data.get("issue")]
-                    if isinstance(data.get("issue"), str)
-                    else data.get("issue", [])
-                ),
                 recommended_solution=(
                     [data.get("recommended_solution")]
                     if isinstance(data.get("recommended_solution"), str)
