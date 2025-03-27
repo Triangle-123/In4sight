@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: api
+  config:
+    import: optional:file:.env[.properties]
+
+  # MySQL
+  datasource:
+    driver-class-name: ${MYSQL_DRIVER}
+    url: jdbc:mysql://${MYSQL_URL}/${MYSQL_SCHEMA}?serverTimezone=Asia/Seoul
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    defer-datasource-initialization: true
+#  sql:
+#    init:
+#      data-locations: classpath*:db/data.sql
+#      mode: always
+#      platform: all
+
+  data:
+    mongodb:
+      uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_URL}/${MONGODB_DATABASE}?authSource=admin
+
+server:
+  port: 8080
+
+eda:
+  kafka:
+    bootstrap-server: j12s004.p.ssafy.io:8003
+    consumer-group: consumer-java
+
+springdoc:
+  swagger-ui:
+    path: /api-swagger
+    groups-order: DESC
+    operations-sorter: method
+  paths-to-match:
+    - /api/**
