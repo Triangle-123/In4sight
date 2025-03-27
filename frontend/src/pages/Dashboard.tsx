@@ -2,155 +2,60 @@ import { DeviceStatus } from '@/components/DeviceStatus'
 import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
-import { callHistory, getApplianceData } from '@/lib/applianceService'
+import { callHistoryPlaceholder, getAppliancePlaceholder } from '@/lib/placeholder-data'
 import { ApplianceDataType, ApplianceType } from '@/lib/types'
-import { useEffect, useRef, useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
+import useStore from '@/store/store'
+import { useEffect, useState } from 'react'
+
+// import { v4 as uuidv4 } from 'uuid'
+
+// Constants
+// const MAX_RECONNECT_ATTEMPTS = 5
+const API_URL = import.meta.env.VITE_API_BASE_URL
+const TASK_ID = 'frontend_test'
 
 export default function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [selectedAppliance, setSelectedAppliance] = useState<ApplianceType | null>(null)
-  const [taskId, setTaskId] = useState<string>('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [reconnectCount, setReconnectCount] = useState(0)
-  const [isConnected, setIsConnected] = useState(false)
-  const maxReconnectAttempts = 5
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const eventSourceRef = useRef<EventSource | null>(null)
+  const createSseConnection = useStore((state) => state.createSseConnection)
+  const closeSseConnection = useStore((state) => state.closeSseConnection)
+  const setTaskId = useStore((state) => state.setTaskId)
+  const setError = useStore((state) => state.setError)
+  const isConnected = useStore((state) => state.isConnected)
+  const error = useStore((state) => state.error)
+  const customerInfo = useStore((state) => state.customerInfo)
+  const appliances = useStore((state) => state.appliances)
+  // const sensorData = useStore((state) => state.sensorData)
+  // const eventData = useStore((state) => state.eventData)
 
+  // UI States
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [selectedAppliance, setSelectedAppliance] = useState<ApplianceType | null>(null)
   const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(null)
-  const [graphData, setGraphData] = useState(null)
+  // const [graphData, setGraphData] = useState(null)
 
   useEffect(() => {
     if (selectedAppliance) {
-      setApplianceData(getApplianceData(selectedAppliance, graphData))
+      setApplianceData(getAppliancePlaceholder(selectedAppliance))
     }
   }, [selectedAppliance])
-  const [customerInfo, setCustomerInfo] = useState(null)
-  const [appliances, setAppliances] = useState(null)
-
-  const createSseConnection = (currentTaskId: string) => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close()
-    }
-
-    console.log(`SSE 연결을 시도합니다: ${reconnectCount + 1} of ${maxReconnectAttempts}`)
-
-    const API_URL = import.meta.env.VITE_API_BASE_URL
-    const eventSource = new EventSource(`${API_URL}/counseling/${currentTaskId}`)
-    eventSourceRef.current = eventSource
-
-    eventSource.onopen = () => {
-      console.log('SSE 연결 성공')
-      setIsConnected(true)
-      setError(null)
-      setReconnectCount(0)
-    }
-
-    eventSource.onmessage = (event) => {
-      try {
-        console.log('SSE 데이터 수신:', event.data)
-      } catch (err) {
-        console.error('SSE 데이터 파싱 에러:', event.data, err)
-      }
-    }
-
-    eventSource.onerror = (error) => {
-      console.error('SSE 연결 에러:', error)
-      setIsConnected(false)
-
-      eventSource.close()
-
-      if (reconnectCount < maxReconnectAttempts) {
-        const nextReconnectDelay = Math.min(1000 * Math.pow(1.5, reconnectCount), 10000)
-        console.log(`재 연결 시도 중... ${nextReconnectDelay}ms`)
-
-        setError(`SSE 연결이 끊어졌습니다. 재연결을 시도합니다... (${reconnectCount + 1}/${maxReconnectAttempts})`)
-
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current)
-        }
-
-        reconnectTimeoutRef.current = setTimeout(() => {
-          setReconnectCount((prev) => prev + 1)
-          createSseConnection(currentTaskId)
-        }, nextReconnectDelay)
-      } else {
-        setError('SSE 연결에 반복적으로 실패했습니다. 페이지를 새로고침 해주세요.')
-      }
-    }
-
-    eventSource.addEventListener('customer-info', (event) => {
-      try {
-        console.log('고객 정보 수신:', event.data)
-        const customerData = JSON.parse(event.data)
-        // 고객 정보 상태 업데이트
-        setCustomerInfo(customerData)
-      } catch (err) {
-        console.error('고객 정보 파싱 에러:', event.data, err)
-      }
-    })
-
-    eventSource.addEventListener('device-info', (event) => {
-      try {
-        console.log('기기기 정보 수신:', event.data)
-        const applianceData = JSON.parse(event.data)
-        // 기기기 정보 상태 업데이트
-        setAppliances(applianceData)
-      } catch (err) {
-        console.error('기기 정보 파싱 에러:', event.data, err)
-      }
-    })
-
-    eventSource.addEventListener('sensor-data', (event) => {
-      try {
-        console.log('머선 정보 수신:', event.data)
-        const Data = JSON.parse(event.data)
-        console.log(Data)
-        // 기기기 정보 상태 업데이트
-        // setCustomerInfo(customerData)
-      } catch (err) {
-        console.error('기기 정보 파싱 에러:', event.data, err)
-      }
-    })
-
-    eventSource.addEventListener('event-data', (event) => {
-      try {
-        console.log('머선 정보 수신:', event.data)
-        const Data = JSON.parse(event.data)
-        console.log(Data)
-        // 기기기 정보 상태 업데이트
-        // setCustomerInfo(customerData)
-      } catch (err) {
-        console.error('기기 정보 파싱 에러:', event.data, err)
-      }
-    })
-
-    return eventSource
-  }
 
   useEffect(() => {
-    const newTaskId = '192.168.1.45'
+    // 고객 별로 상이한 taskId 사용
+    const newTaskId = TASK_ID
     setTaskId(newTaskId)
 
     const eventSource = createSseConnection(newTaskId)
-
+    console.log('eventSource', eventSource)
     startCounselling(newTaskId)
 
     return () => {
       console.log('SSE connection 제거')
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current)
-      }
-      if (eventSource) {
-        eventSource.close()
-      }
+      closeSseConnection()
     }
   }, [])
 
-  const startCounselling = async (id: String) => {
-    const currentTaskId = id || taskId
+  const startCounselling = async (id: string) => {
+    const currentTaskId = id || TASK_ID
     if (!currentTaskId) return
 
     setLoading(true)
@@ -159,7 +64,7 @@ export default function Dashboard() {
     try {
       const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
 
-      const response = await fetch(import.meta.env.VITE_API_BASE_URL + `/counseling/${currentTaskId}`, {
+      const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(customerRequestDto),
@@ -168,6 +73,8 @@ export default function Dashboard() {
       if (!response.ok) {
         const errorText = await response.text()
         throw new Error(errorText || '솔루션 요청 중 오류가 발생했습니다')
+      // } else {
+      //   console.log('솔루션 요청 성공', response)
       }
 
       console.log('상담을 시작합니다...')
@@ -188,7 +95,7 @@ export default function Dashboard() {
         setSelectedAppliance={setSelectedAppliance}
         customerInfo={customerInfo}
         appliances={appliances}
-        callHistory={callHistory}
+        callHistory={callHistoryPlaceholder}
       />
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
