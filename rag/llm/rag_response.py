@@ -49,7 +49,7 @@ class DiagnosticResult:
                     cls(
                         status=item.get("status", ""),
                         recommended_solution=(
-                            [item.get("recommended_solution")]
+                            "".join([item.get("recommended_solution")])
                             if isinstance(item.get("recommended_solution"), str)
                             else item.get("recommended_solution", [])
                         ),
