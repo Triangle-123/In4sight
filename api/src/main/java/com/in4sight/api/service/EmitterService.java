@@ -3,7 +3,6 @@ package com.in4sight.api.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +24,8 @@ import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.EventDataDto;
 import com.in4sight.api.dto.EventDataResponseDto;
+import com.in4sight.api.dto.SolutionDto;
+import com.in4sight.api.dto.SolutionResponseDto;
 import com.in4sight.api.dto.TimeSeriesDataDto;
 import com.in4sight.api.dto.TimeSeriesDataResponseDto;
 import com.in4sight.api.repository.CounselingRepository;
@@ -109,7 +110,7 @@ public class EmitterService {
 	@KafkaListener(topics = "data_sensor", groupId = "#{appProperties.getConsumerGroup()}")
 	public void sensorListener(String messages) throws Exception {
 		log.info("sensor received");
-
+		log.info(messages);
 		TimeSeriesDataDto data = new ObjectMapper().readValue(messages, TimeSeriesDataDto.class);
 		log.info(data.getTaskId(), data.getSerialNumber());
 		SseEmitter emitter = emitters.get(data.getTaskId());
@@ -140,14 +141,16 @@ public class EmitterService {
 	}
 
 	@KafkaListener(topics = "rag-result", groupId = "#{appProperties.getConsumerGroup()}")
-	public void solutionListener(LinkedHashMap messages) throws Exception {
+	public void solutionListener(String messages) throws Exception {
 		log.info("result received");
-		log.info(messages.toString());
-//		SolutionDto data = new ObjectMapper().readValue(messages, SolutionDto.class);
-//		SseEmitter emitter = emitters.get(data.getTaskId());
-//		SseEmitter.SseEventBuilder event = SseEmitter.event()
-//			.name("solution")
-//			.data(data.getResult());
-//		emitter.send(event);
+		SolutionDto data = new ObjectMapper().readValue(messages, SolutionDto.class);
+		log.info(data.getTaskId(), data.getResult().size());
+		SseEmitter emitter = emitters.get(data.getTaskId());
+		SseEmitter.SseEventBuilder event = SseEmitter.event()
+			.name("solution")
+			.data(SolutionResponseDto.builder()
+				.result(data.getResult())
+				.build());
+		emitter.send(event);
 	}
 }

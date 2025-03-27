@@ -28,14 +28,14 @@ public class TimeSeriesDataDto {
 	@AllArgsConstructor
 	public static class SensorData {
 		private String field;
-		private List<Data> data;
+		private List<FieldData> data;
 	}
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-	public static class Data {
+	public static class FieldData {
 		private String time;
 		private Double value;
 	}

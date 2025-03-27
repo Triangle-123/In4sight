@@ -1,3 +1,6 @@
+DELETE FROM customer;
+DELETE FROM device;
+
 INSERT INTO customer (customer_name, phone_number, address)
 VALUES ('박싸피', '010-1234-0001', '서울시 종로구 종로1가 1-1'),
        ('김싸피', '010-1234-0002', '서울시 강남구 삼성동 23-5'),
