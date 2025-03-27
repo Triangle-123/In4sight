@@ -2,27 +2,23 @@
 이 모듈은 데이터 분석과 이상치 감지 하고 eda로 다른 서버의 분석 결과를 보내는 모듈입니다.
 """
 
+import pprint
 from json import loads
 
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
+from app.api_data_sending import api_data_refine
+from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
+                        INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
+from app.rag_data_sending import broadcast_rag_message
 from app.refrigerator_comp_pressure import detect_pressure_anomalies
-from app.config import (
-    INFLUXDB_BUCKET_EVENT,
-    INFLUXDB_BUCKET_SENSOR,
-    INFLUXDB_ORG,
-    INFLUXDB_TOKEN,
-    INFLUXDB_URL,
-)
 from app.refrigerator_door import check_door_anormality
 from app.refrigerator_fan import check_fan_rpm_anormality
 from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
 from app.util import broadcast_sensor_message, convert_to_iso_utc
-from app.rag_data_sending import broadcast_rag_message
-from app.api_data_sending import api_data_refine
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
@@ -100,7 +96,7 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
 
     sensor = loads(sensor.to_json(orient="records", date_format="iso", date_unit="s"))
 
-    print(sensor)
+    pprint.pprint(sensor)
     # 온도 관련 이상치 감지 (sensor_cols에 센서 컬럼명이 append됨)
     detect_temperature_anomalies(df_sensor, df_event, anomaly_prompts, related_sensor)
 
