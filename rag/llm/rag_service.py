@@ -2,9 +2,10 @@
 RAG 서비스 모듈 - Kafka 이벤트 처리 및 RAG 로직
 """
 
-import datetime
+import concurrent.futures
 import json
 import logging
+import pprint
 from typing import Any, Dict
 
 # Kafka에 이벤트 발행 (프로듀서 로직 필요)
@@ -24,7 +25,7 @@ def suggest_additional_questions(message: Dict[str, Any]) -> None:
     상담사의 추가 질문 이벤트를 처리합니다.
 
     Args:
-        message: Kafks 메시지 내용
+        message: Kafka 메시지 내용
     """
     try:
         logger.info("상담사 추가 질문 이벤트 수신: %s", message)
@@ -42,6 +43,75 @@ def suggest_additional_questions(message: Dict[str, Any]) -> None:
             return
     except Exception as e:  # pylint: disable=broad-except
         logger.error("추가 질문 이벤트 처리 중 오류 발생: %s", e, exc_info=True)
+
+
+def process_symptom_with_rag(
+    failure_item: Dict[str, Any], product_type: str, client: GPTClient
+) -> Dict[str, Any]:
+    """
+    각 증상에 대해 RAG를 수행합니다.
+
+    Args:
+        failure_item: 고장 증상 정보 (failure, causes, related_sensor 포함)
+        product_type: 제품 타입
+        client: GPT 클라이언트
+
+    Returns:
+        RAG 처리 결과
+
+    """
+
+    try:
+        print(failure_item)
+        failure = failure_item.get("failure", "")
+        causes = failure_item.get("causes", [])
+        related_sensors = failure_item.get("related_sensor", [])
+
+        logger.info("고장 증상 '%s'에 대한 RAG 처리 시작", failure)
+
+        handler = GPTHandler(client=client)
+
+        # ChromaDB 질의 데이터 구성
+        query_data = {
+            "query_text": failure,
+            "n_results": 3,
+            "where": {"product_type": product_type} if product_type else None,
+            "query_embedding": None,
+        }
+
+        # RAG 완료 호출
+        response = handler.rag_completion(
+            query_data=query_data, causes=causes, related_sensors=related_sensors
+        )
+
+        if not response.get("success"):
+            logger.error(
+                "증상 '%s'에 대한 RAG 처리 실패: %s", failure, response.get("error")
+            )
+            raise Exception  # pylint: disable=broad-exception-raised
+
+        logger.info(
+            "고장 증상 '%s'에 대한 RAG 처리 완료 (%d개 원인 분석)", failure, len(causes)
+        )
+
+        return {
+            "failure": failure,
+            "cause": causes,
+            "sensor": related_sensors,
+            "recommended_solution": response.get("result", ""),
+        }
+    except Exception as e:  # pylint: disable=broad-except
+        logger.error(
+            "고장 증상 '%s' 처리 중 오류 발생: %s",
+            failure_item.get("failure", "알 수 없음"),
+            str(e),
+            exc_info=True,
+        )
+        return {
+            "success": False,
+            "error": str(e),
+            "failure": failure_item.get("failure", "알 수 없음"),
+        }
 
 
 def process_data_analysis_event(message: Dict[str, Any]) -> None:
@@ -68,49 +138,55 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
 
         if isinstance(data, str):
             try:
-
                 data = json.loads(data)
             except json.JSONDecodeError:
                 logger.error("데이터를 JSON으로 파싱할 수 없습니다: %s", data)
                 return
 
-        logger.info("데이터 타입: %s", type(data))
-        logger.info("내용: %s", data)
-
         # 메시지에서 필요한 데이터 추출
-        analysis_id = data.get("taskId")
-        product_type = data.get("product_type")
-        anomaly_prompts = data.get("anomaly_prompts", [])
-        related_sensor = data.get("related_sensor", [])
+        serial_number = message.get("serialNumber")
+        task_id = message.get("taskId")
+        product_type = message.get("product_type")
 
-        analysis_results = {
-            "anomaly_prompts": anomaly_prompts,
-            "related_sensor": related_sensor,
-        }
-
-        if not analysis_id:
-            logger.error("유효하지 않은 메시지 형식: analysis_id가 없습니다")
+        if not task_id:
+            logger.error("유효하지 않은 메시지 형식: task_id가 없습니다")
             return
 
         client = GPTClient()
-        handler = GPTHandler(client=client)
 
-        query_data = {
-            "query_text": generate_query_from_analysis(analysis_results),
-            "n_results": 5,
-            "where": {"product_type": product_type} if product_type else None,
-            "query_embedding": None,
-        }
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=min(8, len(data))
+        ) as executor:
+            # For문 돌면서 스레드 풀에서 스레드 하나씩 가져오기
+            future_to_symptom = {
+                # 각 스레드별로 증상 하나씩 담당하여 작업하기
+                executor.submit(
+                    process_symptom_with_rag,  # Vector DB에 질의하고 LLM 추론 결과를 얻는 함수
+                    symptom_item,
+                    product_type,
+                    client,
+                ): symptom_item.get("failure", f"Item-{i}")
+                for i, symptom_item in enumerate(data)
+            }
 
-        response = handler.rag_completion(query_data=query_data)
+            for future in concurrent.futures.as_completed(future_to_symptom):
+                failure = future_to_symptom[future]
 
-        if not response.get("success"):
-            logger.error("RAG 처리 실패: %s", response.get("error"))
-            return
+                try:
+                    result = future.result()
+                    publish_rag_completed_event(
+                        task_id=task_id, result=result, serial_number=serial_number
+                    )
 
-        publish_rag_completed_event(analysis_id, response.get("content", ""))
+                except Exception as e:  # pylint: disable=broad-except
+                    logger.error(
+                        "고장 증상 [%s] 처리 중 예외 발생: %s",
+                        failure,
+                        str(e),
+                        exc_info=True,
+                    )
 
-        logger.info("RAG 분석 및 이벤트 발행 완료: %s", analysis_id)
+        logger.info("RAG 분석 및 이벤트 발행 완료: %s", task_id)
     except Exception as e:  # pylint: disable=broad-except
         logger.error("RAG 처리 중 오류 발생: %s", e, exc_info=True)
 
@@ -138,7 +214,7 @@ def generate_query_from_analysis(analysis_results: Dict[str, Any]) -> str:
     return query
 
 
-def publish_rag_completed_event(analysis_id: str, result: str) -> None:
+def publish_rag_completed_event(task_id: str, result, serial_number: str) -> None:
     """
     RAG 분석 완료 이벤트를 Kafka에 발행합니다.
 
@@ -147,12 +223,21 @@ def publish_rag_completed_event(analysis_id: str, result: str) -> None:
         result: GPT 응답 결과
     """
     try:
-        # 이벤트 데이터 구성
+        print("=============이벤트발행==============")
+        pprint.pprint(result)
+
+        # DiagnosticResult 객체를 딕셔너리로 변환
+        if "recommended_solution" in result and isinstance(
+            result["recommended_solution"], list
+        ):
+            result["recommended_solution"] = [
+                item.to_dict() if hasattr(item, "to_dict") else item
+                for item in result["recommended_solution"]
+            ]
+
         event_data = {
-            "event": "rag-result",
-            "analysis_id": analysis_id,
-            "result": result,
-            "timestamp": datetime.datetime.now().isoformat(),
+            "taskId": task_id,
+            "result": {"serial_number": serial_number, "data": result},
         }
 
         producer = get_producer()
