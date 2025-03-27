@@ -18,7 +18,7 @@ public class TestController {
 		this.emitterService = emitterService;
 	}
 
-	@GetMapping("/api/v1/counseling")
+	@GetMapping("/api/test/counseling")
 	public SseEmitter connectSse(
 		@RequestParam("task_id") String taskId
 	) {

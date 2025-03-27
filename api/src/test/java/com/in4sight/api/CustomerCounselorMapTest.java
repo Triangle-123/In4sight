@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -36,9 +35,8 @@ public class CustomerCounselorMapTest {
 	@MockitoBean
 	private EmitterService emitterService;
 
-	@Autowired
-	public CustomerCounselorMapTest(CustomerCounselorMap customerCounselorMap) {
-		this.customerCounselorMap = customerCounselorMap;
+	public CustomerCounselorMapTest() {
+		this.customerCounselorMap = new CustomerCounselorMap();
 	}
 
 	@DisplayName("상담 가능한 상담사의 Queue 테스트")

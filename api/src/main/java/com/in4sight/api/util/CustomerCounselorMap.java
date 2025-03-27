@@ -27,7 +27,7 @@ public class CustomerCounselorMap {
 	 * 사용가능한 상담원 SSE TaskID 확인
 	 * @return 상담원 SSE TaskID 반환
 	 */
-	public String getAvailableCounselorTaskId() {
+	public synchronized String getAvailableCounselorTaskId() {
 		return availableCounselors.poll();
 	}
 
@@ -66,5 +66,9 @@ public class CustomerCounselorMap {
 		setAvailableCounselor(reAvailableCounselor);
 
 		return reAvailableCounselor;
+	}
+
+	public boolean isMappingCounselor(String counselor) {
+		return mappedCustomer.containsKey(counselor);
 	}
 }

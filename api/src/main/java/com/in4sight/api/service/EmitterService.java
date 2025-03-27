@@ -50,7 +50,9 @@ public class EmitterService {
 
 	public SseEmitter addEmitter(String taskId, SseEmitter emitter) throws Exception {
 		emitters.computeIfAbsent(taskId, key -> emitter);
-		customerCounselorMap.setAvailableCounselor(taskId);
+		if (!customerCounselorMap.isMappingCounselor(taskId)) {
+			customerCounselorMap.setAvailableCounselor(taskId);
+		}
 		emitter.onCompletion(() -> emitters.remove(taskId));
 		emitter.onTimeout(() -> emitters.remove(taskId));
 		emitter.send("SSE connect");
