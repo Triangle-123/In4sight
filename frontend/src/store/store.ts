@@ -56,7 +56,11 @@ interface Actions {
 type Store = State & Actions
 
 const MAX_RECONNECT_ATTEMPTS = 5
-const API_URL = import.meta.env.VITE_API_BASE_URL
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
+if (!import.meta.env.VITE_API_BASE_URL) {
+  console.warn('⚠️ VITE_API_BASE_URL이 설정되지 않았습니다. 기본값을 사용합니다.')
+}
 
 // store 생성
 const useStore = create<Store>((set, get) => {

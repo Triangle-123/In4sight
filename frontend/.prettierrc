@@ -8,8 +8,8 @@
   "importOrder": [
     "^[A-Z](.*)$",
     "^@store/(.*)$",
-    "^@common/(.*)$",
     "^@ui/(.*)$",
+    "^@lib/(.*)$",
     "^[./]"
   ],
   "importOrderSeparation": true,

@@ -62,6 +62,7 @@ export default function Dashboard() {
     setError(null)
 
     try {
+      // TODO: SSE 서버에서 고객 정보 받아오기
       const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
 
       const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
@@ -73,8 +74,8 @@ export default function Dashboard() {
       if (!response.ok) {
         const errorText = await response.text()
         throw new Error(errorText || '솔루션 요청 중 오류가 발생했습니다')
-      // } else {
-      //   console.log('솔루션 요청 성공', response)
+        // } else {
+        //   console.log('솔루션 요청 성공', response)
       }
 
       console.log('상담을 시작합니다...')
@@ -121,7 +122,7 @@ export default function Dashboard() {
           {selectedAppliance && applianceData ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
               {/* 왼쪽 섹션 - 제품 상태 모니터링 그래프들 */}
-              <DeviceStatus applianceData={applianceData} />
+              <DeviceStatus />
 
               {/* 오른쪽 섹션 - 추천 솔루션(LLM) */}
               <Recommendations applianceData={applianceData} />
