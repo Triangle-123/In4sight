@@ -2,8 +2,10 @@ package com.in4sight.api.controller;
 
 import java.util.NoSuchElementException;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import com.in4sight.api.dto.CounselorEmitterDto;
 import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.service.CustomerService;
 import com.in4sight.api.service.EmitterService;
@@ -34,6 +37,19 @@ public class CounselingController {
 
 	private final CustomerService customerService;
 	private final EmitterService emitterService;
+
+	@GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	@Operation(summary = "SSE 연결", description = "EventSource 객체를 통한 SSE 연결")
+	public ResponseEntity<SseEmitter> counselorConnect(
+		@CookieValue(value = "task_id", required = false)
+		String taskId
+	) throws Exception {
+		CounselorEmitterDto counselorEmitter = emitterService.addEmitter(taskId);
+
+		return ResponseEntity.ok()
+			.header(HttpHeaders.SET_COOKIE, counselorEmitter.taskCookie().toString())
+			.body(counselorEmitter.sseEmitter());
+	}
 
 	@GetMapping(value = "/{taskId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	@Operation(summary = "SSE 연결", description = "EventSource 객체를 통한 SSE 연결")

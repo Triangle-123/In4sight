@@ -9,7 +9,7 @@ import com.in4sight.api.domain.Customer;
 import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.repository.CustomerRepository;
-import com.in4sight.api.uttil.CustomerCounselorMap;
+import com.in4sight.api.util.CustomerCounselorMap;
 
 @Slf4j
 @Service
@@ -17,8 +17,8 @@ import com.in4sight.api.uttil.CustomerCounselorMap;
 public class CustomerService {
 
 	private final CustomerRepository customerRepository;
-	private final CustomerCounselorMap customerCounselorMap;
 	private final EmitterService emitterService;
+	private final CustomerCounselorMap customerCounselorMap;
 
 	public CustomerResponseDto findCustomer(CustomerRequestDto customerRequestDto) {
 		Customer customer = customerRepository.findByCustomerNameAndPhoneNumber(
