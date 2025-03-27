@@ -1,29 +1,23 @@
-package com.in4sight.api.uttil;
+package com.in4sight.api.util;
 
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.in4sight.api.service.EmitterService;
 
 /**
  * 상담원과 고객을 연결을 관리하는 자료구조
  */
 @Component
 public class CustomerCounselorMap {
-	private final EmitterService emitterService;
 
 	private final ConcurrentHashMap<String, String> mappedCustomer;
 	private final Map<String, String> mappedCounselor;
 	private final Queue<String> availableCounselors;
 
-	@Autowired
-	public CustomerCounselorMap(EmitterService emitterService) {
-		this.emitterService = emitterService;
+	public CustomerCounselorMap() {
 		this.mappedCustomer = new ConcurrentHashMap<>();
 		this.mappedCounselor = new ConcurrentHashMap<>();
 		this.availableCounselors = new ConcurrentLinkedQueue<>();
@@ -34,17 +28,7 @@ public class CustomerCounselorMap {
 	 * @return 상담원 SSE TaskID 반환
 	 */
 	public String getAvailableCounselorTaskId() {
-		while (!availableCounselors.isEmpty()) {
-			String counselor = availableCounselors.poll();
-
-			if (emitterService.getEmitter(counselor) == null) {
-				continue;
-			}
-
-			return counselor;
-		}
-
-		return null;
+		return availableCounselors.poll();
 	}
 
 	/**

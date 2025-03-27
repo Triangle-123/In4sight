@@ -34,7 +34,7 @@ import com.in4sight.api.dto.SolutionResponseDto;
 import com.in4sight.api.dto.TimeSeriesDataDto;
 import com.in4sight.api.dto.TimeSeriesDataResponseDto;
 import com.in4sight.api.repository.CounselingRepository;
-import com.in4sight.api.uttil.CustomerCounselorMap;
+import com.in4sight.api.util.CustomerCounselorMap;
 import com.in4sight.eda.producer.KafkaProducer;
 
 @Slf4j

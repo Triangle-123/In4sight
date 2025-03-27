@@ -20,7 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jdk.jfr.Description;
 
 import com.in4sight.api.service.EmitterService;
-import com.in4sight.api.uttil.CustomerCounselorMap;
+import com.in4sight.api.util.CustomerCounselorMap;
 
 
 @DisplayName("고객과 상담사 매칭 자료구조 테스트")
