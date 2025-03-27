@@ -52,14 +52,14 @@ class GPTHandler:
         except (KeyError, IndexError) as e:
             return {"success": False, "error": f"응답 파싱 오류: {str(e)}"}
 
-    def rag_completion(self, query_data):
+    def rag_completion(self, query_data, causes, related_sensors):
         """
         RAG 기반 완성 요청 처리 함수 - 시맨틱 검색 적용
 
         Args:
             query_data (dict): 쿼리 데이터 딕셔너리
                 - query_text (str): 사용자 쿼리 텍스트
-                - n_results (int): 검색할 결과 수 (기본값: 5)
+                - n_results (int): 검색할 결과 수 (기본값: 3)
                 - where (dict, optional): 메타데이터 필터링 조건
                 - where_document (dict, optional): 문서 내용 필터링 조건
                 - use_semantic_search (bool, optional): 시맨틱 검색 사용 여부 (기본값: True)
@@ -70,7 +70,7 @@ class GPTHandler:
         """
         # 쿼리 데이터에서 필요한 정보 추출
         query_text = query_data.get("query_text", "")
-        n_results = query_data.get("n_results", 5)
+        n_results = query_data.get("n_results", 3)
         where = query_data.get("where")
         where_document = query_data.get("where_document")
         use_semantic_search = query_data.get("use_semantic_search", True)
@@ -131,12 +131,16 @@ class GPTHandler:
 
         # 프롬프트 구성
         user_message = BasePrompts.format_rag_prompt(
-            context=context_str, query=query_text
+            context=context_str,
+            query=query_text,
+            causes=causes,
+            related_sensors=related_sensors,
         )
         system_message = BasePrompts.DIAGNOSTIC_SYSTEM
 
         # LLM에 완성 요청
         logger.info("LLM 완성 요청 시작")
+        print(user_message)
         response = self.simple_completion(user_message, system_message)
         logger.info("RAG 완성 처리 완료")
 
