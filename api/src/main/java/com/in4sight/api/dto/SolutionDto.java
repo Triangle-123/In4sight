@@ -15,24 +15,34 @@ import lombok.NoArgsConstructor;
 public class SolutionDto {
 
 	private String taskId;
-	private List<ResultSolution> result;
+	private Result result;
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonNaming
-	public static class ResultSolution {
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	public static class Result {
 		private String serialNumber;
-		private List<SolutionDto.Data> data;
+		private TotalAnswer data;
 	}
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-	private static class Data {
+	private static class TotalAnswer {
+		private String failure;
+		private List<String> cause;
+		private List<String> sensor;
+		private List<Solution> solutions;
+	}
+
+	@lombok.Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	private static class Solution {
 		private String status;
-		private String issue;
 		private String recommendedSolution;
 	}
 }

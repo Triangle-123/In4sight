@@ -3,6 +3,7 @@ package com.in4sight.api.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
@@ -107,50 +108,69 @@ public class EmitterService {
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();
 	}
 
+	/**
+	 * SSE 이벤트 보내는 메서드
+	 * @param taskId SSE Emitter TaskID
+	 * @param eventName 전달한 이벤트 대분류
+	 * @param eventDataDto 이벤트 데이터
+	 * @param <E> 이벤트 자료구조
+	 */
+	public <E> void sendEvent(String taskId, String eventName, E eventDataDto) {
+		try {
+			SseEmitter emitter = getEmitter(taskId);
+			SseEmitter.SseEventBuilder event = SseEmitter.event()
+				.name(eventName)
+				.data(eventDataDto);
+			emitter.send(event);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+	}
+
 	@KafkaListener(topics = "data_sensor", groupId = "#{appProperties.getConsumerGroup()}")
-	public void sensorListener(String messages) throws Exception {
-		log.info("sensor received");
-		log.info(messages);
-		TimeSeriesDataDto data = new ObjectMapper().readValue(messages, TimeSeriesDataDto.class);
-		log.info(data.getTaskId(), data.getSerialNumber());
-		SseEmitter emitter = emitters.get(data.getTaskId());
-		SseEmitter.SseEventBuilder event = SseEmitter.event()
-			.name("sensor-data")
-			.data(TimeSeriesDataResponseDto.builder()
+	public void sensorListener(LinkedHashMap messages) {
+		try {
+			log.info("sensor received");
+//			log.info(messages);
+			TimeSeriesDataDto data = new ObjectMapper().convertValue(messages, TimeSeriesDataDto.class);
+			log.info(data.getTaskId(), data.getSerialNumber());
+			sendEvent(data.getTaskId(), "sensor-data", TimeSeriesDataResponseDto.builder()
 				.serialNumber(data.getSerialNumber())
 				.sensorData(data.getSensorData())
 				.build());
-		emitter.send(event);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
 
 	}
 
 	@KafkaListener(topics = "data_event", groupId = "#{appProperties.getConsumerGroup()}")
-	public void eventListener(String messages) throws Exception {
-
-		log.info("event received");
-		EventDataDto data = new ObjectMapper().readValue(messages, EventDataDto.class);
-		log.info(data.getTaskId(), data.getSerialNumber());
-		SseEmitter emitter = emitters.get(data.getTaskId());
-		SseEmitter.SseEventBuilder event = SseEmitter.event()
-			.name("event-data")
-			.data(EventDataResponseDto.builder()
+	public void eventListener(LinkedHashMap messages) {
+		try {
+			log.info("event received");
+			EventDataDto data = new ObjectMapper().convertValue(messages, EventDataDto.class);
+			log.info(data.getTaskId(), data.getSerialNumber());
+			sendEvent(data.getTaskId(), "event-data", EventDataResponseDto.builder()
 				.serialNumber(data.getSerialNumber())
 				.data(data.getData())
 				.build());
-		emitter.send(event);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
 	}
 
 	@KafkaListener(topics = "rag-result", groupId = "#{appProperties.getConsumerGroup()}")
-	public void solutionListener(String messages) throws Exception {
-		log.info("result received");
-		SolutionDto data = new ObjectMapper().readValue(messages, SolutionDto.class);
-		log.info(data.getTaskId(), data.getResult().size());
-		SseEmitter emitter = emitters.get(data.getTaskId());
-		SseEmitter.SseEventBuilder event = SseEmitter.event()
-			.name("solution")
-			.data(SolutionResponseDto.builder()
+	public void solutionListener(LinkedHashMap messages) {
+		try {
+			log.info("result received");
+			log.info(messages.toString());
+			SolutionDto data = new ObjectMapper().convertValue(messages, SolutionDto.class);
+			log.info(data.getTaskId(), data.getResult().getSerialNumber());
+			sendEvent(data.getTaskId(), "solution", SolutionResponseDto.builder()
 				.result(data.getResult())
 				.build());
-		emitter.send(event);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
 	}
 }

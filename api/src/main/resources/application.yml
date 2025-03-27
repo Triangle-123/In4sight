@@ -15,13 +15,13 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     defer-datasource-initialization: true
-  sql:
-    init:
-      data-locations: classpath*:db/data.sql
-      mode: always
-      platform: all
+#  sql:
+#    init:
+#      data-locations: classpath*:db/data.sql
+#      mode: always
+#      platform: all
 
   data:
     mongodb:
@@ -35,7 +35,10 @@ eda:
     bootstrap-server: j12s004.p.ssafy.io:8003
     consumer-group: consumer-java
 
-
-
-
-
+springdoc:
+  swagger-ui:
+    path: /api-swagger
+    groups-order: DESC
+    operations-sorter: method
+  paths-to-match:
+    - /api/**
