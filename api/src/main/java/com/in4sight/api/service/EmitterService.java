@@ -6,9 +6,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.http.ResponseCookie;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.in4sight.api.domain.CustomerDevice;
 import com.in4sight.api.domain.LogByCustomer;
 import com.in4sight.api.dto.CounselingRequestDto;
+import com.in4sight.api.dto.CounselorEmitterDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.EventDataDto;
@@ -30,6 +34,7 @@ import com.in4sight.api.dto.SolutionResponseDto;
 import com.in4sight.api.dto.TimeSeriesDataDto;
 import com.in4sight.api.dto.TimeSeriesDataResponseDto;
 import com.in4sight.api.repository.CounselingRepository;
+import com.in4sight.api.uttil.CustomerCounselorMap;
 import com.in4sight.eda.producer.KafkaProducer;
 
 @Slf4j
@@ -41,13 +46,42 @@ public class EmitterService {
 	private final DeviceService deviceService;
 	private final CounselingRepository counselingRepository;
 	private final KafkaProducer kafkaProducer;
+	private final CustomerCounselorMap customerCounselorMap;
 
 	public SseEmitter addEmitter(String taskId, SseEmitter emitter) throws Exception {
 		emitters.computeIfAbsent(taskId, key -> emitter);
+		customerCounselorMap.setAvailableCounselor(taskId);
 		emitter.onCompletion(() -> emitters.remove(taskId));
 		emitter.onTimeout(() -> emitters.remove(taskId));
 		emitter.send("SSE connect");
 		return emitter;
+	}
+
+	/**
+	 * addEmitter overloading
+	 * @return 상담사 연결 SseEmitter 및 Cookie 발급
+	 */
+	public CounselorEmitterDto addEmitter(String taskId) throws Exception {
+		if (taskId == null || taskId.isEmpty()) {
+			taskId = UUID.randomUUID().toString(); // 나중에 Task ID 생성 로직이 있다면 추가
+		}
+
+		// TaskId에 대한 쿠키 발급
+		ResponseCookie taskCookie = ResponseCookie
+			.from("task_id", taskId)
+			.httpOnly(true)
+			.path("/")
+			.maxAge(TimeUnit.HOURS.toMinutes(8))
+			.build();
+
+		// TaskId에 맞는 SSE Emitter 생성
+		SseEmitter emitter = emitters.get(taskId);
+		if (emitter == null) {
+			emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(10));
+		}
+		emitter = addEmitter(taskId, emitter);
+
+		return new CounselorEmitterDto(taskCookie, emitter);
 	}
 
 	public SseEmitter getEmitter(String taskId) {
