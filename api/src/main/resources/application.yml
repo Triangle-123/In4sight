@@ -15,7 +15,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     defer-datasource-initialization: true
 #  sql:
 #    init:
@@ -35,7 +35,10 @@ eda:
     bootstrap-server: j12s004.p.ssafy.io:8003
     consumer-group: consumer-java
 
-
-
-
-
+springdoc:
+  swagger-ui:
+    path: /api-swagger
+    groups-order: DESC
+    operations-sorter: method
+  paths-to-match:
+    - /api/**

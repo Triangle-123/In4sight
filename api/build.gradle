@@ -58,10 +58,11 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'com.in4sight:eda:0.1.1'
+    implementation 'com.in4sight:eda:0.1.2'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 }
 
 tasks.named('test') {

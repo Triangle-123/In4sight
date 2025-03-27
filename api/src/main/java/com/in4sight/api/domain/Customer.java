@@ -38,7 +38,7 @@ public class Customer {
 	@Column(nullable = false)
 	private String address;
 
-	@OneToMany(mappedBy = "customer", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Device> devices;
 
 }

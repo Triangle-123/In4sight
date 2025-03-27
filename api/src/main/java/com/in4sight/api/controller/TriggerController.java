@@ -7,9 +7,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.service.CustomerService;
 
+@Hidden
 @RestController
 @RequestMapping("/api/v1/trigger")
 public class TriggerController {
