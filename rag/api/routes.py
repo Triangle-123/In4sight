@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from rag.database.chroma_client import chroma_db
 from rag.database.chroma_operation import ChromaDBOperations
+from rag.llm.rag_service import process_data_analysis_event
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +75,16 @@ async def root():
     루트 경로 호출 API
     """
     return {"message": "가전제품 RAG API입니다!"}
+
+
+@router.post("/rag-test")
+async def message_test(message: Dict[str, Any]):
+    """
+    RAG 기능 테스트
+    """
+    process_data_analysis_event(message)
+
+    return {"message": "요청에 성공하셨습니다!"}
 
 
 @router.get("/collections")

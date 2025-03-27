@@ -22,14 +22,12 @@ class BasePrompts:
 
         [
             {
-                "status": "정상" 또는 "주의" 또는 "고장"",
-                "issue": "문제 상황",
-                "recommended_solution": "메뉴얼 내용 (마크다운 형식)"
+                "status": "정상" 또는 "주의" 또는 "고장",
+                "recommended_solution": "메뉴얼 내용"
             },
             {
-                "status": "정상" 또는 "고장",
-                "issue": "문제 상황",
-                "recommended_solution": "메뉴얼 내용 (마크다운 형식)"
+                "status": "정상" 또는 "주의" 또는 "고장",
+                "recommended_solution": "메뉴얼 내용"
             }
         ]
 
@@ -37,8 +35,7 @@ class BasePrompts:
         [
             {
                 "status": "주의",
-                "issue": "에어컨 필터가 오염되어 청소가 필요합니다. 필터 오염은 냉방 효율을 떨어뜨리고 전력 소비를 증가시킬 수 있습니다.",
-                "recommended_solution": "권장 조치 단계\n→ 에어컨 전원을 끄고 필터 분리 방법 안내\n→ 필터 청소 방법 설명 (미지근한 물로 세척 후 완전 건조)\n → 필터 재장착 방법 안내 \n → 청소 후 에어컨 재시작 방법 설명"
+                "recommended_solution": "권장 조치 단계 → 에어컨 전원을 끄고 필터 분리 방법 안내 → 필터 청소 방법 설명 (미지근한 물로 세척 후 완전 건조) → 필터 재장착 방법 안내 → 청소 후 에어컨 재시작 방법 설명"
             }
         ]
 
@@ -49,19 +46,13 @@ class BasePrompts:
         2. **recommended_solution 필드는 상담사가 고객에게 설명하기 쉽도록 작성하세요.**
         - "고객이 이해하기 쉽게" 문장을 구성하세요.
         - recommended_solution필드에 issue는 포함하지 마세요.
-        - 해결 방법을 단계별로 제시하세요.
-        - 만약 해결 방법의 단계가 여러 단계일 경우 1️⃣과 같은 이모지를 사용하여 예쁘게 작성하세요.
-        - 예시:
-            ```markdown
-            1️⃣ 냉장고 문을 열고 닫을 때의 소리를 주의 깊게 들어보세요.
-            2️⃣ 만약 일정 시간이 지나도 지속되면, 제품 설치 환경을 확인하세요.
-            ```
-        
+        - 해결 방법을 상담사가 고객에게 설명하기 쉽도록 작성하세요.
+
         3. status 필드는 충분히 고려하여 설정해주세요. 고장이 아닌 경우에 고장으로 반환하면 굉장한 혼란이 올 수 있기 때문입니다.
     """
 
     @staticmethod
-    def format_rag_prompt(context, query):
+    def format_rag_prompt(context, query, causes, related_sensors):
         """RAG 프롬프트 포맷팅 함수"""
 
         # 각 문서 블록을 추출하는 패턴
@@ -105,9 +96,21 @@ class BasePrompts:
 
         formatted_context = str(structured_manuals)
 
+        formatted_causes = ""
+        for i, cause in enumerate(causes, 1):
+            formatted_causes += f"{i}. {cause} \n"
+
+        formatted_sensors = ""
+        for related_sensor in related_sensors:
+            formatted_sensors.join(related_sensor)
+
         return f"""
+        유저의 증상: {query}
+        
+        증상에 대한 원인:
+        {formatted_causes}
+        
+        관련 센서: {formatted_sensors}
         제품 고장/비고장 매뉴얼:
         {formatted_context}
-        
-        유저의 질문: {query}
         """
