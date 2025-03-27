@@ -4,7 +4,6 @@
 
 import logging
 from datetime import datetime, timedelta
-from json import dumps
 
 import eda
 
@@ -62,4 +61,4 @@ def broadcast_sensor_message(task_id, serial_number, topic, data):
     message["serialNumber"] = serial_number
     message["sensor_data"] = data
 
-    eda.event_broadcast(topic, dumps(message, ensure_ascii=False, indent=4))
+    eda.event_broadcast(topic, message)
