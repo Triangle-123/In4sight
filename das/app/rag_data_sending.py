@@ -2,8 +2,6 @@
 RAG 서버에 보내는 메시지 형식으로 바꿔서 broadcast하는 module 입니다.
 """
 
-from json import dumps
-
 import eda
 
 
@@ -107,4 +105,4 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list):
 
     message["data"] = symptom_dataset
 
-    eda.event_broadcast(topic, dumps(message, ensure_ascii=False, indent=4))
+    eda.event_broadcast(topic, message)
