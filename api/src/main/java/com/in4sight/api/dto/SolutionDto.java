@@ -15,13 +15,13 @@ import lombok.NoArgsConstructor;
 public class SolutionDto {
 
 	private String taskId;
-	private List<Result> result;
+	private List<ResultSolution> result;
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@JsonNaming
-	private static class Result {
+	public static class ResultSolution {
 		private String serialNumber;
 		private List<SolutionDto.Data> data;
 	}
@@ -35,6 +35,4 @@ public class SolutionDto {
 		private String issue;
 		private String recommendedSolution;
 	}
-
-
 }
