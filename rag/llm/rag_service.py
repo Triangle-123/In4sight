@@ -98,7 +98,7 @@ def process_symptom_with_rag(
             "failure": failure,
             "cause": causes,
             "sensor": related_sensors,
-            "recommended_solution": response.get("result", ""),
+            "solutions": response.get("result", ""),
         }
     except Exception as e:  # pylint: disable=broad-except
         logger.error(
@@ -223,16 +223,13 @@ def publish_rag_completed_event(task_id: str, result, serial_number: str) -> Non
         result: GPT 응답 결과
     """
     try:
-        print("=============이벤트발행==============")
-        pprint.pprint(result)
-
+        print("result 타입")
+        print(result["solutions"])
         # DiagnosticResult 객체를 딕셔너리로 변환
-        if "recommended_solution" in result and isinstance(
-            result["recommended_solution"], list
-        ):
-            result["recommended_solution"] = [
+        if "solutions" in result and isinstance(result["solutions"], list):
+            result["solutions"] = [
                 item.to_dict() if hasattr(item, "to_dict") else item
-                for item in result["recommended_solution"]
+                for item in result["solutions"]
             ]
 
         event_data = {
@@ -242,7 +239,9 @@ def publish_rag_completed_event(task_id: str, result, serial_number: str) -> Non
 
         producer = get_producer()
         if producer:
+            print("=============이벤트발행==============")
             eda.event_broadcast("rag-result", event_data)
+            pprint.pprint(event_data)
             logger.info("RAG 분석 완료 이벤트가 성공적으로 발행되었습니다.")
         else:
             logger.error("Kafka 프로듀서가 설정되지 않았습니다.")
