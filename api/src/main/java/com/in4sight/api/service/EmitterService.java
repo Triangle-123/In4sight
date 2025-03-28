@@ -83,7 +83,9 @@ public class EmitterService {
 			.from("task_id", taskId)
 			.httpOnly(true)
 			.path("/")
-			.maxAge(TimeUnit.HOURS.toMinutes(8))
+			.secure(true)
+			.sameSite("None")
+			.maxAge(TimeUnit.HOURS.toSeconds(8))
 			.build();
 
 		// TaskId에 맞는 SSE Emitter 생성
