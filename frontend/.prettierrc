@@ -2,7 +2,7 @@
   "semi": false,
   "singleQuote": true,
   "objectWrap": "collapse",
-  "proseWrap": "always",
+  "proseWrap": "preserve",
   "plugins": ["@trivago/prettier-plugin-sort-imports"],
 
   "importOrder": [

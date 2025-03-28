@@ -2,7 +2,10 @@ import { DeviceStatus } from '@/components/DeviceStatus'
 import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
-import { callHistoryPlaceholder, getAppliancePlaceholder } from '@/lib/placeholder-data'
+import {
+  callHistoryPlaceholder,
+  getAppliancePlaceholder,
+} from '@/lib/placeholder-data'
 import { ApplianceDataType, ApplianceType } from '@/lib/types'
 import useStore from '@/store/store'
 import { useEffect, useState } from 'react'
@@ -10,9 +13,8 @@ import { useEffect, useState } from 'react'
 // import { v4 as uuidv4 } from 'uuid'
 
 // Constants
-// const MAX_RECONNECT_ATTEMPTS = 5
 const API_URL = import.meta.env.VITE_API_BASE_URL
-const TASK_ID = 'frontend_test'
+const TASK_ID = 'jebal-jom-wara'
 
 export default function Dashboard() {
   const createSseConnection = useStore((state) => state.createSseConnection)
@@ -29,8 +31,11 @@ export default function Dashboard() {
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [selectedAppliance, setSelectedAppliance] = useState<ApplianceType | null>(null)
-  const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(null)
+  const [selectedAppliance, setSelectedAppliance] =
+    useState<ApplianceType | null>(null)
+  const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(
+    null,
+  )
   // const [graphData, setGraphData] = useState(null)
 
   useEffect(() => {
@@ -44,26 +49,31 @@ export default function Dashboard() {
     const newTaskId = TASK_ID
     setTaskId(newTaskId)
 
-    const eventSource = createSseConnection(newTaskId)
-    console.log('eventSource', eventSource)
+    
     startCounselling(newTaskId)
-
+    
     return () => {
       console.log('SSE connection 제거')
       closeSseConnection()
     }
   }, [])
-
+  
   const startCounselling = async (id: string) => {
     const currentTaskId = id || TASK_ID
     if (!currentTaskId) return
-
+    
     setLoading(true)
     setError(null)
 
+    createSseConnection(currentTaskId)
+    // console.log('eventSource', eventSource)
+
     try {
       // TODO: SSE 서버에서 고객 정보 받아오기
-      const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
+      const customerRequestDto = {
+        customerName: '최싸피',
+        phoneNumber: '010-1234-0004',
+      }
 
       const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
         method: 'POST',
@@ -81,7 +91,11 @@ export default function Dashboard() {
       console.log('상담을 시작합니다...')
     } catch (err) {
       console.error('상담을 시작하지 못했습니다:', err)
-      setError(err instanceof Error ? err.message : '솔루션 요청 중 오류가 발생했습니다')
+      setError(
+        err instanceof Error
+          ? err.message
+          : '솔루션 요청 중 오류가 발생했습니다',
+      )
     } finally {
       setLoading(false)
     }
@@ -105,7 +119,11 @@ export default function Dashboard() {
 
         {/* Main Panel */}
         <main className="flex-1 p-4 overflow-hidden">
-          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{error}</div>}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+              {error}
+            </div>
+          )}
 
           {loading && (
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded">
@@ -130,8 +148,12 @@ export default function Dashboard() {
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
-                <p className="text-muted-foreground">왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.</p>
+                <h2 className="text-xl font-semibold mb-2">
+                  가전제품을 선택하세요
+                </h2>
+                <p className="text-muted-foreground">
+                  왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.
+                </p>
               </div>
             </div>
           )}
