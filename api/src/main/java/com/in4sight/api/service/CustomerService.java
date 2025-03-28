@@ -50,20 +50,22 @@ public class CustomerService {
 			@Override
 			public void run() {
 				try {
-					String availableCounselor;
-					do {
-						availableCounselor = customerCounselorMap.getAvailableCounselorTaskId();
-					} while (customerCounselorMap.getMappedCustomer(availableCounselor) != null);
-					if (availableCounselor == null) {
-						log.info("retry mapping counselor...");
-					} else if (System.currentTimeMillis() - startTime > 5000) {
+					if (System.currentTimeMillis() - startTime > 5000) {
 						throw new NotFoundCounselorException(phoneNumber);
 					} else {
+						String availableCounselor;
+						do {
+							availableCounselor = customerCounselorMap.getAvailableCounselorTaskId();
+						} while (customerCounselorMap.getMappedCustomer(availableCounselor) != null
+							|| emitterService.getEmitter(availableCounselor) == null);
 						customerCounselorMap.mappingCustomerAndCounselor(phoneNumber, availableCounselor);
 						CustomerResponseDto connectedCustomer = findCustomer(phoneNumber);
 						emitterService.startProcess(availableCounselor, connectedCustomer);
 						executor.shutdown();
 					}
+				} catch (NullPointerException e) {
+					log.error(e.getMessage());
+					log.info("retry mapping counselor...");
 				} catch (NotFoundCounselorException e) {
 					log.error(e.getMessage());
 					executor.shutdown();
