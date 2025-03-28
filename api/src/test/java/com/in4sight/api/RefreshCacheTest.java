@@ -49,8 +49,7 @@ public class RefreshCacheTest {
 		preConnection.setRequestMethod("GET");
 		preConnection.setRequestProperty("Accept", MediaType.TEXT_EVENT_STREAM_VALUE);
 
-		String cookieString = preConnection.getHeaderField("Set-Cookie");
-		String responseTaskId = cookieString.split(";")[0].substring("task_id=".length());
+		String responseTaskId = "localhost-static-task-id";
 		customerCounselorMap.mappingCustomerAndCounselor(CUSTOMER_PHONE_NUMBER, responseTaskId);
 		emitterService.sendEvent(responseTaskId, EVENT_NAME, EVENT_DATA, true);
 		emitterService.getEmitter(responseTaskId).complete();

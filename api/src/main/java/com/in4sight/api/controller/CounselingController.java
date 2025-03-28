@@ -49,7 +49,7 @@ public class CounselingController {
 		@RequestAttribute(value = "CLIENT_IPV4")
 		String ip
 	) throws Exception {
-		if (ip.equals("127.0.0.1")) {
+		if (taskId == null && ip.equals("127.0.0.1")) {
 			taskId = "localhost-static-task-id";
 		}
 		CounselorEmitterDto counselorEmitter = emitterService.addEmitter(taskId);
