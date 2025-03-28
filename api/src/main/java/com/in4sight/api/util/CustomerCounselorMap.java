@@ -68,7 +68,12 @@ public class CustomerCounselorMap {
 		return reAvailableCounselor;
 	}
 
-	public boolean isMappingCounselor(String counselor) {
-		return mappedCustomer.containsKey(counselor);
+	/**
+	 * 상담원 Task Id에 매칭된 고객이 있는 경우 반환
+	 * @param counselor 상담원의 Task Id
+	 * @return 고객의 전화번호
+	 */
+	public String getMappedCustomer(String counselor) {
+		return mappedCustomer.getOrDefault(counselor, null);
 	}
 }
