@@ -31,7 +31,7 @@ public class TriggerController {
 		@RequestBody
 		String phoneNumber
 	) {
-		customerService.connectCustomerAndCounselor(phoneNumber);
+		customerService.connectingCustomerAndCounselor(phoneNumber);
 	}
 
 	/**

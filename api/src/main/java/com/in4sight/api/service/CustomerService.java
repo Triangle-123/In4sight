@@ -39,7 +39,7 @@ public class CustomerService {
 	 *
 	 * @param phoneNumber 연결할 고객의 전화번호
 	 */
-	public void connectCustomerAndCounselor(String phoneNumber) {
+	public void connectingCustomerAndCounselor(String phoneNumber) {
 
 		long startTime = System.currentTimeMillis();
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
