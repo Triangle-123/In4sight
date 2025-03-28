@@ -14,6 +14,9 @@ import { useEffect, useState } from 'react'
 const API_URL = import.meta.env.VITE_API_BASE_URL
 const TASK_ID = 'frontend_test'
 
+// 전역 변수 선언
+let globalSetSelectedAppliance: React.Dispatch<React.SetStateAction<ApplianceType | null>> | null = null
+
 export default function Dashboard() {
   const createSseConnection = useStore((state) => state.createSseConnection)
   const closeSseConnection = useStore((state) => state.closeSseConnection)
@@ -33,6 +36,9 @@ export default function Dashboard() {
   const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(null)
   // const [graphData, setGraphData] = useState(null)
 
+  // 전역 변수에 setter 함수 할당
+  globalSetSelectedAppliance = setSelectedAppliance
+
   useEffect(() => {
     if (selectedAppliance) {
       setApplianceData(getAppliancePlaceholder(selectedAppliance))
@@ -46,7 +52,8 @@ export default function Dashboard() {
 
     const eventSource = createSseConnection(newTaskId)
     console.log('eventSource', eventSource)
-    startCounselling(newTaskId)
+    // @Deprecated
+    // startCounselling(newTaskId)
 
     return () => {
       console.log('SSE connection 제거')
@@ -54,37 +61,38 @@ export default function Dashboard() {
     }
   }, [])
 
-  const startCounselling = async (id: string) => {
-    const currentTaskId = id || TASK_ID
-    if (!currentTaskId) return
+  // @Deprecated
+  // const startCounselling = async (id: string) => {
+  //   const currentTaskId = id || TASK_ID
+  //   if (!currentTaskId) return
 
-    setLoading(true)
-    setError(null)
+  //   setLoading(true)
+  //   setError(null)
 
-    try {
-      const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
+  //   try {
+  //     const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
 
-      const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(customerRequestDto),
-      })
+  //     const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(customerRequestDto),
+  //     })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || '솔루션 요청 중 오류가 발생했습니다')
-      // } else {
-      //   console.log('솔루션 요청 성공', response)
-      }
+  //     if (!response.ok) {
+  //       const errorText = await response.text()
+  //       throw new Error(errorText || '솔루션 요청 중 오류가 발생했습니다')
+  //     // } else {
+  //     //   console.log('솔루션 요청 성공', response)
+  //     }
 
-      console.log('상담을 시작합니다...')
-    } catch (err) {
-      console.error('상담을 시작하지 못했습니다:', err)
-      setError(err instanceof Error ? err.message : '솔루션 요청 중 오류가 발생했습니다')
-    } finally {
-      setLoading(false)
-    }
-  }
+  //     console.log('상담을 시작합니다...')
+  //   } catch (err) {
+  //     console.error('상담을 시작하지 못했습니다:', err)
+  //     setError(err instanceof Error ? err.message : '솔루션 요청 중 오류가 발생했습니다')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   return (
     <div className="flex h-screen bg-background">
@@ -129,8 +137,16 @@ export default function Dashboard() {
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
-                <p className="text-muted-foreground">왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.</p>
+                {customerInfo ? (
+                  <>
+                    <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
+                    <p className="text-muted-foreground">
+                      왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.
+                    </p>
+                  </>
+                ) : (
+                  <h2 className="text-xl font-semibold mb-2">상담 대기 중입니다...</h2>
+                )}
               </div>
             </div>
           )}
@@ -138,4 +154,11 @@ export default function Dashboard() {
       </div>
     </div>
   )
+}
+
+// 함수 이름을 변경하여 재귀 호출 문제 해결
+export const resetSelectedAppliance = (appliance: ApplianceType | null) => {
+  if (globalSetSelectedAppliance) {
+    globalSetSelectedAppliance(appliance)
+  }
 }

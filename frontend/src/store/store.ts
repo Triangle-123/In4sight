@@ -1,5 +1,6 @@
+import { ApplianceType, CustomerType } from '@/lib/types'
+import { resetSelectedAppliance } from '@/pages/Dashboard'
 import { create } from 'zustand'
-import { CustomerType, ApplianceType } from '@/lib/types'
 
 // SSE 관련 타입 정의
 interface CustomerInfo {
@@ -25,7 +26,7 @@ interface State {
   error: string | null
   reconnectCount: number
   taskId: string | null
-  
+
   // 데이터 상태
   customerInfo: CustomerType | null
   appliances: ApplianceType[]
@@ -39,17 +40,18 @@ interface Actions {
   createSseConnection: (taskId: string) => void
   closeSseConnection: () => void
   setTaskId: (taskId: string) => void
-  
+
   // 데이터 업데이트
   setCustomerInfo: (data: CustomerType) => void
   setAppliances: (data: ApplianceType[]) => void
   setSensorData: (data: any) => void
   setEventData: (data: any) => void
-  
+
   // 상태 업데이트
   setIsConnected: (isConnected: boolean) => void
   setError: (error: string | null) => void
   setReconnectCount: (count: number) => void
+  reset: () => void
 }
 
 // 전체 store 타입
@@ -66,14 +68,14 @@ const useStore = create<Store>((set, get) => {
 
   const createSseConnection = (taskId: string) => {
     const { reconnectCount } = get()
-    
+
     if (eventSourceRef) {
       eventSourceRef.close()
     }
 
     console.log(`SSE 연결을 시도합니다: ${reconnectCount + 1} of ${MAX_RECONNECT_ATTEMPTS}`)
 
-    const eventSource = new EventSource(`${API_URL}/counseling/${taskId}`)
+    const eventSource = new EventSource(`${API_URL}/counseling`)
     eventSourceRef = eventSource
 
     eventSource.onopen = () => {
@@ -99,8 +101,8 @@ const useStore = create<Store>((set, get) => {
         const nextReconnectDelay = Math.min(1000 * Math.pow(1.5, reconnectCount), 10000)
         console.log(`재연결 시도 중... ${nextReconnectDelay}ms`)
 
-        set({ 
-          error: `SSE 연결이 끊어졌습니다. 재연결을 시도합니다... (${reconnectCount + 1}/${MAX_RECONNECT_ATTEMPTS})`
+        set({
+          error: `SSE 연결이 끊어졌습니다. 재연결을 시도합니다... (${reconnectCount + 1}/${MAX_RECONNECT_ATTEMPTS})`,
         })
 
         if (reconnectTimeoutRef) {
@@ -156,6 +158,16 @@ const useStore = create<Store>((set, get) => {
       }
     })
 
+    eventSource.addEventListener('customer_disconnect', (event) => {
+      try {
+        console.log('고객 연결 끊김:', event.data)
+        get().reset()
+        resetSelectedAppliance(null)
+      } catch (err) {
+        console.error('고객 연결 끊김 파싱 에러:', event.data, err)
+      }
+    })
+
     return eventSource
   }
 
@@ -190,6 +202,16 @@ const useStore = create<Store>((set, get) => {
     setIsConnected: (isConnected) => set({ isConnected }),
     setError: (error) => set({ error }),
     setReconnectCount: (count) => set({ reconnectCount: count }),
+    reset: () =>
+      set({
+        error: null,
+        reconnectCount: 0,
+        taskId: null,
+        customerInfo: null,
+        appliances: [],
+        sensorData: null,
+        eventData: null,
+      }),
   }
 })
 
