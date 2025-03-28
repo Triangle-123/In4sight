@@ -122,7 +122,6 @@ public class EmitterService {
 				true
 			)
 		);
-
 		CompletableFuture<Void> sendCounsellingRequest = CompletableFuture.runAsync(() -> {
 			counselingRepository.deleteAll();
 			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
@@ -164,6 +163,7 @@ public class EmitterService {
 				.name(eventName)
 				.data(eventDataDto);
 			emitter.send(event);
+			log.info("send" + eventName);
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}
@@ -189,7 +189,6 @@ public class EmitterService {
 	public void sensorListener(LinkedHashMap messages) {
 		try {
 			log.info("sensor received");
-//			log.info(messages);
 			TimeSeriesDataDto data = new ObjectMapper().convertValue(messages, TimeSeriesDataDto.class);
 			log.info(data.getTaskId(), data.getSerialNumber());
 			sendEvent(
@@ -231,7 +230,6 @@ public class EmitterService {
 	public void solutionListener(LinkedHashMap messages) {
 		try {
 			log.info("result received");
-			log.info(messages.toString());
 			SolutionDto data = new ObjectMapper().convertValue(messages, SolutionDto.class);
 			log.info(data.getTaskId(), data.getResult().getSerialNumber());
 			sendEvent(
