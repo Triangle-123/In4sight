@@ -46,7 +46,8 @@ export default function Dashboard() {
 
     const eventSource = createSseConnection(newTaskId)
     console.log('eventSource', eventSource)
-    startCounselling(newTaskId)
+    // @Deprecated
+    // startCounselling(newTaskId)
 
     return () => {
       console.log('SSE connection 제거')
@@ -54,37 +55,38 @@ export default function Dashboard() {
     }
   }, [])
 
-  const startCounselling = async (id: string) => {
-    const currentTaskId = id || TASK_ID
-    if (!currentTaskId) return
+  // @Deprecated
+  // const startCounselling = async (id: string) => {
+  //   const currentTaskId = id || TASK_ID
+  //   if (!currentTaskId) return
 
-    setLoading(true)
-    setError(null)
+  //   setLoading(true)
+  //   setError(null)
 
-    try {
-      const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
+  //   try {
+  //     const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
 
-      const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(customerRequestDto),
-      })
+  //     const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(customerRequestDto),
+  //     })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || '솔루션 요청 중 오류가 발생했습니다')
-      // } else {
-      //   console.log('솔루션 요청 성공', response)
-      }
+  //     if (!response.ok) {
+  //       const errorText = await response.text()
+  //       throw new Error(errorText || '솔루션 요청 중 오류가 발생했습니다')
+  //     // } else {
+  //     //   console.log('솔루션 요청 성공', response)
+  //     }
 
-      console.log('상담을 시작합니다...')
-    } catch (err) {
-      console.error('상담을 시작하지 못했습니다:', err)
-      setError(err instanceof Error ? err.message : '솔루션 요청 중 오류가 발생했습니다')
-    } finally {
-      setLoading(false)
-    }
-  }
+  //     console.log('상담을 시작합니다...')
+  //   } catch (err) {
+  //     console.error('상담을 시작하지 못했습니다:', err)
+  //     setError(err instanceof Error ? err.message : '솔루션 요청 중 오류가 발생했습니다')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   return (
     <div className="flex h-screen bg-background">
