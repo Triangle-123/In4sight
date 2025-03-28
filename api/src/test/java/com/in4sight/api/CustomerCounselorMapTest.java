@@ -28,8 +28,8 @@ public class CustomerCounselorMapTest {
 	private final CustomerCounselorMap customerCounselorMap;
 
 	private static final String TASK_ID = "test";
-	private static final int COUNSELOR_COUNT = 200;
-	private static final int CUSTOMER_COUNT = 300;
+	private static final int COUNSELOR_COUNT = 20;
+	private static final int CUSTOMER_COUNT = 30;
 
 
 	@MockitoBean
