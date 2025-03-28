@@ -30,7 +30,7 @@ import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.repository.CustomerRepository;
 import com.in4sight.api.service.CustomerService;
 import com.in4sight.api.service.EmitterService;
-import com.in4sight.api.uttil.CustomerCounselorMap;
+import com.in4sight.api.util.CustomerCounselorMap;
 
 
 @DisplayName("사용자 연결 종료 테스트")
@@ -97,7 +97,7 @@ public class DisconnectCustomerTest {
 
 		customerCounselorMap.mappingCustomerAndCounselor(customerRequestDto.getPhoneNumber(), TASK_ID);
 
-		HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + port + "/api/v1/counseling?task_id=" + TASK_ID).openConnection();
+		HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + port + "/api/test/counseling?task_id=" + TASK_ID).openConnection();
 		connection.setRequestMethod("GET");
 		connection.setRequestProperty("Accept", MediaType.TEXT_EVENT_STREAM_VALUE);
 

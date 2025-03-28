@@ -8,8 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import com.in4sight.api.domain.Customer;
 import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
+import com.in4sight.api.repository.CustomerEventCacheRepository;
 import com.in4sight.api.repository.CustomerRepository;
-import com.in4sight.api.uttil.CustomerCounselorMap;
+import com.in4sight.api.util.CustomerCounselorMap;
 
 @Slf4j
 @Service
@@ -17,8 +18,9 @@ import com.in4sight.api.uttil.CustomerCounselorMap;
 public class CustomerService {
 
 	private final CustomerRepository customerRepository;
-	private final CustomerCounselorMap customerCounselorMap;
 	private final EmitterService emitterService;
+	private final CustomerCounselorMap customerCounselorMap;
+	private final CustomerEventCacheRepository eventCacheRepository;
 
 	public CustomerResponseDto findCustomer(CustomerRequestDto customerRequestDto) {
 		Customer customer = customerRepository.findByCustomerNameAndPhoneNumber(
@@ -43,6 +45,7 @@ public class CustomerService {
 
 		emitterService.sendEvent(taskId, "customer_disconnect", disconnectCustomer);
 		// Logging 이후 Redis를 통해 Counseling Log DB에 데이터 저장하는 로직을 추가
+		eventCacheRepository.removeCache(disconnectCustomer.getPhoneNumber());
 	}
 
 }
