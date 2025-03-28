@@ -101,6 +101,7 @@ public class EmitterService {
 					.name("customer-info")
 					.data(customerResponseDto);
 				emitter.send(event);
+				log.info("send customerInfo");
 			} catch (Exception e) {
 				log.error(e.getMessage());
 			}
@@ -112,6 +113,7 @@ public class EmitterService {
 					.name("device-info")
 					.data(deviceService.findDevice(customerResponseDto.getCustomerId()));
 				emitter.send(event);
+				log.info("send deviceInfo");
 			} catch (Exception e) {
 				log.error(e.getMessage());
 			}
@@ -158,6 +160,7 @@ public class EmitterService {
 				.name(eventName)
 				.data(eventDataDto);
 			emitter.send(event);
+			log.info("send" + eventName);
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}
@@ -199,7 +202,6 @@ public class EmitterService {
 	public void solutionListener(LinkedHashMap messages) {
 		try {
 			log.info("result received");
-			log.info(messages.toString());
 			SolutionDto data = new ObjectMapper().convertValue(messages, SolutionDto.class);
 			log.info(data.getTaskId(), data.getResult().getSerialNumber());
 			sendEvent(data.getTaskId(), "solution", SolutionResponseDto.builder()

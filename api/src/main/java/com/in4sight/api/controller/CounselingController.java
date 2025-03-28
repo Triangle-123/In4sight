@@ -23,7 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.in4sight.api.dto.CounselorEmitterDto;
-import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.service.CustomerService;
 import com.in4sight.api.service.EmitterService;
 
@@ -71,10 +70,10 @@ public class CounselingController {
 		@PathVariable
 		String taskId,
 		@RequestBody
-		CustomerRequestDto customerRequestDto
+		String phoneNumber
 	) {
 		try {
-			emitterService.startProcess(taskId, customerService.findCustomer(customerRequestDto));
+			emitterService.startProcess(taskId, customerService.findCustomer(phoneNumber));
 			return ResponseEntity.ok().body("솔루션 요청 성공");
 		} catch (NoSuchElementException e) {
 			log.error(e.getMessage());
