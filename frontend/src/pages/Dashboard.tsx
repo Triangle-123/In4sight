@@ -14,6 +14,9 @@ import { useEffect, useState } from 'react'
 const API_URL = import.meta.env.VITE_API_BASE_URL
 const TASK_ID = 'frontend_test'
 
+// 전역 변수 선언
+let globalSetSelectedAppliance: React.Dispatch<React.SetStateAction<ApplianceType | null>> | null = null
+
 export default function Dashboard() {
   const createSseConnection = useStore((state) => state.createSseConnection)
   const closeSseConnection = useStore((state) => state.closeSseConnection)
@@ -32,6 +35,9 @@ export default function Dashboard() {
   const [selectedAppliance, setSelectedAppliance] = useState<ApplianceType | null>(null)
   const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(null)
   // const [graphData, setGraphData] = useState(null)
+
+  // 전역 변수에 setter 함수 할당
+  globalSetSelectedAppliance = setSelectedAppliance
 
   useEffect(() => {
     if (selectedAppliance) {
@@ -131,8 +137,16 @@ export default function Dashboard() {
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
-                <p className="text-muted-foreground">왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.</p>
+                {customerInfo ? (
+                  <>
+                    <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
+                    <p className="text-muted-foreground">
+                      왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.
+                    </p>
+                  </>
+                ) : (
+                  <h2 className="text-xl font-semibold mb-2">상담 대기 중입니다...</h2>
+                )}
               </div>
             </div>
           )}
@@ -140,4 +154,11 @@ export default function Dashboard() {
       </div>
     </div>
   )
+}
+
+// 함수 이름을 변경하여 재귀 호출 문제 해결
+export const resetSelectedAppliance = (appliance: ApplianceType | null) => {
+  if (globalSetSelectedAppliance) {
+    globalSetSelectedAppliance(appliance)
+  }
 }
