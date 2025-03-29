@@ -7,5 +7,5 @@ import com.in4sight.api.domain.Customer;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
-	Customer findByCustomerNameAndPhoneNumber(String customerName, String phoneNumber);
+	Customer findByPhoneNumber(String phoneNumber);
 }

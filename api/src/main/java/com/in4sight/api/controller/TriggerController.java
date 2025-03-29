@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Hidden;
 
-import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.service.CustomerService;
 
 @Hidden
@@ -23,23 +22,27 @@ public class TriggerController {
 		this.customerService = customerService;
 	}
 
-	@PostMapping("")
+	/**
+	 * 고객과 상담사의 연결 요청
+	 * @param phoneNumber
+	 */
+	@PostMapping("/connect")
 	public void customerPhoneCall(
 		@RequestBody
 		String phoneNumber
 	) {
-
+		customerService.connectingCustomerAndCounselor(phoneNumber);
 	}
 
 	/**
 	 * 고객과 상담사의 연결 종료 요청
-	 * @param customerRequestDto 연결 종료 고객의 정보
+	 * @param phoneNumber 연결 종료 고객의 전화번호
 	 */
-	@DeleteMapping("")
+	@PostMapping("/disconnect")
 	public void endPhoneCall(
 		@RequestBody
-		CustomerRequestDto customerRequestDto
+		String phoneNumber
 	) {
-		customerService.disconnectCustomerAndCounselor(customerRequestDto);
+		customerService.disconnectCustomerAndCounselor(phoneNumber);
 	}
 }

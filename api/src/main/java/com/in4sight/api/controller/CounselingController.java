@@ -25,7 +25,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.in4sight.api.dto.CounselorEmitterDto;
-import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.service.CustomerService;
 import com.in4sight.api.service.EmitterService;
 
@@ -49,6 +48,9 @@ public class CounselingController {
 		@RequestAttribute(value = "CLIENT_IPV4")
 		String ip
 	) throws Exception {
+		if (taskId == null && ip.equals("127.0.0.1")) {
+			taskId = "localhost-static-task-id";
+		}
 		CounselorEmitterDto counselorEmitter = emitterService.addEmitter(taskId);
 
 		return ResponseEntity.ok()
@@ -76,10 +78,10 @@ public class CounselingController {
 		@PathVariable
 		String taskId,
 		@RequestBody
-		CustomerRequestDto customerRequestDto
+		String phoneNumber
 	) {
 		try {
-			emitterService.startProcess(taskId, customerService.findCustomer(customerRequestDto));
+			emitterService.startProcess(taskId, customerService.findCustomer(phoneNumber));
 			return ResponseEntity.ok().body("솔루션 요청 성공");
 		} catch (NoSuchElementException e) {
 			log.error(e.getMessage());
