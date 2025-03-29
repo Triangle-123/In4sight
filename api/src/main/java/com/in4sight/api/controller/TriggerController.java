@@ -1,7 +1,6 @@
 package com.in4sight.api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +25,7 @@ public class TriggerController {
 	 * 고객과 상담사의 연결 요청
 	 * @param phoneNumber
 	 */
-	@PostMapping("")
+	@PostMapping("/connect")
 	public void customerPhoneCall(
 		@RequestBody
 		String phoneNumber
@@ -38,7 +37,7 @@ public class TriggerController {
 	 * 고객과 상담사의 연결 종료 요청
 	 * @param phoneNumber 연결 종료 고객의 전화번호
 	 */
-	@DeleteMapping("")
+	@PostMapping("/disconnect")
 	public void endPhoneCall(
 		@RequestBody
 		String phoneNumber
