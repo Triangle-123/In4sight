@@ -125,9 +125,7 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     broadcast_sensor_message(
         task_id, serial_number, "data_sensor", api_data_refine(sensor)
     )
-    broadcast_event_message(
-        task_id, serial_number, "data_event", event_summary(df_event)
-    )
+    broadcast_event_message(task_id, serial_number, "data_event", event_data)
 
     broadcast_rag_message(
         task_id, serial_number, "das_result", anomaly_prompts, event_data

@@ -94,6 +94,7 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_s
             "failure": EXPECTED_SYMPTOM[scenario_index],
             "causes": [],
             "related_sensor": [],
+            "events": event_summary,
         }
 
         for index in range(ANOMALITY_NUMBER):
@@ -104,7 +105,6 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_s
         symptom_dataset.append(symptom_data)
 
     message["data"] = symptom_dataset
-    message["events"] = event_summary
 
     print(message)
 
