@@ -1,6 +1,7 @@
 spring:
   application:
     name: api
+    version: v1
   config:
     import: optional:file:.env[.properties]
 
@@ -17,11 +18,11 @@ spring:
     hibernate:
       ddl-auto: validate
     defer-datasource-initialization: true
-#  sql:
-#    init:
-#      data-locations: classpath*:db/data.sql
-#      mode: always
-#      platform: all
+  #  sql:
+  #    init:
+  #      data-locations: classpath*:db/data.sql
+  #      mode: always
+  #      platform: all
 
   data:
     mongodb:
@@ -32,8 +33,8 @@ server:
 
 eda:
   kafka:
-    bootstrap-server: j12s004.p.ssafy.io:8003
-    consumer-group: consumer-java
+    bootstrap-server: ${KAFKA_BOOTSTRAP_SERVER}
+    consumer-group: ${KAFKA_CONSUMER_GROUP}
 
 springdoc:
   swagger-ui:
@@ -42,3 +43,13 @@ springdoc:
     operations-sorter: method
   paths-to-match:
     - /api/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+
+# Loki 로깅 설정
+loki:
+  url: ${LOKI_URL}

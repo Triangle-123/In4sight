@@ -12,7 +12,7 @@ import com.in4sight.api.service.CustomerService;
 
 @Hidden
 @RestController
-@RequestMapping("/api/v1/trigger")
+@RequestMapping("/trigger")
 public class TriggerController {
 	private final CustomerService customerService;
 
