@@ -32,6 +32,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 	@Override
 	public void configurePathMatch(PathMatchConfigurer configurer) {
-		configurer.addPathPrefix(String.format("/api/%s", apiVersion), (c) -> true);
+		configurer.addPathPrefix(
+			String.format("/api/%s", apiVersion),
+			(c) -> c.getPackageName().equals("com.in4sight.api.controller")
+		);
 	}
 }
