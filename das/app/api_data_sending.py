@@ -100,7 +100,7 @@ def event_summary(df_event):
         or "_time" not in df_event.columns
         or "event_type" not in df_event.columns
     ):
-        return "이벤트 데이터가 없습니다."
+        return ["이벤트 데이터가 없습니다."]
 
     df_event = df_event.copy()
     df_event["_time"] = pd.to_datetime(df_event["_time"])
@@ -112,4 +112,4 @@ def event_summary(df_event):
     door_open_df = df_event[df_event["event_type"] == "door_open"]
     door_open_count = len(door_open_df)
 
-    return f"{start_date} ~ {end_date} 문열림 감지 이벤트 {door_open_count}회 발생"
+    return [f"{start_date} ~ {end_date} 문열림 감지 이벤트 {door_open_count}회 발생"]
