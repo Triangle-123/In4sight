@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!-- appName -->
+	<property name="appName" value="API-SERVER" />
+	<!-- CONSOLE LOG PATTERN -->
+	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+	<conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+	<conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+	<property name="CONSOLE_LOG_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx" />
+	<!-- CONSOLE APPENDER -->
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<withJansi>
+			false
+		</withJansi>
+		<encoder>
+			<pattern>
+				${CONSOLE_LOG_PATTERN}
+			</pattern>
+			<charset>
+				utf8
+			</charset>
+		</encoder>
+	</appender>
+    <!-- SpringPropertyFactory ENV -->
+    <springProperty scope="context" name="LOKI_URL" source="loki.url" defaultValue="${LOKI_URL}" />
+	<!-- LOKI LOG PATTERN -->
+	<property name="LOKI_LOG_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx" />
+	<!-- LOKI APPENDER -->
+	<appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+		<http>
+			<url>
+				${LOKI_URL}
+			</url>
+		</http>
+		<format>
+			<label>
+				<pattern>
+					app=${appName},host=${HOSTNAME},level=%level,logger=%logger
+				</pattern>
+			</label>
+			<message>
+				<pattern>
+					${LOKI_LOG_PATTERN}
+				</pattern>
+			</message>
+			<sortByTime>
+				true
+			</sortByTime>
+		</format>
+	</appender>
+	<!-- USE APPENDER -->
+	<root level="INFO">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOKI" />
+	</root>
+</configuration>
