@@ -2,12 +2,12 @@
 FASTAPI APP 메인 파일
 """
 
-import logging
 import os
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from prometheus_fastapi_instrumentator import Instrumentator
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,14 +21,15 @@ import eda
 from rag.api.gpt_routes import gpt_router
 from rag.api.routes import router
 from rag.core.config import settings
+from rag.core.loki import setup_logging
 from rag.database.chroma_client import chroma_db
 from rag.llm.rag_service import process_data_analysis_event
+
 
 # pylint: enable=wrong-import-position
 
 # 로깅 설정
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = setup_logging()
 
 try:
     dotenv_path = (
@@ -40,6 +41,8 @@ try:
         os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
     if os.getenv("KAFKA_BOOTSTRAP_SERVER"):
         os.environ["KAFKA_BOOTSTRAP_SERVER"] = os.getenv("KAFKA_BOOTSTRAP_SERVER")
+    if os.getenv("LOKI_URL"):
+        os.environ["LOKI_URL"] = os.getenv("LOKI_URL")
 except Exception as e:  # pylint: disable=broad-except
     logger.error("환경 변수 로드 실패: %s", e)
 
@@ -101,6 +104,10 @@ app.add_middleware(
 app.include_router(router, prefix="/api")
 app.include_router(gpt_router, prefix="/api/gpt/v1")
 
+# Setup Prometheus
+instrumentator = Instrumentator().instrument(app)
+instrumentator.expose(app, include_in_schema=False)
+
 
 @app.get("/", tags=["요청"])
 async def root():
@@ -113,3 +120,12 @@ async def root():
     eda.event_broadcast("data-analysis-completed", "ㅇㅇ")
 
     return {"message": "가전제품 RAG API 서버가 실행 중입니다", "api": "/api"}
+
+
+@app.get("/health")
+async def health():
+    """
+    서버 상태 확인 엔드포인트
+    """
+    logger.info("서버 상태 확인 엔드포인트 호출")
+    return {"status": "ok"}
