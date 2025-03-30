@@ -21,7 +21,7 @@ public class TestController {
 		this.emitterService = emitterService;
 	}
 
-	@GetMapping("/api/test/counseling")
+	@GetMapping("/test/counseling")
 	public SseEmitter connectSse(
 		@RequestParam("task_id") String taskId
 	) {
@@ -29,7 +29,7 @@ public class TestController {
 	}
 
 	@PreAuthorize("@authExpression.matchIpByRegex(#ip, '^192\\.168\\..*\\..*$')")
-	@GetMapping("/api/test/allow-private-ip")
+	@GetMapping("/test/allow-private-ip")
 	public ResponseEntity<String> allowPrivateIp(
 		@RequestAttribute("CLIENT_IPV4")
 		String ip
@@ -38,7 +38,7 @@ public class TestController {
 	}
 
 	@PreAuthorize("@authExpression.matchIpByRegex(#ip, '^$')")
-	@GetMapping("/api/test/deny-all-ip")
+	@GetMapping("/test/deny-all-ip")
 	public ResponseEntity<String> denyAllIp(
 		@RequestAttribute("CLIENT_IPV4")
 		String ip
@@ -47,7 +47,7 @@ public class TestController {
 	}
 
 	@PreAuthorize("@authExpression.matchIpByAllowedList(#ip)")
-	@GetMapping("/api/test/allow-list-ip")
+	@GetMapping("/test/allow-list-ip")
 	public ResponseEntity<String> allowListIp(
 		@RequestAttribute("CLIENT_IPV4")
 		String ip
