@@ -90,7 +90,7 @@ public class DisconnectCustomerTest {
 
 		customerCounselorMap.mappingCustomerAndCounselor(customerPhoneNumber, TASK_ID);
 
-		HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + port + "/api/test/counseling?task_id=" + TASK_ID).openConnection();
+		HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + port + "/api/v1/test/counseling?task_id=" + TASK_ID).openConnection();
 		connection.setRequestMethod("GET");
 		connection.setRequestProperty("Accept", MediaType.TEXT_EVENT_STREAM_VALUE);
 

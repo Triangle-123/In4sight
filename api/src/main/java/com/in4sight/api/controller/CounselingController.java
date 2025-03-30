@@ -30,7 +30,7 @@ import com.in4sight.api.service.EmitterService;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/v1/counseling")
+@RequestMapping("/counseling")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @Slf4j
 @Tag(name = "counselling", description = "counselling SSE API")

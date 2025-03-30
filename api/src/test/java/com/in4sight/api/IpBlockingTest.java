@@ -50,7 +50,7 @@ public class IpBlockingTest {
 
 		mockExpect(
 			getExpectedResultByRegex(ipList, regex),
-			"/api/test/allow-private-ip"
+			"/api/v1/test/allow-private-ip"
 		);
 	}
 
@@ -61,7 +61,7 @@ public class IpBlockingTest {
 		String regex = "^$";
 		mockExpect(
 			getExpectedResultByRegex(ipList, regex),
-			"/api/test/deny-all-ip"
+			"/api/v1/test/deny-all-ip"
 		);
 	}
 
@@ -74,7 +74,7 @@ public class IpBlockingTest {
 
 		mockExpect(
 			getExpectedResultByList(ipList),
-			"/api/test/allow-list-ip"
+			"/api/v1/test/allow-list-ip"
 		);
 	}
 
