@@ -2,7 +2,10 @@
 API 서버에 데이터를 보내는 형식으로 바꾸기 위한 모듈입니다.
 """
 
+import pprint
 from collections import defaultdict
+
+import pandas as pd
 
 METRICS = {
     "fan_rpm": "팬 속도 변화",
@@ -25,29 +28,88 @@ UNIT = {
     "temp_internal": "℃",
 }
 
+ICON = {
+    "fan_rpm": "Fan",
+    "heater_temp": "Heater",
+    "load_percent": "Refrigerator",
+    "refrigerant_pressure": "CircleGauge",
+    "temp_external": "ThermometerSun",
+    "temp_internal": "ThermometerSnowflake",
+}
 
-def api_data_refine(df):
+
+def api_data_refine(df, anomaly_sensor=None):
     """
-    데이터 필드별로 묶어서 데이터를 전송하기 위한 전처리 함수입니다.
+    API 서버 전송용으로 센서 시계열 데이터 + 현재 상태 데이터를 구조화
     """
     dataset = defaultdict(list)
     field_unit_map = {}
+    field_icon_map = {}
+    field_abnormal_map = {}
+
+    anomaly_sensor = anomaly_sensor or []
 
     for data in df:
-        time_str = data["time"]  # ISO 형식의 시간 문자열 변환
-        field = METRICS[data["sensor"]]
-        unit = UNIT[data["sensor"]]
+        time_str = data["time"]
+        sensor_key = data["sensor"]
+        location_key = data.get("location")
 
-        if data["location"]:
-            field = f'{METRICS[data["location"]]} ' + field
+        # 기본 센서명 → 한국어 필드명
+        base_field_name = METRICS.get(sensor_key)
+        unit = UNIT.get(sensor_key)
+        icon = ICON.get(sensor_key)
 
+        if location_key:
+            prefix = METRICS.get(location_key, "")
+            field = f"{prefix} {base_field_name}"
+        else:
+            field = base_field_name
+
+        # 시계열 데이터 쌓기
         dataset[field].append({"time": time_str, "value": data["value"]})
         field_unit_map[field] = unit
+        field_icon_map[field] = icon
 
-    # 변환된 JSON 데이터 생성
-    dataset = [
-        {"title": field, "unit": field_unit_map[field], "data": data}
-        for field, data in dataset.items()
-    ]
+        # 이상치 포함 여부
+        if sensor_key in anomaly_sensor:
+            field_abnormal_map[field] = True
 
-    return dataset
+    # 시계열 데이터 변환
+    metrics = []
+    for field, data in dataset.items():
+        metrics.append(
+            {
+                "title": field,
+                "icon": field_icon_map.get(field),
+                "unit": field_unit_map.get(field),
+                "is_abnormal": field_abnormal_map.get(field, False),
+                "data": data,
+            }
+        )
+
+    pprint.pprint(metrics)
+    return metrics
+
+
+def event_summary(df_event):
+    """
+    이벤트 데이터를 요약해주는 메소드입니다.
+    """
+    if (
+        df_event.empty
+        or "_time" not in df_event.columns
+        or "event_type" not in df_event.columns
+    ):
+        return "이벤트 데이터가 없습니다."
+
+    df_event = df_event.copy()
+    df_event["_time"] = pd.to_datetime(df_event["_time"])
+
+    start_date = df_event["_time"].min().strftime("%Y.%m.%d")
+    end_date = df_event["_time"].max().strftime("%Y.%m.%d")
+
+    # event_type이 'door_open'인 것만 필터링
+    door_open_df = df_event[df_event["event_type"] == "door_open"]
+    door_open_count = len(door_open_df)
+
+    return f"{start_date} ~ {end_date} 문열림 감지 이벤트 {door_open_count}회 발생"

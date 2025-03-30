@@ -18,7 +18,9 @@ WINDOW_LENGTH = 14
 POLYORDER = 1
 
 
-def detect_pressure_anomalies(df_sensor, anomaly_prompts, related_sensor):
+def detect_pressure_anomalies(
+    df_sensor, anomaly_prompts, related_sensor, anomaly_sensor
+):
     """
     컴프레서 압력 이상치를 판단합니다.
     """
@@ -32,6 +34,7 @@ def detect_pressure_anomalies(df_sensor, anomaly_prompts, related_sensor):
         related_sensor.append("컴프레서 압력")
 
         anomaly_prompts.append(0)
+        anomaly_sensor.append("refrigerant_pressure")
 
     else:
         logger.info("[컴프레서 압력 정상] 압력 이상치 없음")

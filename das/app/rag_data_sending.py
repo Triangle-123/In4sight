@@ -65,7 +65,7 @@ ANOMALITY_NUMBER = len(ANOMALITY)
 SYMPTOM_NUMBER = len(EXPECTED_SYMPTOM)
 
 
-def broadcast_rag_message(task_id, serial_number, topic, anomality_list):
+def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_summary):
     """
     eda를 통해 메시지를 rag로 broadcast 해주는 함수입니다.
     """
@@ -104,5 +104,8 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list):
         symptom_dataset.append(symptom_data)
 
     message["data"] = symptom_dataset
+    message["events"] = event_summary
+
+    print(message)
 
     eda.event_broadcast(topic, message)

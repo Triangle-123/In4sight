@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 
 
-def check_fan_rpm_anormality(df_event, anormality_list, related_sensor):
+def check_fan_rpm_anormality(df_event, anormality_list, related_sensor, anomaly_sensor):
     """
     냉장고 냉기 토출구 팬 이상치를 판단하는 로직입니다.
 
@@ -96,3 +96,4 @@ def check_fan_rpm_anormality(df_event, anormality_list, related_sensor):
     if len(high_rpm_indices) > 0:
         anormality_list.append(2)
         related_sensor.append("냉기토출구_팬RPM")
+        anomaly_sensor.append("fan_rpm")

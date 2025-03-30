@@ -12,12 +12,16 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+THRESHOLD_LOAD = 85
 
-def check_loading_rate_anormality(df_event, anormality_list, related_sensor):
+
+def check_loading_rate_anormality(
+    df_event, anormality_list, related_sensor, anomaly_sensor
+):
     """
     냉장고 적재량 이상치를 판단하는 로직입니다.
     """
-    high_load_indices = df_event[df_event["load_percent"] >= 85].index
+    high_load_indices = df_event[df_event["load_percent"] >= THRESHOLD_LOAD].index
 
     logging.debug("[적재량 검사] 전체 데이터 수: %d", len(df_event))
     logging.debug("[적재량 검사] 과다 적재 인덱스 수: %d", len(high_load_indices))
@@ -84,3 +88,4 @@ def check_loading_rate_anormality(df_event, anormality_list, related_sensor):
     if len(high_load_indices) > 0:
         anormality_list.append(4)
         related_sensor.append("적재량")
+        anomaly_sensor.append("load_percent")
