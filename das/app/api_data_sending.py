@@ -86,7 +86,7 @@ def api_data_refine(df, anomaly_sensor=None):
                 "title": field,
                 "icon": field_icon_map.get(field),
                 "unit": field_unit_map.get(field),
-                "normal": field_abnormal_map.get(field, False),
+                "normal": not field_abnormal_map.get(field, False),
                 "data": data,
             }
         )
