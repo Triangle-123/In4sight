@@ -27,7 +27,13 @@ public class TimeSeriesDataDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class SensorData {
-		private String field;
+		private String title;
+		private String icon;
+		private String unit;
+
+		@JsonProperty("is_abnormal")
+		private boolean abnormal;
+
 		private List<FieldData> data;
 	}
 

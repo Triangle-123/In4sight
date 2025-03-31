@@ -16,5 +16,5 @@ import lombok.ToString;
 @Builder
 public class EventDataResponseDto {
 	private String serialNumber;
-	private List<EventDataDto.EventData> data;
+	private List<String> eventData;
 }
