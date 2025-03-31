@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button'
 import type { ApplianceType } from '@/lib/types'
 import type { CustomerType } from '@/lib/types'
 import { Refrigerator, WashingMachine } from 'lucide-react'
+import useStore from '@/store/store'
 
 interface SidebarProps {
   sidebarOpen: boolean
-  selectedAppliance: ApplianceType | null
-  setSelectedAppliance: (appliance: ApplianceType) => void
   appliances: ApplianceType[] | null
   callHistory: { date: string; time: string; topic: string }[]
   customerInfo: CustomerType | null
@@ -16,12 +15,13 @@ interface SidebarProps {
 
 export function Sidebar({
   sidebarOpen,
-  selectedAppliance,
-  setSelectedAppliance,
   appliances,
   callHistory,
   customerInfo,
 }: SidebarProps) {
+  const selectedAppliance = useStore((state) => state.selectedAppliance)
+  const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
+
   return (
     <div
       style={{ width: sidebarOpen ? '20rem' : '0', marginLeft: sidebarOpen ? '0' : '-20rem' }}
