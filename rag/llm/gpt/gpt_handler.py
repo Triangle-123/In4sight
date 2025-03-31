@@ -52,7 +52,9 @@ class GPTHandler:
         except (KeyError, IndexError) as e:
             return {"success": False, "error": f"응답 파싱 오류: {str(e)}"}
 
-    def rag_completion(self, query_data, causes, related_sensors):
+    def rag_completion(
+        self, query_data, causes, related_sensors, customer_history, event
+    ):
         """
         RAG 기반 완성 요청 처리 함수 - 시맨틱 검색 적용
 
@@ -135,12 +137,13 @@ class GPTHandler:
             query=query_text,
             causes=causes,
             related_sensors=related_sensors,
+            customer_history=customer_history,
+            event=event,
         )
         system_message = BasePrompts.DIAGNOSTIC_SYSTEM
 
         # LLM에 완성 요청
         logger.info("LLM 완성 요청 시작")
-        print(user_message)
         response = self.simple_completion(user_message, system_message)
         logger.info("RAG 완성 처리 완료")
 
@@ -177,14 +180,31 @@ class GPTHandler:
             # 메타데이터 문자열 구성
             meta_str = ""
             if meta:
-                meta_items = [f"{k}: {v}" for k, v in meta.items()]
+                # 필요한 메타데이터 필드만 표시
+                relevant_meta = {}
+                for k, v in meta.items():
+                    if k not in ["solution"]:  # solution은 별도로 처리
+                        relevant_meta[k] = v
+
+                meta_items = [f"{k}: {v}" for k, v in relevant_meta.items()]
                 meta_str = f"[{', '.join(meta_items)}]"
 
             # 유사도 점수 (있는 경우)
             score_str = f"(유사도: {dist:.4f})" if dist is not None else ""
 
+            # 문서 내용 구성
+            # 만약 메타데이터에 solution 필드가 있고 非공백이면 그것을 사용
+            document_content = doc
+            if meta and "solution" in meta and meta["solution"].strip():
+                # 타이틀과 솔루션을 함께 표시
+                title = meta.get("title", "")
+                if title:
+                    document_content = f"제목: {title}\n\n{meta['solution']}"
+                else:
+                    document_content = meta["solution"]
+
             # 개별 문서 포맷팅
-            doc_str = f"--- 문서 {i+1} {meta_str} {score_str} ---\n{doc}\n"
+            doc_str = f"--- 문서 {i+1} {meta_str} {score_str} ---\n{document_content}\n"
             context_parts.append(doc_str)
 
         # 전체 컨텍스트 문자열 결합

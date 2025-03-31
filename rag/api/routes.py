@@ -11,7 +11,8 @@ from pydantic import BaseModel
 
 from rag.database.chroma_client import chroma_db
 from rag.database.chroma_operation import ChromaDBOperations
-from rag.llm.rag_service import process_data_analysis_event
+from rag.llm.rag_service import (process_counseling_history_event,
+                                 process_data_analysis_event)
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,7 @@ async def message_test(message: Dict[str, Any]):
     """
     RAG 기능 테스트
     """
+    process_counseling_history_event(["zz"])
     process_data_analysis_event(message)
 
     return {"message": "요청에 성공하셨습니다!"}
