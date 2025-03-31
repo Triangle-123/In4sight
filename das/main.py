@@ -5,8 +5,8 @@ FastAPI 서버를 올리기 위한 main.py
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.loki import setup_logging
 from app.lifespan import lifespan
+from app.loki import setup_logging
 
 app = FastAPI(lifespan=lifespan)
 

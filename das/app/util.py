@@ -62,3 +62,16 @@ def broadcast_sensor_message(task_id, serial_number, topic, data):
     message["sensor_data"] = data
 
     eda.event_broadcast(topic, message)
+
+
+def broadcast_event_message(task_id, serial_number, topic, data):
+    """
+    eda를 통해 이벤트 데이터 메시지를 broadcast를 해주는 함수입니다.
+    """
+    message = {}
+
+    message["taskId"] = task_id
+    message["serialNumber"] = serial_number
+    message["event_data"] = data
+
+    eda.event_broadcast(topic, message)

@@ -2,9 +2,11 @@
 Loki 로깅 설정을 위한 모듈
 """
 
-import sys
 import logging
+import sys
+
 import logging_loki
+
 from app.config import LOKI_URL
 
 
