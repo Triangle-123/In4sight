@@ -217,7 +217,7 @@ public class EmitterService {
 				"event-data",
 				EventDataResponseDto.builder()
 					.serialNumber(data.getSerialNumber())
-					.data(data.getData())
+					.eventData(data.getEventData())
 					.build(),
 				true
 			);
