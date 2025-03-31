@@ -65,8 +65,12 @@ def api_data_refine(df, anomaly_sensor=None):
         else:
             field = base_field_name
 
+        value = data["value"]
+        if sensor_key == "fan_rpm":
+            value = int(value)
+
         # 시계열 데이터 쌓기
-        dataset[field].append({"time": time_str, "value": data["value"]})
+        dataset[field].append({"name": time_str, "value": value})
         field_unit_map[field] = unit
         field_icon_map[field] = icon
 
