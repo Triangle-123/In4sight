@@ -3,7 +3,6 @@
 """
 
 import logging
-from datetime import timedelta
 
 import pandas as pd
 
@@ -13,15 +12,16 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+THRESHOLD_HEATHER = 50  # 이상 판단 기준 온도
+MIN_DURATION = 3  # 15분 간격 x 3 = 45분
 
-def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor):
+
+def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_sensor):
     """
     히터 센서 온도 데이터를 분석하여 고온 지속 또는 제상 시간 외 고온 구간을 감지하고,
     이상 여부를 anomaly 목록에 기록합니다.
     """
 
-    threshold_temp = 50  # 이상 판단 기준 온도
-    min_duration = 3  # 15분 간격 x 3 = 45분
     high_temp_streaks = []  # 고온 구간 리스트
     current_streak = []  # 현재 고온 연속 리스트
 
@@ -30,10 +30,10 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor):
     # 연속 고온 구간 탐지
     for i in range(len(df_sensor)):
         temp = df_sensor.iloc[i]["heater_temp"]
-        if temp >= threshold_temp:
+        if temp >= THRESHOLD_HEATHER:
             current_streak.append(df_sensor.iloc[i])
         else:
-            if len(current_streak) >= min_duration:
+            if len(current_streak) >= MIN_DURATION:
                 high_temp_streaks.append(current_streak)
                 logging.debug(
                     "[고온 지속 감지] streak 추가 (길이: %d)", len(current_streak)
@@ -41,7 +41,7 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor):
             current_streak = []
 
     # 마지막 streak 추가 여부 확인
-    if len(current_streak) >= min_duration:
+    if len(current_streak) >= MIN_DURATION:
         high_temp_streaks.append(current_streak)
         logging.debug(
             "[고온 지속 감지] 마지막 streak 추가 (길이: %d)", len(current_streak)
@@ -54,7 +54,7 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor):
 
     for streak in high_temp_streaks:
         timestamps = [pd.to_datetime(record["_time"]) for record in streak]
-        timestamps_kst = [ts + timedelta(hours=9) for ts in timestamps]
+        timestamps_kst = list(timestamps)
         hours = [ts.hour for ts in timestamps_kst]
 
         # 제상 시간(6시~7시)에만 해당하면 정상
@@ -91,6 +91,7 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor):
 
         anomaly_prompts.append(3)
         related_sensor.append("히터")
+        anomaly_sensor.append("heater_temp")
 
         logging.debug("관련 센서 추가됨: %s", related_sensor)
     else:

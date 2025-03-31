@@ -7,7 +7,7 @@ from json import loads
 import pandas as pd
 from influxdb_client import InfluxDBClient
 
-from app.api_data_sending import api_data_refine
+from app.api_data_sending import api_data_refine, event_summary
 from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
                         INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
 from app.rag_data_sending import broadcast_rag_message
@@ -17,7 +17,8 @@ from app.refrigerator_fan import check_fan_rpm_anormality
 from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
-from app.util import broadcast_sensor_message, convert_to_iso_utc
+from app.util import (broadcast_event_message, broadcast_sensor_message,
+                      convert_to_iso_utc)
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
@@ -50,6 +51,7 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
 
     anomaly_prompts = []
     related_sensor = []
+    anomaly_sensor = []
 
     # 날짜를 RFC3339(ISO) 형식으로 변환
     startday = convert_to_iso_utc(startday)
@@ -96,26 +98,35 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     sensor = loads(sensor.to_json(orient="records", date_format="iso", date_unit="s"))
 
     # 온도 관련 이상치 감지 (sensor_cols에 센서 컬럼명이 append됨)
-    detect_temperature_anomalies(df_sensor, df_event, anomaly_prompts, related_sensor)
+    detect_temperature_anomalies(
+        df_sensor, df_event, anomaly_prompts, related_sensor, anomaly_sensor
+    )
 
     # 도어 센서 이상치 감지
     check_door_anormality(df_event, anomaly_prompts, related_sensor)
 
     # 적재량 이상치 감지
-    check_loading_rate_anormality(df_sensor, anomaly_prompts, related_sensor)
+    check_loading_rate_anormality(
+        df_sensor, anomaly_prompts, related_sensor, anomaly_sensor
+    )
 
     # 히터 이상치 감지
-    detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor)
+    detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_sensor)
 
-    check_fan_rpm_anormality(df_sensor, anomaly_prompts, related_sensor)
+    check_fan_rpm_anormality(df_sensor, anomaly_prompts, related_sensor, anomaly_sensor)
 
     # 컴프레서 압력 이상치 감지
-    detect_pressure_anomalies(df_sensor.copy(), anomaly_prompts, related_sensor)
+    detect_pressure_anomalies(
+        df_sensor.copy(), anomaly_prompts, related_sensor, anomaly_sensor
+    )
+
+    event_data = event_summary(df_event)
 
     broadcast_sensor_message(
         task_id, serial_number, "data_sensor", api_data_refine(sensor)
     )
-    # broadcast_message(task_id, serial_number, "data_event",
-    #    api_data_refine(df_event, EVENT_DATA_LIST))
+    broadcast_event_message(task_id, serial_number, "data_event", event_data)
 
-    broadcast_rag_message(task_id, serial_number, "das_result", anomaly_prompts)
+    broadcast_rag_message(
+        task_id, serial_number, "das_result", anomaly_prompts, event_data
+    )
