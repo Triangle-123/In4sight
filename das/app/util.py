@@ -25,7 +25,7 @@ def convert_to_iso_utc(date_str):
         return None
 
     # UTC 기준 ISO 8601 포맷으로 변환
-    return dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    return dt.strftime("%Y-%m-%dT%H:%M:%S.001Z")
 
 
 def get_door_times(df_event, location):
