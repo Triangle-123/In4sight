@@ -70,7 +70,7 @@ def api_data_refine(df, anomaly_sensor=None):
             value = int(value)
 
         # 시계열 데이터 쌓기
-        dataset[field].append({"name": time_str, "value": value})
+        dataset[field].append({"time": time_str, "value": value})
         field_unit_map[field] = unit
         field_icon_map[field] = icon
 
