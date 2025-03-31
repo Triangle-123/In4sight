@@ -14,6 +14,7 @@ from eda.producer import get_producer
 
 from rag.llm.gpt.gpt_client import GPTClient
 from rag.llm.gpt.gpt_handler import GPTHandler
+from rag.llm.rag_response import DiagnosticResult
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -45,8 +46,67 @@ def suggest_additional_questions(message: Dict[str, Any]) -> None:
         logger.error("추가 질문 이벤트 처리 중 오류 발생: %s", e, exc_info=True)
 
 
+def process_counseling_history_event(message: list[str, Any]) -> None:
+    """
+    고객의 과거 상담 이력 정보를 받아 캐싱합니다.
+
+    {
+        'taskId': [{
+            'failure': '증상',
+            'causes': ['원인1', '원인2'],
+            'solutions': []
+        }]
+    }
+    """
+    # 테스트용 예시 데이터
+    message2 = [
+        {
+            "task_id": "01045309648",
+            "date": "2025-02-01",
+            "data": {
+                "serial_number": "DMKOJ1QEIO1JNE123141",
+                "cause": [
+                    "냉기 토출구 팬 rpm이 높은 구간이 감지되었습니다.",
+                    "과도하게 냉장고에 적재한 구간이 감지되었습니다.",
+                ],
+                "failure": "냉장실 내부 온도가 높습니다.(냉장실 공간 부족/토출구 막힘)",
+                "sensor": ["냉기토출구 팬RPM", "적재량"],
+                "solutions": {
+                    "personalized_solution": [
+                        {
+                            "personalized_context": "과거에 냉장실과 냉동실 온도가 올라갔던 문제와\
+                                  관련하여 냉기 토출구가 막혔던 원인이 있었습니다.\
+                                현재도 적재량이 많아지면 문제가 발생할 수 있습니다.",
+                            "recommended_solution": "냉장실의 물건을 줄여서 냉기 토출구가 막히지 않도록 해주세요",
+                            "status": "주의",
+                        }
+                    ],
+                    "preventative_advice": [
+                        "냉장고에 물건을 과도하게 적재하지 않도록 해주세요.",
+                        "냉기 토출구 주변은 항상 비워두어야 원활한 냉각이 가능합니다.",
+                    ],
+                },
+            },
+        }
+    ]
+
+    print(message2)
+    # 첫 번째 키를 가져옵니다
+    phone_number = message[0].get("task_id")
+
+    # 해당 키의 값을 딕셔너리에 저장합니다
+    customer_log_dict[phone_number] = message
+
+
+customer_log_dict = {}
+
+
 def process_symptom_with_rag(
-    failure_item: Dict[str, Any], product_type: str, client: GPTClient
+    failure_item: Dict[str, Any],
+    product_type: str,
+    client: GPTClient,
+    task_id: str,
+    event: list[str],
 ) -> Dict[str, Any]:
     """
     각 증상에 대해 RAG를 수행합니다.
@@ -62,11 +122,9 @@ def process_symptom_with_rag(
     """
 
     try:
-        print(failure_item)
         failure = failure_item.get("failure", "")
         causes = failure_item.get("causes", [])
         related_sensors = failure_item.get("related_sensor", [])
-
         logger.info("고장 증상 '%s'에 대한 RAG 처리 시작", failure)
 
         handler = GPTHandler(client=client)
@@ -79,9 +137,14 @@ def process_symptom_with_rag(
             "query_embedding": None,
         }
 
+        customer_history = customer_log_dict.get(task_id)
         # RAG 완료 호출
         response = handler.rag_completion(
-            query_data=query_data, causes=causes, related_sensors=related_sensors
+            query_data=query_data,
+            causes=causes,
+            related_sensors=related_sensors,
+            customer_history=customer_history,
+            event=event,
         )
 
         if not response.get("success"):
@@ -94,11 +157,16 @@ def process_symptom_with_rag(
             "고장 증상 '%s'에 대한 RAG 처리 완료 (%d개 원인 분석)", failure, len(causes)
         )
 
+        # DiagnosticResult 객체를 딕셔너리로 변환
+        result = response.get("result", "")
+        if isinstance(result, DiagnosticResult):
+            result = result.to_dict()
+
         return {
             "failure": failure,
             "cause": causes,
             "sensor": related_sensors,
-            "solutions": response.get("result", ""),
+            "solutions": result,
         }
     except Exception as e:  # pylint: disable=broad-except
         logger.error(
@@ -112,6 +180,9 @@ def process_symptom_with_rag(
             "error": str(e),
             "failure": failure_item.get("failure", "알 수 없음"),
         }
+
+
+i = 0
 
 
 def process_data_analysis_event(message: Dict[str, Any]) -> None:
@@ -147,13 +218,13 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
         serial_number = message.get("serialNumber")
         task_id = message.get("taskId")
         product_type = message.get("product_type")
+        event = message.get("event")
 
         if not task_id:
             logger.error("유효하지 않은 메시지 형식: task_id가 없습니다")
             return
 
         client = GPTClient()
-
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(8, len(data))
         ) as executor:
@@ -165,6 +236,8 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
                     symptom_item,
                     product_type,
                     client,
+                    task_id,
+                    event,
                 ): symptom_item.get("failure", f"Item-{i}")
                 for i, symptom_item in enumerate(data)
             }
@@ -223,8 +296,8 @@ def publish_rag_completed_event(task_id: str, result, serial_number: str) -> Non
         result: GPT 응답 결과
     """
     try:
-        print("result 타입")
-        print(result["solutions"])
+        print("publish_rag_completed_event")
+        print(result)
         # DiagnosticResult 객체를 딕셔너리로 변환
         if "solutions" in result and isinstance(result["solutions"], list):
             result["solutions"] = [

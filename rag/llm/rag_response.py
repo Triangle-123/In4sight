@@ -4,8 +4,34 @@ LLM API의 JSON 문자열 응답으로부터 DTO 객체를 생성하는 모듈
 
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional
+
+
+@dataclass
+class PreviousIssue:
+    """과거 상담 이력 정보"""
+
+    date: str
+    issue: str
+    cause: str
+    resolved: bool
+
+
+@dataclass
+class HistoricalContext:
+    """고객의 과거 상담 이력 컨텍스트"""
+
+    previous_issues: List[PreviousIssue] = field(default_factory=list)
+
+
+@dataclass
+class PersonalizedSolution:
+    """고객 맞춤형 해결책"""
+
+    status: str
+    recommended_solution: str
+    personalized_context: str = ""
 
 
 @dataclass
@@ -14,8 +40,9 @@ class DiagnosticResult:
     LLM 응답 DTO 객체
     """
 
-    status: str
-    recommended_solution: List[str]
+    historical_context: HistoricalContext
+    personalized_solution: List[PersonalizedSolution]
+    preventative_advice: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """객체를 딕셔너리로 변환"""
@@ -26,45 +53,65 @@ class DiagnosticResult:
         return json.dumps(self.to_dict(), ensure_ascii=False)
 
     @classmethod
-    def from_json(
-        cls, json_str: str
-    ) -> Optional[List["DiagnosticResult"] | "DiagnosticResult"]:
-        """JSON 문자열에서 DiagnosticResult 객체 파싱 (단일 객체 또는 배열 처리)"""
+    def from_json(cls, json_str: str) -> Optional["DiagnosticResult"]:
+        """JSON 문자열에서 DiagnosticResult 객체 파싱"""
         try:
+            # 코드 블록 마커 제거
             json_str = re.sub(
                 r"^(```json|\'\'\'|```|\'\'\')|\n(```json|\'\'\'|```|\'\'\')$",
                 "",
-                json_str,
+                json_str.strip(),
             )
-            # 문자열인 경우 빈 객체 반환
+
+            # JSON 파싱
             try:
                 data = json.loads(json_str)
             except json.JSONDecodeError:
-                # JSON으로 파싱할 수 없는 문자열인 경우
                 return None
 
-            # 배열인 경우 여러 객체 처리
-            if isinstance(data, list):
-                return [
-                    cls(
-                        status=item.get("status", ""),
-                        recommended_solution=(
-                            "".join([item.get("recommended_solution")])
-                            if isinstance(item.get("recommended_solution"), str)
-                            else item.get("recommended_solution", [])
-                        ),
-                    )
-                    for item in data
-                ]
+            # 루트 키가 'result'인 경우 처리
+            if isinstance(data, dict) and "result" in data:
+                result = data["result"]
+            else:
+                result = data
 
-            # 단일 객체인 경우
+            # 과거 상담 이력 파싱
+            historical_context_data = result.get("historical_context", {})
+            previous_issues = []
+            for issue_data in historical_context_data.get("previous_issues", []):
+                previous_issues.append(
+                    PreviousIssue(
+                        date=issue_data.get("date", ""),
+                        issue=issue_data.get("issue", ""),
+                        cause=issue_data.get("cause", ""),
+                        resolved=issue_data.get("resolved", False),
+                    )
+                )
+            historical_context = HistoricalContext(previous_issues=previous_issues)
+
+            # 맞춤형 해결책 파싱
+            personalized_solution_data = result.get("personalized_solution", [])
+            personalized_solutions = []
+            if isinstance(personalized_solution_data, list):
+                for solution_data in personalized_solution_data:
+                    personalized_solutions.append(
+                        PersonalizedSolution(
+                            status=solution_data.get("status", ""),
+                            recommended_solution=solution_data.get(
+                                "recommended_solution", ""
+                            ),
+                            personalized_context=solution_data.get(
+                                "personalized_context", ""
+                            ),
+                        )
+                    )
+
+            # 결과 객체 생성
             return cls(
-                status=data.get("status", ""),
-                recommended_solution=(
-                    [data.get("recommended_solution")]
-                    if isinstance(data.get("recommended_solution"), str)
-                    else data.get("recommended_solution", [])
-                ),
+                historical_context=historical_context,
+                personalized_solution=personalized_solutions,
+                preventative_advice=result.get("preventative_advice", []),
             )
-        except json.JSONDecodeError as e:
-            raise ValueError("잘못된 JSON 형식입니다") from e
+
+        except Exception as e:
+            raise ValueError(f"JSON 파싱 중 오류 발생: {str(e)}") from e
