@@ -95,7 +95,7 @@ def api_data_refine(df, anomaly_sensor=None):
     return metrics
 
 
-def event_summary(df_event):
+def event_summary(df_event, df_sensor):
     """
     이벤트 데이터를 요약해주는 메소드입니다.
     """
@@ -109,8 +109,8 @@ def event_summary(df_event):
     df_event = df_event.copy()
     df_event["_time"] = pd.to_datetime(df_event["_time"])
 
-    start_date = df_event["_time"].min().strftime("%Y.%m.%d")
-    end_date = df_event["_time"].max().strftime("%Y.%m.%d")
+    start_date = df_sensor["_time"].min().strftime("%Y.%m.%d")
+    end_date = df_sensor["_time"].max().strftime("%Y.%m.%d")
 
     # event_type이 'door_open'인 것만 필터링
     door_open_df = df_event[df_event["event_type"] == "door_open"]

@@ -94,6 +94,11 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
         anomaly_sensor.append("heater_temp")
 
         logging.debug("관련 센서 추가됨: %s", related_sensor)
-    else:
 
+    elif num_high_streaks == 0:
+        anomaly_prompts.append(10)
+        related_sensor.append("히터")
+        anomaly_sensor.append("heater_temp")
+
+    else:
         logging.info("[히터 센서 정상] 이상 없음.")

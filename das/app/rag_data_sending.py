@@ -29,6 +29,7 @@ ANOMALITY = [
     "냉동실 내부 온도가 높은 구간이 감지되었습니다",
     "외부 온도가 너무 낮습니다.",
     "외부 온도가 너무 높습니다",
+    "제상 사이클이 작동하지 않았습니다.",
 ]
 
 RELATED_SENSOR = [
@@ -42,6 +43,7 @@ RELATED_SENSOR = [
     "냉동실 내부 온도",
     "외부 온도",
     "외부 온도",
+    "히터",
 ]
 
 EXPECTED_SYMPTOM = [
@@ -50,17 +52,24 @@ EXPECTED_SYMPTOM = [
     "냉장실 내부 온도가 높습니다.(제상 사이클 이상)",
     "냉장실 내부 온도가 높습니다.(냉장실 공간 부족 등으로 냉기 토출구 막힘)",
     "냉장실 내부 온도가 높습니다.(뜨거운 음식 보관)",
+    "냉장실 내부 음식이 업니다.",
+    "냉장실에 성에가 낍니다.",
+    "냉장고 소음이 심합니다.",
 ]
 
 SYMPTOM_CHECK = [
     [check_scenario([0])],
     [check_scenario([1])],
-    [check_scenario([3])],
+    [check_scenario([3]), check_scenario([10])],
     [check_scenario([2]), check_scenario([4])],
     [check_scenario([6])],
+    [check_scenario([2])],
+    [check_scenario([10])],
+    [check_scenario([2])],
 ]
 
 INTERNAL_TEMP_INDEX = 5
+HIGH_INTENAL_TEMP_SYMPTOM_INDEX = 5
 ANOMALITY_NUMBER = len(ANOMALITY)
 SYMPTOM_NUMBER = len(EXPECTED_SYMPTOM)
 
@@ -74,6 +83,7 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_s
     message["taskId"] = task_id
     message["serialNumber"] = serial_number
     message["product_type"] = "REF"
+    message["event"] = event_summary
 
     symptom_dataset = []
     anomality_number = check_scenario(anomality_list)
@@ -87,14 +97,14 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_s
         if symptom_number == 0:
             continue
 
-        if anomality_number & (1 << INTERNAL_TEMP_INDEX) != 0:
-            symptom_number |= 1 << INTERNAL_TEMP_INDEX
+        if scenario_index < HIGH_INTENAL_TEMP_SYMPTOM_INDEX:
+            if anomality_number & (1 << INTERNAL_TEMP_INDEX) != 0:
+                symptom_number |= 1 << INTERNAL_TEMP_INDEX
 
         symptom_data = {
             "failure": EXPECTED_SYMPTOM[scenario_index],
             "causes": [],
             "related_sensor": [],
-            "events": event_summary,
         }
 
         for index in range(ANOMALITY_NUMBER):
