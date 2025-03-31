@@ -2,20 +2,25 @@ import { DeviceStatus } from '@/components/DeviceStatus'
 import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
-import { callHistoryPlaceholder, getAppliancePlaceholder } from '@/lib/placeholder-data'
+import {
+  callHistoryPlaceholder,
+  getAppliancePlaceholder,
+} from '@/lib/placeholder-data'
 import { ApplianceDataType, ApplianceType } from '@/lib/types'
 import useStore from '@/store/store'
+import { Phone } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 // import { v4 as uuidv4 } from 'uuid'
 
 // Constants
-// const MAX_RECONNECT_ATTEMPTS = 5
-const API_URL = import.meta.env.VITE_API_BASE_URL
+// const API_URL = import.meta.env.VITE_API_BASE_URL
 const TASK_ID = 'frontend_test'
 
 // 전역 변수 선언
-let globalSetSelectedAppliance: React.Dispatch<React.SetStateAction<ApplianceType | null>> | null = null
+let globalSetSelectedAppliance: React.Dispatch<
+  React.SetStateAction<ApplianceType | null>
+> | null = null
 
 export default function Dashboard() {
   const createSseConnection = useStore((state) => state.createSseConnection)
@@ -26,14 +31,17 @@ export default function Dashboard() {
   const error = useStore((state) => state.error)
   const customerInfo = useStore((state) => state.customerInfo)
   const appliances = useStore((state) => state.appliances)
+  const selectedAppliance = useStore((state) => state.selectedAppliance)
+  const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
   // const sensorData = useStore((state) => state.sensorData)
   // const eventData = useStore((state) => state.eventData)
 
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [selectedAppliance, setSelectedAppliance] = useState<ApplianceType | null>(null)
-  const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(null)
+  const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(
+    null,
+  )
   // const [graphData, setGraphData] = useState(null)
 
   // 전역 변수에 setter 함수 할당
@@ -46,14 +54,19 @@ export default function Dashboard() {
   }, [selectedAppliance])
 
   useEffect(() => {
+    setLoading(true)
+
     // 고객 별로 상이한 taskId 사용
     const newTaskId = TASK_ID
     setTaskId(newTaskId)
 
-    const eventSource = createSseConnection(newTaskId)
-    console.log('eventSource', eventSource)
+    createSseConnection(newTaskId)
     // @Deprecated
+    // const eventSource = createSseConnection(newTaskId)
+    // console.log('eventSource', eventSource)
     // startCounselling(newTaskId)
+
+    setLoading(false)
 
     return () => {
       console.log('SSE connection 제거')
@@ -99,8 +112,6 @@ export default function Dashboard() {
       {/* 사이드바 - 고객 정보, 고객의 가전 제품, 해당 고객과의 과거 통화 이력 */}
       <Sidebar
         sidebarOpen={sidebarOpen}
-        selectedAppliance={selectedAppliance}
-        setSelectedAppliance={setSelectedAppliance}
         customerInfo={customerInfo}
         appliances={appliances}
         callHistory={callHistoryPlaceholder}
@@ -112,7 +123,11 @@ export default function Dashboard() {
 
         {/* Main Panel */}
         <main className="flex-1 p-4 overflow-hidden">
-          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{error}</div>}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+              {error}
+            </div>
+          )}
 
           {loading && (
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded">
@@ -129,7 +144,7 @@ export default function Dashboard() {
           {selectedAppliance && applianceData ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
               {/* 왼쪽 섹션 - 제품 상태 모니터링 그래프들 */}
-              <DeviceStatus applianceData={applianceData} />
+              <DeviceStatus />
 
               {/* 오른쪽 섹션 - 추천 솔루션(LLM) */}
               <Recommendations applianceData={applianceData} />
@@ -139,13 +154,28 @@ export default function Dashboard() {
               <div className="text-center">
                 {customerInfo ? (
                   <>
-                    <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
+                    <h2 className="text-xl font-semibold mb-2">
+                      가전제품을 선택하세요
+                    </h2>
                     <p className="text-muted-foreground">
-                      왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.
+                      왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가
+                      표시됩니다.
                     </p>
                   </>
                 ) : (
-                  <h2 className="text-xl font-semibold mb-2">상담 대기 중입니다...</h2>
+                  <>
+                    <div className="relative w-16 h-16 mx-auto mb-4">
+                      <div className="absolute inset-0 animate-pulse">
+                        <Phone className="w-16 h-16 text-primary" />
+                      </div>
+                      <div className="absolute inset-0 animate-ping">
+                        <div className="w-16 h-16 rounded-full bg-primary/20"></div>
+                      </div>
+                    </div>
+                    <h2 className="text-xl font-semibold">
+                      상담 대기 중입니다 ...
+                    </h2>
+                  </>
                 )}
               </div>
             </div>
