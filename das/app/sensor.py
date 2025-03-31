@@ -8,8 +8,13 @@ import pandas as pd
 from influxdb_client import InfluxDBClient
 
 from app.api_data_sending import api_data_refine, event_summary
-from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
-                        INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
+from app.config import (
+    INFLUXDB_BUCKET_EVENT,
+    INFLUXDB_BUCKET_SENSOR,
+    INFLUXDB_ORG,
+    INFLUXDB_TOKEN,
+    INFLUXDB_URL,
+)
 from app.rag_data_sending import broadcast_rag_message
 from app.refrigerator_comp_pressure import detect_pressure_anomalies
 from app.refrigerator_door import check_door_anormality
@@ -17,8 +22,11 @@ from app.refrigerator_fan import check_fan_rpm_anormality
 from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
-from app.util import (broadcast_event_message, broadcast_sensor_message,
-                      convert_to_iso_utc)
+from app.util import (
+    broadcast_event_message,
+    broadcast_sensor_message,
+    convert_to_iso_utc,
+)
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
@@ -120,7 +128,7 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
         df_sensor.copy(), anomaly_prompts, related_sensor, anomaly_sensor
     )
 
-    event_data = event_summary(df_event)
+    event_data = event_summary(df_event, df_sensor)
 
     broadcast_sensor_message(
         task_id, serial_number, "data_sensor", api_data_refine(sensor)
