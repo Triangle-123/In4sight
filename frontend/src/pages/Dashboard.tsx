@@ -2,6 +2,7 @@ import { DeviceStatus } from '@/components/DeviceStatus'
 import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
+import WaitingScreen from '@/components/WaitingScreen'
 import {
   callHistoryPlaceholder,
   getAppliancePlaceholder,
@@ -163,19 +164,7 @@ export default function Dashboard() {
                     </p>
                   </>
                 ) : (
-                  <>
-                    <div className="relative w-16 h-16 mx-auto mb-4">
-                      <div className="absolute inset-0 animate-pulse">
-                        <Phone className="w-16 h-16 text-primary" />
-                      </div>
-                      <div className="absolute inset-0 animate-ping">
-                        <div className="w-16 h-16 rounded-full bg-primary/20"></div>
-                      </div>
-                    </div>
-                    <h2 className="text-xl font-semibold">
-                      상담 대기 중입니다 ...
-                    </h2>
-                  </>
+                  <WaitingScreen />
                 )}
               </div>
             </div>
