@@ -1,23 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, DonutChart, LineChart } from '@/components/ui/chart'
+import * as Icons from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
 
 interface DataChartProps {
   title: string
-  icon: LucideIcon
-  data: Array<{ name: string; value: number }>
+  icon: string
+  data: Array<{ time: string; value: number }>
   type: 'line' | 'bar' | 'donut'
-  color?: string
+  isAbnormal: boolean
   valueFormatter: (value: number) => string
   isLoading?: boolean
 }
 
 export function DataChart({
   title,
-  icon: Icon,
+  icon,
   data,
   type,
-  color = '#2563eb',
+  isAbnormal,
   valueFormatter,
   isLoading = false,
 }: DataChartProps) {
@@ -40,6 +41,8 @@ export function DataChart({
     donut: DonutChart,
   }[type]
 
+  const Icon = ((Icons as unknown) as Record<string, LucideIcon>)[icon]
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -52,8 +55,8 @@ export function DataChart({
         <ChartComponent
           data={data}
           categories={['value']}
-          index="name"
-          colors={[color]}
+          index="time"
+          colors={[isAbnormal ? "#e53935": "#4caf50"]}
           valueFormatter={valueFormatter}
           className="h-[200px]"
         />

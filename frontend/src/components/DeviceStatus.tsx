@@ -1,9 +1,19 @@
 import { Card, CardContent } from '@/components/ui/card'
+// import { sensorDataPlaceholder } from '@/lib/placeholder-data'
 import useStore from '@/store/store'
-import { BarChart3, Clock, Gauge, Power, Thermometer } from 'lucide-react'
+import { useEffect } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 import { StatusBadge } from './StatusBadge'
 import { DataChart } from './charts/DataChart'
+
+interface Sensor {
+  title: string
+  icon: string
+  unit: string
+  is_abnormal: boolean
+  data: Array<{ time: string; value: number }>
+}
 
 // 스켈레톤 컴포넌트들
 const SkeletonCard = () => (
@@ -17,6 +27,17 @@ const SkeletonCard = () => (
 
 export function DeviceStatus() {
   const sensorData = useStore((state) => state.sensorData)
+  // const setSensorData = useStore((state) => state.setSensorData)
+  const selectedAppliance = useStore((state) => state.selectedAppliance)
+
+  useEffect(() => {
+    if (sensorData) {
+      console.log('sensorData', sensorData)
+    }
+  }, [sensorData])
+
+  // setSensorData(sensorDataPlaceholder)
+
   // TODO: store 사용하여 sensorData 받아오기, props 삭제하기 (isLoading 삭제)
   if (!sensorData) {
     return (
@@ -40,9 +61,10 @@ export function DeviceStatus() {
             <DataChart
               key={index}
               title="로딩 중..."
-              icon={Thermometer}
+              icon="Thermometer"
               data={[]}
               type="line"
+              isAbnormal={false}
               valueFormatter={() => ''}
               isLoading={true}
             />
@@ -56,13 +78,17 @@ export function DeviceStatus() {
     <div className="lg:col-span-2 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">{applianceData.name}</h2>
-          <p className="text-sm text-muted-foreground">{applianceData.model}</p>
+          <h2 className="text-xl font-semibold">
+            {selectedAppliance?.modelName}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {selectedAppliance?.modelSuffix}
+          </p>
         </div>
-        <StatusBadge status={applianceData.status} />
+        {/* <StatusBadge status={applianceData.status} /> */}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {applianceData.metrics
           ? applianceData.metrics.map((metric, index) => (
               <Card key={index}>
@@ -82,62 +108,20 @@ export function DeviceStatus() {
                   </CardContent>
                 </Card>
               ))}
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {applianceData.temperatureData && (
+        {sensorData.sensorData.map((sensor: Sensor) => (
           <DataChart
-            title="온도 변화"
-            icon={Thermometer}
-            data={applianceData.temperatureData}
+            key={uuidv4()}
+            title={sensor.title}
+            icon={sensor.icon}
+            data={sensor.data}
             type="line"
-            color="#2563eb"
-            valueFormatter={(value) => `${value}°C`}
+            isAbnormal={sensor.is_abnormal}
+            valueFormatter={(value) => `${value}${sensor.unit}`}
           />
-        )}
-
-        {applianceData.powerData && (
-          <DataChart
-            title="전력 소비"
-            icon={Power}
-            data={applianceData.powerData}
-            type="line"
-            color="#10b981"
-            valueFormatter={(value) => `${value}W`}
-          />
-        )}
-
-        {applianceData.usageData && (
-          <DataChart
-            title="사용 분석"
-            icon={BarChart3}
-            data={applianceData.usageData}
-            type="donut"
-            valueFormatter={(value) => `${value}%`}
-          />
-        )}
-
-        {applianceData.cycleData && (
-          <DataChart
-            title="사이클 사용"
-            icon={Clock}
-            data={applianceData.cycleData}
-            type="bar"
-            color="#8b5cf6"
-            valueFormatter={(value) => `${value}회`}
-          />
-        )}
-
-        {applianceData.waterUsageData && (
-          <DataChart
-            title="물 사용량"
-            icon={Gauge}
-            data={applianceData.waterUsageData}
-            type="bar"
-            color="#0ea5e9"
-            valueFormatter={(value) => `${value}L`}
-          />
-        )}
+        ))}
       </div>
     </div>
   )

@@ -32,6 +32,7 @@ interface State {
   appliances: ApplianceType[]
   sensorData: any | null // 실제 센서 데이터 타입으로 교체 필요
   eventData: any | null // 실제 이벤트 데이터 타입으로 교체 필요
+  selectedAppliance: ApplianceType | null
 }
 
 // 액션 타입 정의
@@ -46,6 +47,7 @@ interface Actions {
   setAppliances: (data: ApplianceType[]) => void
   setSensorData: (data: any) => void
   setEventData: (data: any) => void
+  setSelectedAppliance: (appliance: ApplianceType | null) => void
 
   // 상태 업데이트
   setIsConnected: (isConnected: boolean) => void
@@ -61,7 +63,9 @@ const MAX_RECONNECT_ATTEMPTS = 5
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 if (!import.meta.env.VITE_API_BASE_URL) {
-  console.warn('⚠️ VITE_API_BASE_URL이 설정되지 않았습니다. 기본값을 사용합니다.')
+  console.warn(
+    '⚠️ VITE_API_BASE_URL이 설정되지 않았습니다. 기본값을 사용합니다.',
+  )
 }
 
 // store 생성
@@ -77,7 +81,9 @@ const useStore = create<Store>((set, get) => {
       eventSourceRef.close()
     }
 
-    console.log(`SSE 연결을 시도합니다: ${reconnectCount + 1} of ${MAX_RECONNECT_ATTEMPTS}`)
+    console.log(
+      `SSE 연결을 시도합니다: ${reconnectCount + 1} of ${MAX_RECONNECT_ATTEMPTS}`,
+    )
 
     const eventSource = new EventSource(`${API_URL}/counseling`)
     eventSourceRef = eventSource
@@ -102,7 +108,10 @@ const useStore = create<Store>((set, get) => {
       eventSource.close()
 
       if (reconnectCount < MAX_RECONNECT_ATTEMPTS) {
-        const nextReconnectDelay = Math.min(1000 * Math.pow(1.5, reconnectCount), 10000)
+        const nextReconnectDelay = Math.min(
+          1000 * Math.pow(1.5, reconnectCount),
+          10000,
+        )
         console.log(`재연결 시도 중... ${nextReconnectDelay}ms`)
 
         set({
@@ -118,7 +127,10 @@ const useStore = create<Store>((set, get) => {
           createSseConnection(taskId)
         }, nextReconnectDelay)
       } else {
-        set({ error: 'SSE 연결에 반복적으로 실패했습니다. 페이지를 새로고침 해주세요.' })
+        set({
+          error:
+            'SSE 연결에 반복적으로 실패했습니다. 페이지를 새로고침 해주세요.',
+        })
       }
     }
 
@@ -192,8 +204,14 @@ const useStore = create<Store>((set, get) => {
     taskId: null,
     customerInfo: null,
     appliances: [],
-    sensorData: null,
+    sensorData: {
+      taskId: null,
+      serialNumber: null,
+      sensor_data: [],
+    },
     eventData: null,
+    solutions: [],
+    selectedAppliance: null,
 
     // 액션
     createSseConnection,
@@ -203,6 +221,10 @@ const useStore = create<Store>((set, get) => {
     setAppliances: (data) => set({ appliances: data }),
     setSensorData: (data) => set({ sensorData: data }),
     setEventData: (data) => set({ eventData: data }),
+    setSelectedAppliance: (appliance) => {
+      set({ selectedAppliance: appliance })
+      console.log('선택된 기기:', appliance)
+    },
     setIsConnected: (isConnected) => set({ isConnected }),
     setError: (error) => set({ error }),
     setReconnectCount: (count) => set({ reconnectCount: count }),
@@ -215,6 +237,7 @@ const useStore = create<Store>((set, get) => {
         appliances: [],
         sensorData: null,
         eventData: null,
+        selectedAppliance: null,
       }),
   }
 })
