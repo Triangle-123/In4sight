@@ -3,7 +3,7 @@
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import eda
 
@@ -16,7 +16,7 @@ def convert_to_iso_utc(date_str):
     formats = ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S"]
     for fmt in formats:
         try:
-            dt = datetime.strptime(date_str, fmt) - timedelta(hours=9)
+            dt = datetime.strptime(date_str, fmt)
             break
         except ValueError:
             continue
