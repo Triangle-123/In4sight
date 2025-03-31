@@ -7,10 +7,10 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from prometheus_fastapi_instrumentator import Instrumentator
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # 현재 스크립트 위치의 부모 디렉토리(프로젝트 루트)를 경로에 추가
 sys.path.append(str(Path(__file__).parent.parent))
@@ -23,8 +23,8 @@ from rag.api.routes import router
 from rag.core.config import settings
 from rag.core.loki import setup_logging
 from rag.database.chroma_client import chroma_db
-from rag.llm.rag_service import process_data_analysis_event
-
+from rag.llm.rag_service import (process_counseling_history_event,
+                                 process_data_analysis_event)
 
 # pylint: enable=wrong-import-position
 
@@ -74,6 +74,13 @@ async def lifespan(app_instance: FastAPI):  # pylint: disable=unused-argument
             group_id=group_id, topic="das_result", callback=process_data_analysis_event
         )
 
+        # API 고객 상담 이력 이벤트 구독
+        eda.event_subscribe(
+            group_id=group_id,
+            topic="counseling_history",
+            callback=process_counseling_history_event,
+        )
+
         logger.info("Kafka 이벤트 구독이 성공적으로 설정되었습니다.")
     except Exception as e:  # pylint: disable=broad-except
         logger.error("Kafka 이벤트 구독 설정 실패: %s", e)
@@ -114,10 +121,6 @@ async def root():
     """
     루트 경로 호출 시 반환되는 메시지
     """
-    kafka_server = os.getenv("KAFKA_BOOTSTRAP_SERVER")
-
-    eda.create_producer(kafka_server)
-    eda.event_broadcast("data-analysis-completed", "ㅇㅇ")
 
     return {"message": "가전제품 RAG API 서버가 실행 중입니다", "api": "/api"}
 
