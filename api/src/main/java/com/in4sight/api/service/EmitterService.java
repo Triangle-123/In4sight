@@ -128,12 +128,11 @@ public class EmitterService {
 			List<CustomerDevice> devices = new ArrayList<>();
 			List<String> serialNumbers = new ArrayList<>();
 			for (DeviceResponseDto device : deviceResponse) {
-				devices.add(
-					new CustomerDevice(
-						device.getProductType(),
-						device.getModelSuffix(),
-						device.getSerialNumber(),
-						new ArrayList<>()));
+				devices.add(CustomerDevice.builder()
+					.productType(device.getProductType())
+					.modelSuffix(device.getModelSuffix())
+					.serialNumber(device.getSerialNumber())
+					.build());
 				serialNumbers.add(device.getSerialNumber());
 			}
 			counselingRepository.save(
@@ -163,7 +162,7 @@ public class EmitterService {
 				.name(eventName)
 				.data(eventDataDto);
 			emitter.send(event);
-			log.info("send" + eventName);
+			log.info("send " + eventName);
 		} catch (Exception e) {
 			log.error(e.getMessage());
 		}
