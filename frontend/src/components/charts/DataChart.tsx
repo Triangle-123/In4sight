@@ -8,7 +8,7 @@ interface DataChartProps {
   icon: string
   data: Array<{ time: string; value: number }>
   type: 'line' | 'bar' | 'donut'
-  isAbnormal: boolean
+  isNormal: boolean
   valueFormatter: (value: number) => string
   isLoading?: boolean
 }
@@ -18,7 +18,7 @@ export function DataChart({
   icon,
   data,
   type,
-  isAbnormal,
+  isNormal,
   valueFormatter,
   isLoading = false,
 }: DataChartProps) {
@@ -35,13 +35,11 @@ export function DataChart({
     )
   }
 
-  const ChartComponent = {
-    line: LineChart,
-    bar: BarChart,
-    donut: DonutChart,
-  }[type]
+  const ChartComponent = { line: LineChart, bar: BarChart, donut: DonutChart }[
+    type
+  ]
 
-  const Icon = ((Icons as unknown) as Record<string, LucideIcon>)[icon]
+  const Icon = (Icons as unknown as Record<string, LucideIcon>)[icon]
 
   return (
     <Card>
@@ -56,11 +54,11 @@ export function DataChart({
           data={data}
           categories={['value']}
           index="time"
-          colors={[isAbnormal ? "#e53935": "#4caf50"]}
+          colors={[isNormal ? '#4caf50' : '#e53935']}
           valueFormatter={valueFormatter}
           className="h-[200px]"
         />
       </CardContent>
     </Card>
   )
-} 
+}
