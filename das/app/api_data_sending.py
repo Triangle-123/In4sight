@@ -18,6 +18,15 @@ METRICS = {
     "freezer": "냉동실",
 }
 
+# 센서별 임계값 설정
+SENSOR_THRESHOLDS = {
+    "temp_internal": {"warning": 8, "critical": 12},  # 온도 상승 임계값
+    "temp_external": {"warning": 35, "critical": 40},  # 외부 온도 임계값
+    "load_percent": {"warning": 75, "critical": 85},  # 부하율 임계값
+    "refrigerant_pressure": {"warning": 0.8, "critical": 0.6},  # 냉매 압력 임계값
+    "fan_rpm": {"warning": 1300, "critical": 1500},  # 팬 RPM 임계값
+    "heater_temp": {"warning": 60, "critical": 70},  # 히터 온도 임계값
+}
 
 UNIT = {
     "fan_rpm": "rpm",
@@ -38,6 +47,33 @@ ICON = {
 }
 
 EVENT_LOCATION = ["fridge", "freezer"]
+
+
+def determine_status(sensor_key, value):
+    """
+    센서 데이터의 상태를 결정하는 함수
+    Returns:
+        int: 0 (정상), 1 (주의), 2 (경고)
+    """
+    threshold = SENSOR_THRESHOLDS.get(sensor_key)
+    if threshold is None:
+        return 0
+
+    warning = threshold["warning"]
+    critical = threshold["critical"]
+
+    if sensor_key == "refrigerant_pressure":
+        if value <= critical:
+            return 2
+        if value <= warning:
+            return 1
+    else:
+        if value >= critical:
+            return 2
+        if value >= warning:
+            return 1
+
+    return 0
 
 
 def api_data_refine(df, anomaly_sensor=None):
@@ -73,8 +109,11 @@ def api_data_refine(df, anomaly_sensor=None):
         if sensor_key == "fan_rpm":
             value = int(value)
 
+        # 상태 결정
+        status = determine_status(sensor_key, value)
+
         # 시계열 데이터 쌓기
-        dataset[field].append({"time": time_str, "value": value})
+        dataset[field].append({"time": time_str, "value": value, "status": status})
         field_unit_map[field] = unit
         field_icon_map[field] = icon
 
