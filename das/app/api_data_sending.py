@@ -51,6 +51,8 @@ def api_data_refine(df, anomaly_sensor=None):
 
     anomaly_sensor = anomaly_sensor or []
 
+    print(anomaly_sensor)
+
     for data in df:
         time_str = data["time"]
         sensor_key = data["sensor"]
