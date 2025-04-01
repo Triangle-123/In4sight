@@ -4,6 +4,8 @@
 
 import logging
 
+from app.util import detect_anomalies_range, make_event_set
+
 # from datetime import timedelta
 
 logging.basicConfig(
@@ -21,10 +23,9 @@ def check_loading_rate_anormality(
     """
     냉장고 적재량 이상치를 판단하는 로직입니다.
     """
-    high_load_indices = df_event[df_event["load_percent"] >= THRESHOLD_LOAD].index
-
-    logging.debug("[적재량 검사] 전체 데이터 수: %d", len(df_event))
-    logging.debug("[적재량 검사] 과다 적재 인덱스 수: %d", len(high_load_indices))
+    high_load_range = detect_anomalies_range(
+        df_event, "load_percent", THRESHOLD_LOAD, -1
+    )
 
     # if len(high_load_indices) == 0:
     #     logging.info("[적재량 정상] 과다 적재 없음.")
@@ -85,7 +86,10 @@ def check_loading_rate_anormality(
 
     #     logging.info("[과다 적재 감지] %s", msg)
 
-    if len(high_load_indices) > 0:
-        anormality_list.append(4)
-        related_sensor.append("적재량")
-        anomaly_sensor.append("load_percent")
+    if high_load_range:
+        eventset = make_event_set(high_load_range, "냉장실 내 적재량이 많았습니다.")
+
+        if eventset:
+            anormality_list.append((4, eventset))
+            related_sensor.append("적재량")
+            anomaly_sensor.append("load")

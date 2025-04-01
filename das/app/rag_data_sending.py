@@ -18,6 +18,17 @@ def check_scenario(anomality_list):
     return scenario_number
 
 
+def insert_event(anomality_number, anomality_list):
+    """
+    이벤트 내용을 응답으로 보내줄 이벤트 리스트에 넣어주는 함수입니다.
+    """
+    for number, eventset in anomality_list:
+        if number == anomality_number:
+            return eventset
+
+    return []
+
+
 ANOMALITY = [
     "컴프레서 압력에 이상치가 감지되었습니다.",
     "과도한 문 개폐 이벤트가 감지되었습니다.",
@@ -74,7 +85,7 @@ ANOMALITY_NUMBER = len(ANOMALITY)
 SYMPTOM_NUMBER = len(EXPECTED_SYMPTOM)
 
 
-def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_summary):
+def broadcast_rag_message(task_id, serial_number, topic, anomality_list):
     """
     eda를 통해 메시지를 rag로 broadcast 해주는 함수입니다.
     """
@@ -83,10 +94,14 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_s
     message["taskId"] = task_id
     message["serialNumber"] = serial_number
     message["product_type"] = "REF"
-    message["event"] = event_summary
 
     symptom_dataset = []
-    anomality_number = check_scenario(anomality_list)
+    anomality_number = 0
+
+    print(anomality_list)
+
+    for number, _ in anomality_list:
+        anomality_number += 1 << number
 
     for scenario_index in range(SYMPTOM_NUMBER):
         symptom_number = 0
@@ -105,12 +120,14 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list, event_s
             "failure": EXPECTED_SYMPTOM[scenario_index],
             "causes": [],
             "related_sensor": [],
+            "event": [],
         }
 
         for index in range(ANOMALITY_NUMBER):
             if symptom_number & (1 << index) != 0:
                 symptom_data["causes"].append(ANOMALITY[index])
                 symptom_data["related_sensor"].append(RELATED_SENSOR[index])
+                symptom_data["event"] += insert_event(index, anomality_list)
 
         symptom_dataset.append(symptom_data)
 

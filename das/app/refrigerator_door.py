@@ -8,7 +8,7 @@ LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
 
 
-def check_door_anormality(df_event, anormality_list, related_sensor):
+def check_door_anormality(df_sensor, df_event, anormality_list, related_sensor):
     """
     냉장실, 냉동실의 도어 센서 이상치를 판단하는 로직입니다.
     """
@@ -27,7 +27,13 @@ def check_door_anormality(df_event, anormality_list, related_sensor):
 
         # 문 열림 횟수 이상
         if open_number >= LIMIT_OPEN_NUMBER:
-            anormality_list.append(1)
+            start_str = df_sensor["_time"].min().strftime("%Y.%m.%d")
+            end_str = df_sensor["_time"].max().strftime("%Y.%m.%d")
+
+            event = [
+                f"{start_str} ~ {end_str} 구간에서 {location_name} 문열림이 {open_number}회 발생하였습니다."
+            ]
+            anormality_list.append((1, event))
             related_sensor.append(f"{location_name} 문")
 
     # 냉장실과 냉동실 각각 검사
