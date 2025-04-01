@@ -111,7 +111,7 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     )
 
     # 도어 센서 이상치 감지
-    check_door_anormality(df_event, anomaly_prompts, related_sensor)
+    check_door_anormality(df_sensor, df_event, anomaly_prompts, related_sensor)
 
     # 적재량 이상치 감지
     check_loading_rate_anormality(
@@ -131,10 +131,11 @@ def get_refrigerator_analyze(task_id, serial_number, startday, endday):
     event_data = event_summary(df_event, df_sensor)
 
     broadcast_sensor_message(
-        task_id, serial_number, "data_sensor", api_data_refine(sensor)
+        task_id,
+        serial_number,
+        "data_sensor",
+        api_data_refine(sensor, list(set(anomaly_sensor))),
     )
     broadcast_event_message(task_id, serial_number, "data_event", event_data)
 
-    broadcast_rag_message(
-        task_id, serial_number, "das_result", anomaly_prompts, event_data
-    )
+    broadcast_rag_message(task_id, serial_number, "das_result", anomaly_prompts)

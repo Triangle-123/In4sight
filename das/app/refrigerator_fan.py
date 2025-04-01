@@ -4,6 +4,8 @@
 
 import logging
 
+from app.util import detect_anomalies_range, make_event_set
+
 # from datetime import timedelta
 
 HIGH_RPM_THRESHOLD = 1400  # RPM 임계값
@@ -28,7 +30,7 @@ def check_fan_rpm_anormality(df_event, anormality_list, related_sensor, anomaly_
     Returns:
         None
     """
-    high_rpm_indices = df_event[df_event["fan_rpm"] >= HIGH_RPM_THRESHOLD].index
+    high_rpm_range = detect_anomalies_range(df_event, "fan_rpm", 1400, -1)
 
     # logging.debug("[팬 RPM 검사] 전체 데이터 수: %d", len(df_event))
     # logging.debug("[팬 RPM 검사] 임계치 이상 데이터 수: %d", len(high_rpm_indices))
@@ -93,7 +95,10 @@ def check_fan_rpm_anormality(df_event, anormality_list, related_sensor, anomaly_
     #             duration.total_seconds() / 60,
     #             MIN_DURATION_MINUTES,
     #        )
-    if len(high_rpm_indices) > 0:
-        anormality_list.append(2)
-        related_sensor.append("냉기토출구_팬RPM")
-        anomaly_sensor.append("fan_rpm")
+    if high_rpm_range:
+        eventset = make_event_set(high_rpm_range, "팬 RPM이 높았습니다.")
+
+        if eventset:
+            anormality_list.append((2, eventset))
+            related_sensor.append("냉기토출구_팬RPM")
+            anomaly_sensor.append("fan_rpm")
