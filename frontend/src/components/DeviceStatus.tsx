@@ -4,14 +4,14 @@ import useStore from '@/store/store'
 import { useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-import { StatusBadge } from './StatusBadge'
+// import { StatusBadge } from './StatusBadge'
 import { DataChart } from './charts/DataChart'
 
 interface Sensor {
   title: string
   icon: string
   unit: string
-  is_abnormal: boolean
+  normal: boolean
   data: Array<{ time: string; value: number }>
 }
 
@@ -27,16 +27,16 @@ const SkeletonCard = () => (
 
 export function DeviceStatus() {
   const sensorData = useStore((state) => state.sensorData)
-  // const setSensorData = useStore((state) => state.setSensorData)
   const selectedAppliance = useStore((state) => state.selectedAppliance)
+  // const setSensorData = useStore((state) => state.setSensorData)
+
+  // setSensorData(sensorDataPlaceholder)
 
   useEffect(() => {
     if (sensorData) {
       console.log('sensorData', sensorData)
     }
   }, [sensorData])
-
-  // setSensorData(sensorDataPlaceholder)
 
   // TODO: store 사용하여 sensorData 받아오기, props 삭제하기 (isLoading 삭제)
   if (!sensorData) {
@@ -64,7 +64,7 @@ export function DeviceStatus() {
               icon="Thermometer"
               data={[]}
               type="line"
-              isAbnormal={false}
+              isNormal={false}
               valueFormatter={() => ''}
               isLoading={true}
             />
@@ -110,7 +110,7 @@ export function DeviceStatus() {
               ))}
       </div> */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         {sensorData.sensorData.map((sensor: Sensor) => (
           <DataChart
             key={uuidv4()}
@@ -118,7 +118,7 @@ export function DeviceStatus() {
             icon={sensor.icon}
             data={sensor.data}
             type="line"
-            isAbnormal={sensor.is_abnormal}
+            isNormal={sensor.normal}
             valueFormatter={(value) => `${value}${sensor.unit}`}
           />
         ))}

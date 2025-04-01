@@ -210,12 +210,12 @@ export const customerRequestPlaceholder = {
 export const sensorDataPlaceholder = {
   taskId: 'test',
   serialNumber: 'REF_TEST_IncreaseRefrigeratorTemp_001',
-  sensor_data: [
+  sensorData: [
     {
       title: '냉동실 내부 온도 변화',
       icon: 'ThermometerSnowflake',
       unit: '℃',
-      is_abnormal: false,
+      normal: false,
       data: [
         { time: '2024-03-01T00:00:00Z', value: -21.94224658 },
         { time: '2024-03-01T00:15:00Z', value: -20.74213312 },
@@ -319,7 +319,7 @@ export const sensorDataPlaceholder = {
       title: '냉장실 내부 온도 변화',
       icon: 'ThermometerSnowflake',
       unit: '℃',
-      is_abnormal: false,
+      normal: false,
       data: [
         { time: '2024-03-01T00:00:00Z', value: 3.04 },
         { time: '2024-03-01T00:15:00Z', value: 3.09 },
@@ -423,7 +423,7 @@ export const sensorDataPlaceholder = {
       title: '외부 온도 변화',
       icon: 'ThermometerSun',
       unit: '℃',
-      is_abnormal: false,
+      normal: false,
       data: [
         { time: '2024-03-01T00:00:47Z', value: 19.3 },
         { time: '2024-03-01T00:17:29Z', value: 19.4 },
@@ -518,7 +518,7 @@ export const sensorDataPlaceholder = {
       title: '냉장실 적재량 변화',
       icon: 'Refrigerator',
       unit: '%',
-      is_abnormal: false,
+      normal: false,
       data: [
         { time: '2024-03-01T00:00:00Z', value: 29.90106573 },
         { time: '2024-03-01T00:15:00Z', value: 30.38084658 },
@@ -622,7 +622,7 @@ export const sensorDataPlaceholder = {
       title: '압력 센서 변화',
       icon: 'CircleGauge',
       unit: 'kPa',
-      is_abnormal: false,
+      normal: false,
       data: [
         { time: '2024-03-01T00:00:00Z', value: 0.92 },
         { time: '2024-03-01T00:15:00Z', value: 0.95 },
@@ -726,7 +726,7 @@ export const sensorDataPlaceholder = {
       title: '팬 속도 변화',
       icon: 'Fan',
       unit: 'rpm',
-      is_abnormal: false,
+      normal: false,
       data: [
         { time: '2024-03-01T00:00:00Z', value: 1193.3 },
         { time: '2024-03-01T00:15:00Z', value: 1209.4 },
@@ -830,7 +830,7 @@ export const sensorDataPlaceholder = {
       title: '히터 온도 변화',
       icon: 'Heater',
       unit: '℃',
-      is_abnormal: false,
+      normal: false,
       data: [
         { time: '2024-03-01T00:00:00Z', value: 6.23 },
         { time: '2024-03-01T00:15:00Z', value: 13.71 },
@@ -931,4 +931,86 @@ export const sensorDataPlaceholder = {
       ],
     },
   ],
+}
+
+export const solutionPlaceholder = {
+  result: {
+    data: {
+      cause: [
+        '냉기 토출구 팬 rpm이 높은 구간이 감지되었습니다.',
+        '과도하게 냉장고에 적재한 구간이 감지되었습니다.',
+      ],
+      failure: '냉장실 내부 온도가 높습니다.(냉장실 공간 부족/토출구 막힘)',
+      sensor: ['냉기토출구 팬RPM', '적재량'],
+      solutions: {
+        historical_context: {
+          previous_issues: [
+            {
+              cause: '냉기 토출구가 막힘(냉장고 내 물품 과적재)',
+              date: '2025/02/03',
+              issue: '냉장실, 냉동실 온도가 자꾸 올라갑니다.',
+              resolved: true,
+            },
+          ],
+        },
+        personalized_solution: [
+          {
+            personalized_context:
+              '이전에 냉장실과 냉동실의 온도가 올라간 문제를 해결하기 위해 물건을 줄이는 방법을 사용하셨습니다. 현재도 냉장실 내부 온도가 높아지고 있으니, 같은 조치를 취해보시는 것이 좋습니다.',
+            recommended_solution:
+              '냉장실의 물건을 줄여서 냉기 토출구가 막히지 않도록 해주세요.',
+            status: '주의',
+          },
+        ],
+        preventative_advice: [
+          '냉장고의 물품을 적절히 배치하여 냉기 토출구를 막지 않도록 하세요.',
+          '정기적으로 냉장고 내부를 정리하여 과적재를 방지하세요.',
+        ],
+      },
+    },
+    serial_number: 'l43rnfdskajnksa124hjfkds',
+  },
+  taskId: '010-4530-9648',
+}
+
+export const solutionPlaceholderModified = {
+  result: [
+    {
+      data: {
+        symptom: '냉장실 내부 온도가 높습니다.(냉장실 공간 부족/토출구 막힘)',
+        causes: [
+          '냉기 토출구 팬 rpm이 높은 구간이 감지되었습니다.',
+          '과도하게 냉장고에 적재한 구간이 감지되었습니다.',
+        ],
+        sensors: ['냉기토출구 팬RPM', '적재량'],
+        solutions: {
+          historical_context: {
+            previous_issues: [
+              {
+                cause: '냉기 토출구가 막힘(냉장고 내 물품 과적재)',
+                date: '2025/02/03',
+                issue: '냉장실, 냉동실 온도가 자꾸 올라갑니다.',
+                resolved: true,
+              },
+            ],
+          },
+          personalized_solution: [
+            {
+              personalized_context:
+                '이전에 냉장실과 냉동실의 온도가 올라간 문제를 해결하기 위해 물건을 줄이는 방법을 사용하셨습니다. 현재도 냉장실 내부 온도가 높아지고 있으니, 같은 조치를 취해보시는 것이 좋습니다.',
+              recommended_solution:
+                '냉장실의 물건을 줄여서 냉기 토출구가 막히지 않도록 해주세요.',
+              status: '주의',
+            },
+          ],
+          preventative_advice: [
+            '냉장고의 물품을 적절히 배치하여 냉기 토출구를 막지 않도록 하세요.',
+            '정기적으로 냉장고 내부를 정리하여 과적재를 방지하세요.',
+          ],
+        },
+      },
+      serial_number: 'l43rnfdskajnksa124hjfkds',
+    },
+  ],
+  taskId: '010-4530-9648',
 }
