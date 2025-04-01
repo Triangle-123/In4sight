@@ -107,7 +107,6 @@ def process_symptom_with_rag(
     product_type: str,
     client: GPTClient,
     task_id: str,
-    event: list[str],
 ) -> Dict[str, Any]:
     """
     각 증상에 대해 RAG를 수행합니다.
@@ -126,6 +125,7 @@ def process_symptom_with_rag(
         failure = failure_item.get("failure", "")
         causes = failure_item.get("causes", [])
         related_sensors = failure_item.get("related_sensor", [])
+        event = failure_item.get("event", [])
         logger.info("고장 증상 '%s'에 대한 RAG 처리 시작", failure)
 
         handler = GPTHandler(client=client)
@@ -219,7 +219,6 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
         serial_number = message.get("serialNumber")
         task_id = message.get("taskId")
         product_type = message.get("product_type")
-        event = message.get("event")
 
         if not task_id:
             logger.error("유효하지 않은 메시지 형식: task_id가 없습니다")
@@ -238,7 +237,6 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
                     product_type,
                     client,
                     task_id,
-                    event,
                 ): symptom_item.get("failure", f"Item-{i}")
                 for i, symptom_item in enumerate(data)
             }
