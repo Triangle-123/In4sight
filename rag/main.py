@@ -58,12 +58,18 @@ async def lifespan(app_instance: FastAPI):  # pylint: disable=unused-argument
     # Kafka 컨슈머 초기화 및 이벤트 구독 설정
     try:
         bootstrap_servers = os.environ["KAFKA_BOOTSTRAP_SERVER"]
-        group_id = "rag-server-group"
-
+        group_id_1 = "rag-server-group-1"
+        group_id_2 = "rag-server-group-2"
         # Kafka 컨슈머 생성
         eda.create_consumer(
             bootstrap_servers=bootstrap_servers,
-            group_id=group_id,
+            group_id=group_id_1,
+            enable_auto_commit=True,
+        )
+
+        eda.create_consumer(
+            bootstrap_servers=bootstrap_servers,
+            group_id=group_id_2,
             enable_auto_commit=True,
         )
 
@@ -71,12 +77,14 @@ async def lifespan(app_instance: FastAPI):  # pylint: disable=unused-argument
 
         # DAS 이벤트 구독
         eda.event_subscribe(
-            group_id=group_id, topic="das_result", callback=process_data_analysis_event
+            group_id=group_id_1,
+            topic="das_result",
+            callback=process_data_analysis_event,
         )
 
         # API 고객 상담 이력 이벤트 구독
         eda.event_subscribe(
-            group_id=group_id,
+            group_id=group_id_2,
             topic="counseling_history",
             callback=process_counseling_history_event,
         )

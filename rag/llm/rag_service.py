@@ -89,8 +89,9 @@ def process_counseling_history_event(message: list[str, Any]) -> None:
             },
         }
     ]
-
-    print(message2)
+    logger.info("고객 상담 이력 이벤트 수신")
+    message2 += "1"
+    print(message)
     # 첫 번째 키를 가져옵니다
     phone_number = message[0].get("task_id")
 

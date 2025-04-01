@@ -78,6 +78,7 @@ class BasePrompts:
     ✅ "personalized_context" 필드는 고객의 과거 상담 이력을 기반으로 맞춤형 설명 제공. 과거 상담 이력이 현재와 연관이 없다면 비워도 됨.
     ✅ "preventative_advice" 필드는 유사 문제가 반복되지 않도록 예방 조언 제공
     ✅ 고객의 상담 이력을 적극 활용하여 맞춤형 솔루션 제공
+
     """
 
     @staticmethod
