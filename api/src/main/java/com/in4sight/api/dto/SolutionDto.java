@@ -34,7 +34,7 @@ public class SolutionDto {
 		private String failure;
 		private List<String> cause;
 		private List<String> sensor;
-		private List<Solution> solutions;
+		private Solution solutions;
 	}
 
 	@lombok.Data
@@ -42,7 +42,26 @@ public class SolutionDto {
 	@AllArgsConstructor
 	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	private static class Solution {
-		private String status;
-		private String recommendedSolution;
+		private HistoricalContext historicalContext;
+		private List<PersonalizedSolution> personalizedSolution;
+		private List<String> preventativeAdvice;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+	private static class HistoricalContext {
+		private List<PreviousIssue> previousIssues;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class PreviousIssue {
+		private String cause;
+		private String date;
+		private String issue;
+		private boolean resolved;
 	}
 }
