@@ -37,6 +37,8 @@ ICON = {
     "temp_internal": "ThermometerSnowflake",
 }
 
+EVENT_LOCATION = ["fridge", "freezer"]
+
 
 def api_data_refine(df, anomaly_sensor=None):
     """
@@ -114,6 +116,13 @@ def event_summary(df_event, df_sensor):
 
     # event_type이 'door_open'인 것만 필터링
     door_open_df = df_event[df_event["event_type"] == "door_open"]
-    door_open_count = len(door_open_df)
 
-    return [f"{start_date} ~ {end_date} 문열림 감지 이벤트 {door_open_count}회 발생"]
+    event_dataset = []
+
+    for location in EVENT_LOCATION:
+        door_open_count = len(door_open_df[door_open_df["location"] == location])
+        event_dataset.append(
+            f"{start_date} ~ {end_date} {METRICS[location]} 문열림 감지 이벤트 {door_open_count}회 발생"
+        )
+
+    return event_dataset
