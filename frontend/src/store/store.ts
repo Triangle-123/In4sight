@@ -33,6 +33,7 @@ interface State {
   sensorData: any | null // 실제 센서 데이터 타입으로 교체 필요
   eventData: any | null // 실제 이벤트 데이터 타입으로 교체 필요
   selectedAppliance: ApplianceType | null
+  solutionData: any | null // 실제 솔루션 데이터 타입으로 교체 필요
 }
 
 // 액션 타입 정의
@@ -174,6 +175,17 @@ const useStore = create<Store>((set, get) => {
       }
     })
 
+    // TODO: 이벤트 이름 수정(solution -> solution-data)
+    eventSource.addEventListener('solution', (event) => {
+      try {
+        console.log('솔루션 정보 수신:', event.data)
+        const solutionData = JSON.parse(event.data)
+        set({ solutionData })
+      } catch (err) {
+        console.error('솔루션 정보 파싱 에러:', event.data, err)
+      }
+    })
+
     eventSource.addEventListener('customer_disconnect', (event) => {
       try {
         console.log('고객 연결 끊김:', event.data)
@@ -183,6 +195,7 @@ const useStore = create<Store>((set, get) => {
         console.error('고객 연결 끊김 파싱 에러:', event.data, err)
       }
     })
+
 
     return eventSource
   }
@@ -210,7 +223,7 @@ const useStore = create<Store>((set, get) => {
       sensor_data: [],
     },
     eventData: null,
-    solutions: [],
+    solutionData: null,
     selectedAppliance: null,
 
     // 액션
@@ -221,6 +234,7 @@ const useStore = create<Store>((set, get) => {
     setAppliances: (data) => set({ appliances: data }),
     setSensorData: (data) => set({ sensorData: data }),
     setEventData: (data) => set({ eventData: data }),
+    setSolutionData: (data) => set({ solutionData: data }),
     setSelectedAppliance: (appliance) => {
       set({ selectedAppliance: appliance })
       console.log('선택된 기기:', appliance)
