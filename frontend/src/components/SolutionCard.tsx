@@ -12,21 +12,28 @@ const getStatusColor = (status: string) => {
   switch (status) {
     case "정상":
       return {
-        accent: "border-l-green-500",
+        accent: "!border-l-green-500",
         icon: "text-green-500",
         badge: "bg-green-50 text-green-700 border-green-100",
         dot: "bg-green-500",
       }
     case "주의":
       return {
-        accent: "border-l-yellow-500",
+        accent: "!border-l-yellow-500",
         icon: "text-yellow-500",
         badge: "bg-yellow-50 text-yellow-700 border-yellow-100",
         dot: "bg-yellow-500",
       }
     case "위험":
       return {
-        accent: "border-l-red-500",
+        accent: "!border-l-red-500",
+        icon: "text-red-500",
+        badge: "bg-red-50 text-red-700 border-red-100",
+        dot: "bg-red-500",
+      }
+    case "고장":
+      return {
+        accent: "!border-l-red-500",
         icon: "text-red-500",
         badge: "bg-red-50 text-red-700 border-red-100",
         dot: "bg-red-500",
@@ -41,7 +48,7 @@ const getStatusColor = (status: string) => {
   }
 }
 
-export default function SolutionCard({ data = solutionPlaceholder }: { data?: ApplianceFailureData }) {
+export default function SolutionCard({ data }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const { failure, cause, solutions } = data.result.data

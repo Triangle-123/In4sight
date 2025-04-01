@@ -4,6 +4,7 @@ import { solutionPlaceholder } from '@/lib/placeholder-data'
 import { ApplianceFailureData } from '@/lib/types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import useStore from '@/store/store'
 
 import SolutionCard from './SolutionCard'
 
@@ -11,8 +12,10 @@ export function Recommendations() {
   const [showInput, setShowInput] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [userQuestions, setUserQuestions] = useState<ApplianceFailureData[]>([])
+  const [useDummyData, setUseDummyData] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastCardRef = useRef<HTMLDivElement>(null)
+  const solutionData = useStore((state) => state.solutionData)
 
   useEffect(() => {
     if (showInput && inputRef.current) {
@@ -98,11 +101,19 @@ export function Recommendations() {
   //   )
   // }, 5000)
 
-  const allItems = [solutionPlaceholder, ...userQuestions]
+  const allItems = useDummyData ? [solutionPlaceholder, ...userQuestions] : solutionData ? [solutionData] : []
 
   return (
     <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-10rem)]">
-      <h2 className="text-xl font-semibold">권장 해결책</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">권장 해결책</h2>
+        <button
+          onClick={() => setUseDummyData(!useDummyData)}
+          className="text-sm px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
+        >
+          {useDummyData ? '실제 데이터 보기' : '더미 데이터 보기'}
+        </button>
+      </div>
 
       <div className="space-y-3">
         <AnimatePresence>
