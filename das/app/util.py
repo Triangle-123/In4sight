@@ -3,7 +3,7 @@
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import eda
 
@@ -75,3 +75,54 @@ def broadcast_event_message(task_id, serial_number, topic, data):
     message["event_data"] = data
 
     eda.event_broadcast(topic, message)
+
+
+def detect_anomalies_range(df_sensor, field, max_threshold, min_threshold):
+    """
+    이상치를 가지는 범위를 판단하는 함수입니다.
+    """
+
+    result = []
+
+    if df_sensor[field].max() > max_threshold or df_sensor[field].min() < min_threshold:
+        result = []
+        countinues = False
+        error_duration = {"start": None, "end": None}
+
+        for i in range(len(df_sensor)):
+            if (
+                df_sensor[field].iloc[i] > max_threshold
+                or df_sensor[field].iloc[i] < min_threshold
+            ):
+                if countinues:
+                    error_duration["end"] = df_sensor["_time"].iloc[i]
+                else:
+                    error_duration["start"] = df_sensor["_time"].iloc[i]
+                    error_duration["end"] = df_sensor["_time"].iloc[i]
+                    countinues = True
+            else:
+                if countinues:
+                    result.append([error_duration["start"], error_duration["end"]])
+                countinues = False
+
+        if countinues:
+            result.append([error_duration["start"], df_sensor["_time"].iloc[-1]])
+
+    return result
+
+
+def make_event_set(anomality_period, suffix_string):
+    """
+    유효한 이상치 구간을 이벤트 문자열로 변환하는 함수입니다.
+    """
+    event = []
+
+    for start, end in anomality_period:
+        if end - start <= timedelta(minutes=15):
+            continue
+
+        start_str = start.strftime("%Y-%m-%d %H:%M:%S")
+        end_str = end.strftime("%Y-%m-%d %H:%M:%S")
+        event.append(f"{start_str} ~ {end_str} 구간에서 {suffix_string}")
+
+    return event

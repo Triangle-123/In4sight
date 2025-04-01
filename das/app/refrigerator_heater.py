@@ -6,6 +6,8 @@ import logging
 
 import pandas as pd
 
+from app.util import make_event_set
+
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(message)s",
     datefmt="%Y/%m/%d %I:%M:%S%p",
@@ -14,6 +16,9 @@ logging.basicConfig(
 
 THRESHOLD_HEATHER = 50  # 이상 판단 기준 온도
 MIN_DURATION = 3  # 15분 간격 x 3 = 45분
+
+DEFROST_START_TIME = 6
+DEFROST_END_TIME = 7
 
 
 def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_sensor):
@@ -58,7 +63,7 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
         hours = [ts.hour for ts in timestamps_kst]
 
         # 제상 시간(6시~7시)에만 해당하면 정상
-        if not all(6 <= hour <= 7 for hour in hours):
+        if not all(DEFROST_START_TIME <= hour <= DEFROST_END_TIME for hour in hours):
             start_time = min(timestamps_kst)
             end_time = max(timestamps_kst)
 
@@ -82,21 +87,29 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
     is_abnormal = num_high_streaks >= 3 or high_temp_outside_defrost >= 1
 
     if is_abnormal:
-        result_msg = (
-            f"[히터 센서 이상] 고온 지속 구간: {num_high_streaks}회, "
-            f"제상 시간 외 고온: {high_temp_outside_defrost}회"
+
+        anomaly_prompts.append(
+            (
+                3,
+                make_event_set(
+                    outside_defrost_ranges, "예정되지 않은 제상 작업이 수행되었습니다."
+                ),
+            )
         )
-
-        logging.info(result_msg)
-
-        anomaly_prompts.append(3)
         related_sensor.append("히터")
         anomaly_sensor.append("heater_temp")
 
         logging.debug("관련 센서 추가됨: %s", related_sensor)
 
     elif num_high_streaks == 0:
-        anomaly_prompts.append(10)
+        anomaly_prompts.append(
+            (
+                10,
+                [
+                    f"{DEFROST_START_TIME} ~ {DEFROST_END_TIME}시에 예정되었던 제상 작업이 실행되지 않았습니다."
+                ],
+            )
+        )
         related_sensor.append("히터")
         anomaly_sensor.append("heater_temp")
 

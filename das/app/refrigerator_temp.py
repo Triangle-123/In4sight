@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import pandas as pd
 
-from app.util import get_door_times
+from app.util import get_door_times, detect_anomalies_range, make_event_set
 
 
 def is_door_open(time, open_times, close_times):
@@ -65,16 +65,41 @@ def process_fridge_temperature(
     fridge_data = df_sensor[df_sensor["location"] == "fridge"]
     valid_fridge_df = filter_valid_temperature_data(fridge_data, is_door_open_fridge)
 
-    if not valid_fridge_df.empty:
-        if not valid_fridge_df[valid_fridge_df["temp_internal"] >= 10].empty:
+    high_temp_fridge_df = detect_anomalies_range(
+        valid_fridge_df, "temp_internal", 10, -20
+    )
+    hot_temp_fridge_df = detect_anomalies_range(fridge_data, "temp_internal", 20, -20)
+
+    if high_temp_fridge_df:
+        eventset = make_event_set(high_temp_fridge_df, "냉장실 고내 온도가 높았습니다.")
+
+        if eventset:
             record_anomaly(
-                5, anomaly_prompts, related_sensor, anomaly_sensor, "temp_internal"
+                (5, eventset),
+                anomaly_prompts,
+                related_sensor,
+                anomaly_sensor,
+                "temp_internal",
             )
 
-        if not fridge_data[fridge_data["temp_internal"] >= 20].empty:
-            record_anomaly(
-                6, anomaly_prompts, related_sensor, anomaly_sensor, "temp_internal"
+    if hot_temp_fridge_df:
+        eventset = []
+
+        for start, end in hot_temp_fridge_df:
+
+            start_str = start.strftime("%Y-%m-%d %H:%M:%S")
+            end_str = end.strftime("%Y-%m-%d %H:%M:%S")
+            eventset.append(
+                f"{start_str} ~ {end_str} 구간에서 뜨거운 음식을 넣었을 가능성이 있습니다."
             )
+
+        record_anomaly(
+            (6, eventset),
+            anomaly_prompts,
+            related_sensor,
+            anomaly_sensor,
+            "temp_internal",
+        )
 
 
 def process_freezer_temperature(
@@ -86,10 +111,21 @@ def process_freezer_temperature(
     freezer_data = df_sensor[df_sensor["location"] == "freezer"]
     valid_freezer_df = filter_valid_temperature_data(freezer_data, is_door_open_freezer)
 
-    if not valid_freezer_df.empty:
-        if not valid_freezer_df[valid_freezer_df["temp_internal"] >= -17].empty:
+    high_temp_freezer_df = detect_anomalies_range(
+        valid_freezer_df, "temp_internal", -17, -100
+    )
+    if high_temp_freezer_df:
+        eventset = make_event_set(
+            high_temp_freezer_df, "냉동실 고내 온도가 높았습니다."
+        )
+
+        if eventset:
             record_anomaly(
-                7, anomaly_prompts, related_sensor, anomaly_sensor, "temp_internal"
+                (7, eventset),
+                anomaly_prompts,
+                related_sensor,
+                anomaly_sensor,
+                "temp_internal",
             )
 
 
