@@ -30,10 +30,7 @@ public class TimeSeriesDataDto {
 		private String title;
 		private String icon;
 		private String unit;
-
-		@JsonProperty("is_abnormal")
-		private boolean abnormal;
-
+		private boolean normal;
 		private List<FieldData> data;
 	}
 
