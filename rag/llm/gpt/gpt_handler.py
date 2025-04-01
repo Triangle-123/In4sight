@@ -4,8 +4,12 @@ GPT 요청 및 응답 처리 모듈
 
 import logging
 
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 from rag.database.chroma_operation import ChromaDBOperations
 from rag.database.embedding_loader import embedding_loader
+from rag.llm.gpt.util.similarity_utils import hybrid_similarity
 
 from ..rag_response import DiagnosticResult
 from .gpt_client import GPTClient
@@ -52,6 +56,7 @@ class GPTHandler:
         except (KeyError, IndexError) as e:
             return {"success": False, "error": f"응답 파싱 오류: {str(e)}"}
 
+    # pylint: disable=too-many-statements
     def rag_completion(
         self, query_data, causes, related_sensors, customer_history, event
     ):
@@ -128,8 +133,85 @@ class GPTHandler:
                 "distances": [[]],
             }
 
+        # 필터링을 위한 빈 리스트 생성
+        filtered_results = []
+        filtered_metadatas = []
+        filtered_distances = []
+        filtered_ids = []
+        similarity_scores = []
+
+        # TF-IDF 벡터라이저 초기화 (전체 문서에 맞게 학습)
+        all_texts = [query_text] + [
+            metadata["title"] for metadata in results["metadatas"][0]
+        ]
+        vectorizer = TfidfVectorizer(min_df=1)
+        vectorizer.fit(all_texts)
+
+        # 결과에서 각 문서의 인덱스를 가져오기
+        for i, (doc, metadata, distance, doc_id) in enumerate(
+            zip(
+                results["documents"][0],
+                results["metadatas"][0],
+                results["distances"][0],
+                results["ids"][0],
+            )
+        ):
+            # 타이틀 임베딩 생성
+            title_embedding = embedding_loader.encode([metadata["title"]])[0]
+            print(metadata)
+            # 하이브리드 유사도 계산
+            similarity = hybrid_similarity(
+                query_text,
+                metadata["title"],
+                query_embedding,
+                title_embedding,
+                embedding_weight=0.5,  # 임베딩 유사도 가중치
+                keyword_weight=0.3,  # 키워드 매칭 가중치
+                tfidf_weight=0.2,  # TF-IDF 유사도 가중치
+                vectorizer=vectorizer,
+            )
+
+            print(
+                f"쿼리: {query_text}, 제목: {metadata['title']}, 하이브리드 유사도: {similarity}"
+            )
+
+            # 임계값 이상인 항목만 포함 (임계값 조정 가능)
+            if similarity >= 0.4:  # 임계값을 0.75에서 0.6으로 낮춤 (필요에 따라 조정)
+                filtered_results.append(doc)
+                filtered_metadatas.append(metadata)
+                filtered_distances.append(distance)
+                filtered_ids.append(doc_id)
+                similarity_scores.append(similarity)
+
+        # 유사도 점수에 따라 결과 재정렬
+        if similarity_scores:
+            # 내림차순으로 정렬하기 위한 인덱스 배열 생성
+            sorted_indices = np.argsort(similarity_scores)[::-1]
+
+            # 정렬된 결과 생성
+            filtered_results = [filtered_results[i] for i in sorted_indices]
+            filtered_metadatas = [filtered_metadatas[i] for i in sorted_indices]
+            filtered_distances = [filtered_distances[i] for i in sorted_indices]
+            filtered_ids = [filtered_ids[i] for i in sorted_indices]
+
+        # 새로운 결과 객체 생성
+        filtered_output = {
+            "documents": [filtered_results[:n_results]],  # 원하는 결과 수만큼만 반환
+            "metadatas": [filtered_metadatas[:n_results]],
+            "distances": [filtered_distances[:n_results]],
+            "ids": [filtered_ids[:n_results]],
+            "included": results["included"],
+            "data": None,
+            "embeddings": None,
+            "uris": None,
+        }
+
+        # 만약 필터링된 결과가 없다면 메시지 출력
+        if not filtered_results:
+            print("임계값을 넘는 결과가 없습니다.")
+
         # 검색 결과 처리 및 포맷팅
-        context_str = self._format_search_results(results)
+        context_str = self._format_search_results(filtered_output)
 
         # 프롬프트 구성
         user_message = BasePrompts.format_rag_prompt(
@@ -140,6 +222,8 @@ class GPTHandler:
             customer_history=customer_history,
             event=event,
         )
+        print("=========프롬프트!=========")
+        print(user_message)
         system_message = BasePrompts.DIAGNOSTIC_SYSTEM
 
         # LLM에 완성 요청
