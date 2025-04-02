@@ -25,12 +25,11 @@ import jdk.jfr.Description;
 
 import com.in4sight.api.controller.TriggerController;
 import com.in4sight.api.domain.Customer;
-import com.in4sight.api.dto.CustomerRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.repository.CustomerRepository;
 import com.in4sight.api.service.CustomerService;
 import com.in4sight.api.service.EmitterService;
-import com.in4sight.api.uttil.CustomerCounselorMap;
+import com.in4sight.api.util.CustomerCounselorMap;
 
 
 @DisplayName("사용자 연결 종료 테스트")
@@ -52,7 +51,7 @@ public class DisconnectCustomerTest {
 	@MockitoSpyBean
 	private CustomerService customerService;
 
-	private static CustomerRequestDto customerRequestDto;
+	private static String customerPhoneNumber;
 	private static CustomerResponseDto customerResponseDto;
 	private static SseEmitter emitter;
 	private static final String TASK_ID = "test";
@@ -68,10 +67,7 @@ public class DisconnectCustomerTest {
 
 	@BeforeAll
 	static void setUp() {
-		customerRequestDto = new CustomerRequestDto(
-			"최싸피",
-			"010-1234-5678"
-		);
+		customerPhoneNumber = "010-1234-5678";
 
 		customerResponseDto = new CustomerResponseDto(
 			1,
@@ -87,21 +83,18 @@ public class DisconnectCustomerTest {
 	@Test
 	public void testSendEvent() throws Exception {
 		Mockito.when(
-			customerRepository.findByCustomerNameAndPhoneNumber(
-				customerRequestDto.getCustomerName(),
-				customerRequestDto.getPhoneNumber()
-			)
+			customerRepository.findByPhoneNumber(customerPhoneNumber)
 		).thenReturn(new Customer());
-		Mockito.when(customerService.findCustomer(customerRequestDto)).thenReturn(customerResponseDto);
+		Mockito.when(customerService.findCustomer(customerPhoneNumber)).thenReturn(customerResponseDto);
 		Mockito.when(emitterService.getEmitter(TASK_ID)).thenReturn(emitter);
 
-		customerCounselorMap.mappingCustomerAndCounselor(customerRequestDto.getPhoneNumber(), TASK_ID);
+		customerCounselorMap.mappingCustomerAndCounselor(customerPhoneNumber, TASK_ID);
 
-		HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + port + "/api/v1/counseling?task_id=" + TASK_ID).openConnection();
+		HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + port + "/api/v1/test/counseling?task_id=" + TASK_ID).openConnection();
 		connection.setRequestMethod("GET");
 		connection.setRequestProperty("Accept", MediaType.TEXT_EVENT_STREAM_VALUE);
 
-		triggerController.endPhoneCall(customerRequestDto);
+		triggerController.endPhoneCall(customerPhoneNumber);
 
 		Assertions.assertEquals(200, connection.getResponseCode());
 		Assertions.assertEquals(MediaType.TEXT_EVENT_STREAM_VALUE, connection.getContentType());

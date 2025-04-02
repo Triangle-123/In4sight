@@ -5,11 +5,13 @@ import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
 @Getter
 @AllArgsConstructor
+@Builder(toBuilder = true)
 @ToString
 public class CustomerDevice {
 
@@ -22,5 +24,16 @@ public class CustomerDevice {
 	@Field("serial_number")
 	private String serialNumber;
 
-	private List<Issue> issues;
+	@Field
+	private List<String> cause;
+
+	@Field
+	private String failure;
+
+	@Field
+	private List<String> sensor;
+
+	@Field
+	private Solution solutions;
+
 }

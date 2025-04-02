@@ -27,7 +27,10 @@ public class TimeSeriesDataDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class SensorData {
-		private String field;
+		private String title;
+		private String icon;
+		private String unit;
+		private boolean normal;
 		private List<FieldData> data;
 	}
 
