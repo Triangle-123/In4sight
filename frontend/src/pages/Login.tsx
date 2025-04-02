@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import useStore from '@/store/store'
 import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
+  const createSseConnection = useStore((state) => state.createSseConnection)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -9,7 +11,8 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Add authentication logic here
+    // SSE 연결 후 큐 페이지로 이동
+    createSseConnection()
     navigate('/call-queue')
   }
 
