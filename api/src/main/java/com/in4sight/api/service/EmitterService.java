@@ -1,5 +1,7 @@
 package com.in4sight.api.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.in4sight.api.domain.CustomerDevice;
 import com.in4sight.api.dto.CounselingRequestDto;
 import com.in4sight.api.dto.CounselorEmitterDto;
+import com.in4sight.api.dto.CurrentCounselingRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.EventDataDto;
@@ -130,11 +133,16 @@ public class EmitterService {
 				serialNumbers.add(device.getSerialNumber());
 			}
 			log.info("counseling request: {}", serialNumbers);
+			String counselingDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm"));
 			kafkaProducer.broadcastEvent("counseling_request",
 				new CounselingRequestDto(taskId, serialNumbers));
 			kafkaProducer.broadcastEvent("counseling_history",
 				counselingService.findLog(customerResponseDto.getCustomerId()));
-			counselingService.addLog(customerResponseDto.getCustomerId(), devices);
+			kafkaProducer.broadcastEvent("current_counseling",
+				new CurrentCounselingRequestDto(customerResponseDto.getCustomerId(), counselingDate));
+			counselingService.addLog(customerResponseDto.getCustomerId(),
+				counselingDate,
+				devices);
 		});
 
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();

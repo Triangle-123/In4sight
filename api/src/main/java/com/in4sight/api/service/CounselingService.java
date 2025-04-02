@@ -1,7 +1,5 @@
 package com.in4sight.api.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -28,13 +26,12 @@ public class CounselingService {
 	private final CounselingRepository counselingRepository;
 	private final MongoTemplate mongoTemplate;
 
-	public void addLog(int customerId, List<CustomerDevice> devices) {
+	public void addLog(int customerId, String counselingDate, List<CustomerDevice> devices) {
 		Query query = new Query(
 			Criteria.where("customer_id").is(customerId)
 		);
 
-		Update update = new Update().push("counseling_history", new CounselingHistory(
-			LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm")), devices));
+		Update update = new Update().push("counseling_history", new CounselingHistory(counselingDate, devices));
 		mongoTemplate.upsert(query, update, LogByCustomer.class);
 	}
 
