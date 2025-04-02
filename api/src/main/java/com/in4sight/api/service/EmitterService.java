@@ -1,6 +1,6 @@
 package com.in4sight.api.service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -24,9 +24,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.in4sight.api.domain.CustomerDevice;
-import com.in4sight.api.domain.LogByCustomer;
 import com.in4sight.api.dto.CounselingRequestDto;
 import com.in4sight.api.dto.CounselorEmitterDto;
+import com.in4sight.api.dto.CurrentCounselingRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.EventDataDto;
@@ -35,7 +35,6 @@ import com.in4sight.api.dto.SolutionDto;
 import com.in4sight.api.dto.SolutionResponseDto;
 import com.in4sight.api.dto.TimeSeriesDataDto;
 import com.in4sight.api.dto.TimeSeriesDataResponseDto;
-import com.in4sight.api.repository.CounselingRepository;
 import com.in4sight.api.repository.CustomerEventCacheRepository;
 import com.in4sight.api.util.CustomerCounselorMap;
 import com.in4sight.eda.producer.KafkaProducer;
@@ -47,7 +46,7 @@ public class EmitterService {
 
 	private final ConcurrentHashMap<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 	private final DeviceService deviceService;
-	private final CounselingRepository counselingRepository;
+	private final CounselingService counselingService;
 	private final KafkaProducer kafkaProducer;
 	private final CustomerCounselorMap customerCounselorMap;
 	private final CustomerEventCacheRepository eventCacheRepository;
@@ -128,26 +127,27 @@ public class EmitterService {
 			)
 		);
 		CompletableFuture<Void> sendCounsellingRequest = CompletableFuture.runAsync(() -> {
-			counselingRepository.deleteAll();
+
 			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
 			List<CustomerDevice> devices = new ArrayList<>();
 			List<String> serialNumbers = new ArrayList<>();
 			for (DeviceResponseDto device : deviceResponse) {
 				devices.add(CustomerDevice.builder()
-					.productType(device.getProductType())
-					.modelSuffix(device.getModelSuffix())
 					.serialNumber(device.getSerialNumber())
 					.build());
 				serialNumbers.add(device.getSerialNumber());
 			}
-			counselingRepository.save(
-				new LogByCustomer(
-					customerResponseDto.getCustomerId(),
-					LocalDate.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd")),
-					devices));
-
 			log.info("counseling request: {}", serialNumbers);
-			kafkaProducer.broadcastEvent("counseling_request", new CounselingRequestDto(taskId, serialNumbers));
+			String counselingDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm"));
+			kafkaProducer.broadcastEvent("counseling_request",
+				new CounselingRequestDto(taskId, serialNumbers));
+			kafkaProducer.broadcastEvent("counseling_history",
+				counselingService.findLog(customerResponseDto.getCustomerId()));
+			kafkaProducer.broadcastEvent("current_counseling",
+				new CurrentCounselingRequestDto(customerResponseDto.getCustomerId(), counselingDate));
+			counselingService.addLog(customerResponseDto.getCustomerId(),
+				counselingDate,
+				devices);
 		});
 
 		CompletableFuture.allOf(sendCustomerInfo, sendDevicesInfo, sendCounsellingRequest).join();
@@ -234,8 +234,20 @@ public class EmitterService {
 	public void solutionListener(LinkedHashMap messages) {
 		try {
 			log.info("result received");
+			log.info(messages.toString());
 			SolutionDto data = new ObjectMapper().convertValue(messages, SolutionDto.class);
-			log.info(data.getTaskId(), data.getResult().getSerialNumber());
+			SolutionDto.Result result = data.getResult();
+			log.info(data.getTaskId(), result.getSerialNumber());
+			counselingService.replaceLogByDevice(
+				data.getCustomerId(),
+				data.getCounselingDate(),
+				CustomerDevice.builder()
+					.serialNumber(result.getSerialNumber())
+					.cause(result.getData().getCause())
+					.failure(result.getData().getFailure())
+					.sensor(result.getData().getSensor())
+					.solutions(result.getData().getSolutions())
+					.build());
 			sendEvent(
 				data.getTaskId(),
 				"solution",

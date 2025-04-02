@@ -41,5 +41,6 @@ public class TimeSeriesDataDto {
 	public static class FieldData {
 		private String time;
 		private Double value;
+		private int status;
 	}
 }

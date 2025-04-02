@@ -53,6 +53,12 @@ public class CustomerService {
 					if (System.currentTimeMillis() - startTime > 5000) {
 						throw new NotFoundCounselorException(phoneNumber);
 					} else {
+						if (customerCounselorMap.getMappedCounselor(phoneNumber) != null) {
+							log.info(customerCounselorMap.getMappedCounselor(phoneNumber));
+							CustomerResponseDto unconnectedCustomer = findCustomer(phoneNumber);
+							executor.shutdown();
+							throw new Exception("이미 상담중인 고객, 전화번호 : " + phoneNumber);
+						}
 						String availableCounselor;
 						do {
 							availableCounselor = customerCounselorMap.getAvailableCounselorTaskId();

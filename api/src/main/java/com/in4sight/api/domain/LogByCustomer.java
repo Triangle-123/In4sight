@@ -7,12 +7,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 @Document("log_by_customer")
 @Getter
 @RequiredArgsConstructor
+@NoArgsConstructor(force = true)
 @ToString
 public class LogByCustomer {
 
@@ -22,9 +24,6 @@ public class LogByCustomer {
 	@Field("customer_id")
 	private final int customerId;
 
-	@Field("counselling_date")
-	private final String counsellingDate;
-
-	@Field
-	private final List<CustomerDevice> devices;
+	@Field("counseling_history")
+	private final List<CounselingHistory> counselingHistory;
 }
