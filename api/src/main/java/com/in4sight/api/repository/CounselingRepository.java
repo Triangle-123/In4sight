@@ -7,5 +7,5 @@ import com.in4sight.api.domain.LogByCustomer;
 
 @Repository
 public interface CounselingRepository extends MongoRepository<LogByCustomer, String> {
-	LogByCustomer findByCustomerId(String customerId);
+	LogByCustomer findByCustomerId(int customerId);
 }
