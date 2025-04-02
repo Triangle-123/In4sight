@@ -5,8 +5,17 @@ import { ApplianceFailureData } from '@/lib/types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import useStore from '@/store/store'
+import { AIThinking } from './AIThinking'
 
 import SolutionCard from './SolutionCard'
+
+interface SolutionItem {
+  result: {
+    data: {
+      failure: string;
+    };
+  };
+}
 
 export function Recommendations() {
   const [showInput, setShowInput] = useState(false)
@@ -15,7 +24,7 @@ export function Recommendations() {
   const [useDummyData, setUseDummyData] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastCardRef = useRef<HTMLDivElement>(null)
-  const solutionData = useStore((state) => state.solutionData)
+  const solutionData = useStore((state) => state.solutionData) as SolutionItem[] | undefined
 
   useEffect(() => {
     if (showInput && inputRef.current) {
@@ -42,24 +51,28 @@ export function Recommendations() {
       </div>
 
       <div className="space-y-3">
-        <AnimatePresence>
-          {solutionData?.map((item, index) => {
-            const isLastItem = index === solutionData.length - 1
+        {!solutionData || solutionData.length === 0 ? (
+          <AIThinking message="AI 어시스턴트가 해결책을 찾고 있습니다" />
+        ) : (
+          <AnimatePresence>
+            {solutionData.map((item: SolutionItem, index: number) => {
+              const isLastItem = index === solutionData.length - 1
 
-            return (
-              <motion.div
-                key={`${index}-${item.result.data.failure}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                ref={isLastItem ? lastCardRef : null}
-              >
-                <SolutionCard data={item} />
-              </motion.div>
-            )
-          })}
-        </AnimatePresence>
+              return (
+                <motion.div
+                  key={`${index}-${item.result.data.failure}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  ref={isLastItem ? lastCardRef : null}
+                >
+                  <SolutionCard data={item} />
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        )}
 
         {/* <AnimatePresence>
           {showInput && (
