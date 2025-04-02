@@ -198,7 +198,8 @@ class BasePrompts:
         print(distances)
         # 메뉴얼 구조 생성
         structured_manuals = BasePrompts._create_manuals(documents, metadatas)
-
+        print("이벤트 출력!!! format_rag_prompt")
+        print(event)
         # 이벤트 포맷팅
         formatted_event = ""
         for i, e in enumerate(event):
