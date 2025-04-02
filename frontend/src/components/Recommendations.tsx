@@ -1,12 +1,21 @@
 'use client'
 
-import { solutionPlaceholder } from '@/lib/placeholder-data'
+// import { solutionPlaceholder } from '@/lib/placeholder-data'
 import { ApplianceFailureData } from '@/lib/types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import useStore from '@/store/store'
+import { AIThinking } from './AIThinking'
 
 import SolutionCard from './SolutionCard'
+
+interface SolutionItem {
+  result: {
+    data: {
+      failure: string;
+    };
+  };
+}
 
 export function Recommendations() {
   const [showInput, setShowInput] = useState(false)
@@ -15,7 +24,7 @@ export function Recommendations() {
   const [useDummyData, setUseDummyData] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastCardRef = useRef<HTMLDivElement>(null)
-  const solutionData = useStore((state) => state.solutionData)
+  const solutionData = useStore((state) => state.solutionData) as SolutionItem[] | undefined
 
   useEffect(() => {
     if (showInput && inputRef.current) {
@@ -29,111 +38,41 @@ export function Recommendations() {
     }
   }, [userQuestions])
 
-  // const handleInputBlur = () => {
-  //   if (inputValue.trim() === '') {
-  //     setShowInput(false)
-  //   }
-  // }
-
-  // const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  //   if (e.key === 'Escape') {
-  //     setShowInput(false)
-  //     setInputValue('')
-  //   } else if (e.key === 'Enter' && inputValue.trim() !== '') {
-  //     addUserQuestion()
-  //   }
-  // }
-
-  // const addUserQuestion = () => {
-  //   const newQuestion: ApplianceFailureData = {
-  //     ...solutionPlaceholder,
-  //     result: {
-  //       ...solutionPlaceholder.result,
-  //       data: {
-  //         ...solutionPlaceholder.result.data,
-  //         failure: inputValue,
-  //         cause: ['사용자 질문'],
-  //         solutions: {
-  //           ...solutionPlaceholder.result.data.solutions,
-  //           personalized_solution: [
-  //             {
-  //               personalized_context:
-  //                 '사용자의 질문에 대한 AI 분석 결과입니다.',
-  //               recommended_solution: '분석 중입니다...',
-  //               status: 'warning',
-  //             },
-  //           ],
-  //         },
-  //       },
-  //     },
-  //   }
-
-  //   setUserQuestions([...userQuestions, newQuestion])
-  //   setInputValue('')
-  //   setShowInput(false)
-  // }
-
-  // setTimeout(() => {
-  //   setUserQuestions((prev) =>
-  //     prev.map((q, i) =>
-  //       i === prev.length - 1
-  //         ? {
-  //             ...q,
-  //             result: {
-  //               ...q.result,
-  //               data: {
-  //                 ...q.result.data,
-  //                 solutions: {
-  //                   ...q.result.data.solutions,
-  //                   personalized_solution: [
-  //                     {
-  //                       personalized_context: '분석이 완료되었습니다.',
-  //                       recommended_solution: '분석 결과입니다.',
-  //                       status: 'normal',
-  //                     },
-  //                   ],
-  //                 },
-  //               },
-  //             },
-  //           }
-  //         : q,
-  //     ),
-  //   )
-  // }, 5000)
-
-  const allItems = useDummyData ? [solutionPlaceholder, ...userQuestions] : solutionData ? [solutionData] : []
-
   return (
     <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-10rem)]">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">권장 해결책</h2>
-        <button
+        {/* <button
           onClick={() => setUseDummyData(!useDummyData)}
           className="text-sm px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
         >
           {useDummyData ? '실제 데이터 보기' : '더미 데이터 보기'}
-        </button>
+        </button> */}
       </div>
 
       <div className="space-y-3">
-        <AnimatePresence>
-          {allItems.map((item, index) => {
-            const isLastItem = index === allItems.length - 1
+        {!solutionData || solutionData.length === 0 ? (
+          <AIThinking message="AI 어시스턴트가 해결책을 찾고 있습니다" />
+        ) : (
+          <AnimatePresence>
+            {solutionData.map((item: SolutionItem, index: number) => {
+              const isLastItem = index === solutionData.length - 1
 
-            return (
-              <motion.div
-                key={`${item.result.data.failure}-${index}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                ref={isLastItem ? lastCardRef : null}
-              >
-                <SolutionCard data={item} />
-              </motion.div>
-            )
-          })}
-        </AnimatePresence>
+              return (
+                <motion.div
+                  key={`${index}-${item.result.data.failure}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  ref={isLastItem ? lastCardRef : null}
+                >
+                  <SolutionCard data={item} />
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        )}
 
         {/* <AnimatePresence>
           {showInput && (
