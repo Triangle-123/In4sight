@@ -58,11 +58,11 @@ public class EmitterService {
 		emitter.onTimeout(() -> emitters.remove(taskId));
 
 		String customerPhoneNumber = customerCounselorMap.getMappedCustomer(taskId);
-		if (customerPhoneNumber == null) {
+		Map<String, Object> cache = eventCacheRepository.getCache(customerPhoneNumber);
+		if (customerPhoneNumber == null || cache == null) {
 			customerCounselorMap.setAvailableCounselor(taskId);
 			emitter.send("SSE connect");
 		} else {
-			Map<String, Object> cache = eventCacheRepository.getCache(customerPhoneNumber);
 			for (String key : cache.keySet()) {
 				sendEvent(taskId, key, cache.get(key));
 			}
