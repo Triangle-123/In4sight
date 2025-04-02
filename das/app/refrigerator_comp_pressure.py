@@ -37,7 +37,7 @@ def detect_pressure_anomalies(
         logger.info("[컴프레서 압력 이상치 범위] %s", anormality_range)
         related_sensor.append("컴프레서 압력")
 
-        eventset = make_event_set(anormality_range, "컴프레서 압력이 높았습니다.")
+        eventset = make_event_set(anormality_range, "컴프레서 압력이 낮았습니다.")
         if eventset:
             anomaly_prompts.append((0, eventset))
             anomaly_sensor.append("refrigerant_pressure")
