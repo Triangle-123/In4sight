@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,11 +58,11 @@ public class EmitterService {
 		emitter.onTimeout(() -> emitters.remove(taskId));
 
 		String customerPhoneNumber = customerCounselorMap.getMappedCustomer(taskId);
-		if (customerPhoneNumber == null) {
+		Map<String, Object> cache = eventCacheRepository.getCache(customerPhoneNumber);
+		if (customerPhoneNumber == null || cache == null) {
 			customerCounselorMap.setAvailableCounselor(taskId);
 			emitter.send("SSE connect");
 		} else {
-			Map<String, Object> cache = eventCacheRepository.getCache(customerPhoneNumber);
 			for (String key : cache.keySet()) {
 				sendEvent(taskId, key, cache.get(key));
 			}
@@ -100,6 +101,10 @@ public class EmitterService {
 
 	public SseEmitter getEmitter(String taskId) {
 		return emitters.getOrDefault(taskId, null);
+	}
+
+	public Set<String> getAllCounselors() {
+		return emitters.keySet();
 	}
 
 	public void startProcess(String taskId, CustomerResponseDto customerResponseDto) throws Exception {
@@ -164,7 +169,7 @@ public class EmitterService {
 			emitter.send(event);
 			log.info("send " + eventName);
 		} catch (Exception e) {
-			log.error(e.getMessage());
+			log.error("failed to send " + eventName, e);
 		}
 	}
 
