@@ -142,7 +142,7 @@ def event_summary(df_event, df_sensor):
     """
     이벤트 데이터를 요약해주는 메소드입니다.
     """
-    
+
     if (
         df_event.empty
         or "_time" not in df_event.columns
