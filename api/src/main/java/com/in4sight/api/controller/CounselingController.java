@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.in4sight.api.dto.CounselorEmitterDto;
 import com.in4sight.api.service.CustomerService;
 import com.in4sight.api.service.EmitterService;
+import com.in4sight.api.util.CustomerCounselorMap;
 
 @RestController
 @AllArgsConstructor
@@ -38,6 +39,7 @@ public class CounselingController {
 
 	private final CustomerService customerService;
 	private final EmitterService emitterService;
+	private final CustomerCounselorMap customerCounselorMap;
 
 	@PreAuthorize("@authExpression.matchIpByRegex(#ip, '.*')")
 	@GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -56,6 +58,20 @@ public class CounselingController {
 		return ResponseEntity.ok()
 			.header(HttpHeaders.SET_COOKIE, counselorEmitter.taskCookie().toString())
 			.body(counselorEmitter.sseEmitter());
+	}
+
+	@PostMapping("/customer/connect")
+	public void connectCustomer(
+		@RequestBody
+		String phoneNumber,
+		@CookieValue(value = "task_id", required = false)
+		String taskId
+	) throws Exception {
+		if (taskId == null) {
+			taskId = "localhost-static-task-id";
+		}
+		customerCounselorMap.mappingCustomerAndCounselor(phoneNumber, taskId);
+		emitterService.startProcess(taskId, customerService.findCustomer(phoneNumber));
 	}
 
 	@GetMapping(value = "/{taskId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

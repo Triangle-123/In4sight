@@ -91,4 +91,15 @@ public class CustomerService {
 		eventCacheRepository.removeCache(disconnectCustomer.getPhoneNumber());
 	}
 
+	public boolean setCustomerCallRequest(String phoneNumber) {
+		if (customerCounselorMap.getMappedCounselor(phoneNumber) != null) {
+			return false;
+		}
+
+		for (String taskId : customerCounselorMap.getAvailableCounselors(emitterService.getAllCounselors())) {
+			emitterService.sendEvent(taskId, "request_call", findCustomer(phoneNumber));
+		}
+
+		return true;
+	}
 }
