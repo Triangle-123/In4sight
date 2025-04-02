@@ -2,15 +2,14 @@ import { DeviceStatus } from '@/components/DeviceStatus'
 import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
 import { Sidebar } from '@/components/Sidebar'
-import WaitingScreen from '@/components/WaitingScreen'
 import {
   callHistoryPlaceholder,
   getAppliancePlaceholder,
 } from '@/lib/placeholder-data'
 import { ApplianceDataType, ApplianceType } from '@/lib/types'
 import useStore from '@/store/store'
-import { Phone } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 // import { v4 as uuidv4 } from 'uuid'
 
@@ -36,7 +35,8 @@ export default function Dashboard() {
   const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
   // const sensorData = useStore((state) => state.sensorData)
   // const eventData = useStore((state) => state.eventData)
-
+  const navigate = useNavigate()
+  const setNavigate = useStore((state) => state.setNavigate)
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -47,6 +47,7 @@ export default function Dashboard() {
 
   // 전역 변수에 setter 함수 할당
   globalSetSelectedAppliance = setSelectedAppliance
+  setNavigate(navigate)
 
   useEffect(() => {
     if (selectedAppliance) {
@@ -54,59 +55,13 @@ export default function Dashboard() {
     }
   }, [selectedAppliance])
 
-  useEffect(() => {
-    setLoading(true)
-
-    // 고객 별로 상이한 taskId 사용
-    const newTaskId = TASK_ID
-    setTaskId(newTaskId)
-
-    createSseConnection(newTaskId)
-    // @Deprecated
-    // const eventSource = createSseConnection(newTaskId)
-    // console.log('eventSource', eventSource)
-    // startCounselling(newTaskId)
-
-    setLoading(false)
-
-    return () => {
-      console.log('SSE connection 제거')
-      closeSseConnection()
-    }
-  }, [])
-
-  // @Deprecated
-  // const startCounselling = async (id: string) => {
-  //   const currentTaskId = id || TASK_ID
-  //   if (!currentTaskId) return
-
-  //   setLoading(true)
-  //   setError(null)
-
-  //   try {
-  //     const customerRequestDto = { customerName: '최싸피', phoneNumber: '010-1234-0004' }
-
-  //     const response = await fetch(API_URL + `/counseling/${currentTaskId}`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(customerRequestDto),
-  //     })
-
-  //     if (!response.ok) {
-  //       const errorText = await response.text()
-  //       throw new Error(errorText || '솔루션 요청 중 오류가 발생했습니다')
-  //     // } else {
-  //     //   console.log('솔루션 요청 성공', response)
-  //     }
-
-  //     console.log('상담을 시작합니다...')
-  //   } catch (err) {
-  //     console.error('상담을 시작하지 못했습니다:', err)
-  //     setError(err instanceof Error ? err.message : '솔루션 요청 중 오류가 발생했습니다')
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
+  // 상담사 상담 종료 요청 이벤트트
+  const handleDisconnect = () => {
+    fetch(`${API_URL}/counseling/customer/disconnect`, {
+      method: 'POST',
+      body: customerInfo?.phoneNumber,
+    })
+  }
 
   return (
     <div className="flex h-screen bg-background">
