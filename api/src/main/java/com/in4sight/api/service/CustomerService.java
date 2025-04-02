@@ -102,4 +102,10 @@ public class CustomerService {
 
 		return true;
 	}
+
+	public void solveRequest(String phoneNumber) {
+		for (String taskId : customerCounselorMap.getAvailableCounselors(emitterService.getAllCounselors())) {
+			emitterService.sendEvent(taskId, "request_solved", findCustomer(phoneNumber));
+		}
+	}
 }

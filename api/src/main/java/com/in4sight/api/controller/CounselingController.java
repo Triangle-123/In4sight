@@ -72,6 +72,7 @@ public class CounselingController {
 		}
 		customerCounselorMap.mappingCustomerAndCounselor(phoneNumber, taskId);
 		emitterService.startProcess(taskId, customerService.findCustomer(phoneNumber));
+		customerService.solveRequest(phoneNumber);
 	}
 
 	@GetMapping(value = "/{taskId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
