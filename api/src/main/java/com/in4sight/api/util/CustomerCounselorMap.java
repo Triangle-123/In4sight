@@ -36,7 +36,7 @@ public class CustomerCounselorMap {
 	 * @param counselor 상담원 TaskID
 	 */
 	public void setAvailableCounselor(String counselor) {
-		availableCounselors.add(counselor);
+		availableCounselors.offer(counselor);
 	}
 
 	/**
@@ -75,5 +75,14 @@ public class CustomerCounselorMap {
 	 */
 	public String getMappedCustomer(String counselor) {
 		return mappedCustomer.getOrDefault(counselor, null);
+	}
+
+	/**
+	 * 해당 고객에 이미 매칭된 상담사가 있는 경우 반환
+	 * @param phoneNumber
+	 * @return 상담사 Task Id
+	 */
+	public String getMappedCounselor(String phoneNumber) {
+		return mappedCounselor.getOrDefault(phoneNumber, null);
 	}
 }
