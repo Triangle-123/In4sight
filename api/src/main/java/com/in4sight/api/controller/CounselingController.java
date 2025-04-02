@@ -34,7 +34,7 @@ public class CounselingController {
 
 	private final CustomerService customerService;
 	private final EmitterService emitterService;
-gi
+
 	@GetMapping(value = "/{taskId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	@Operation(summary = "SSE 연결", description = "EventSource 객체를 통한 SSE 연결")
 	public SseEmitter getEmitter(@PathVariable String taskId) {
