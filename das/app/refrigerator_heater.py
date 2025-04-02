@@ -6,8 +6,6 @@ import logging
 
 import pandas as pd
 
-from app.util import make_event_set
-
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(message)s",
     datefmt="%Y/%m/%d %I:%M:%S%p",
@@ -26,11 +24,43 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
     히터 센서 온도 데이터를 분석하여 고온 지속 또는 제상 시간 외 고온 구간을 감지하고,
     이상 여부를 anomaly 목록에 기록합니다.
     """
+    df_sensor["_time"] = pd.to_datetime(df_sensor["_time"])
+    df_sensor["date"] = df_sensor["_time"].dt.date  # 날짜만 추출
 
-    high_temp_streaks = []  # 고온 구간 리스트
-    current_streak = []  # 현재 고온 연속 리스트
+    many_abnormal_list = []
+    none_abnormal_list = []
+
+    # 날짜별 그룹화하여 리스트로 저장
+    grouped_data = [group for _, group in df_sensor.groupby("date")]
 
     logging.debug("[히터 감지] 센서 데이터 총 개수: %d", len(df_sensor["heater_temp"]))
+
+    for group in grouped_data:
+        if len(group) > 32:
+            find_heater_anomality(group, many_abnormal_list, none_abnormal_list)
+
+    if many_abnormal_list:
+        anomaly_prompts.append((3, many_abnormal_list))
+        related_sensor.append("히터")
+        anomaly_sensor.append("heater_temp")
+
+        logging.debug("관련 센서 추가됨: %s", related_sensor)
+
+    if none_abnormal_list:
+        anomaly_prompts.append((10, none_abnormal_list))
+        related_sensor.append("히터")
+        anomaly_sensor.append("heater_temp")
+
+    else:
+        logging.info("[히터 센서 정상] 이상 없음.")
+
+
+def find_heater_anomality(df_sensor, many_abnormal_list, none_abnormal_list):
+    """
+    히터 센서 온도 이상치 구간을 구하는 함수입니다.
+    """
+    high_temp_streaks = []  # 고온 구간 리스트
+    current_streak = []  # 현재 고온 연속 리스트
 
     # 연속 고온 구간 탐지
     for i in range(len(df_sensor)):
@@ -82,36 +112,24 @@ def detect_heater_anomalies(df_sensor, anomaly_prompts, related_sensor, anomaly_
             new_high_temp_streaks.append(streak)
 
     high_temp_streaks = new_high_temp_streaks
+    date = df_sensor["date"].iloc[0]
 
     # 최종 이상 판단
     is_abnormal = num_high_streaks >= 3 or high_temp_outside_defrost >= 1
 
     if is_abnormal:
+        abnormal_list = []
 
-        anomaly_prompts.append(
-            (
-                3,
-                make_event_set(
-                    outside_defrost_ranges, "예정되지 않은 제상 작업이 수행되었습니다."
-                ),
+        for start, end in high_temp_streaks:
+            event_string = (
+                f"{date} {start} ~ {end}시에 예상되지 않은 제상 작업이 진행되었습니다."
             )
+
+            abnormal_list.append(event_string)
+
+        many_abnormal_list += abnormal_list
+
+    if num_high_streaks == 0:
+        none_abnormal_list.append(
+            f"{date}에 예정되었던 제상 작업이 진행되지 않았습니다."
         )
-        related_sensor.append("히터")
-        anomaly_sensor.append("heater_temp")
-
-        logging.debug("관련 센서 추가됨: %s", related_sensor)
-
-    elif num_high_streaks == 0:
-        anomaly_prompts.append(
-            (
-                10,
-                [
-                    f"{DEFROST_START_TIME} ~ {DEFROST_END_TIME}시에 예정되었던 제상 작업이 실행되지 않았습니다."
-                ],
-            )
-        )
-        related_sensor.append("히터")
-        anomaly_sensor.append("heater_temp")
-
-    else:
-        logging.info("[히터 센서 정상] 이상 없음.")
