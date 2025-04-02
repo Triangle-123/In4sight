@@ -2,8 +2,10 @@ package com.in4sight.api.util;
 
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -77,6 +79,7 @@ public class CustomerCounselorMap {
 		return mappedCustomer.getOrDefault(counselor, null);
 	}
 
+
 	/**
 	 * 해당 고객에 이미 매칭된 상담사가 있는 경우 반환
 	 * @param phoneNumber
@@ -85,4 +88,11 @@ public class CustomerCounselorMap {
 	public String getMappedCounselor(String phoneNumber) {
 		return mappedCounselor.getOrDefault(phoneNumber, null);
 	}
+
+	public Set<String> getAvailableCounselors(Set<String> counselors) {
+		return counselors.stream()
+			.filter(counselor -> !mappedCounselor.containsKey(counselor))
+			.collect(Collectors.toSet());
+	}
+
 }
