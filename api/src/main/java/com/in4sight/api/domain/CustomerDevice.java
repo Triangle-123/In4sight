@@ -15,11 +15,11 @@ import lombok.ToString;
 @ToString
 public class CustomerDevice {
 
-	@Field("product_type")
-	private String productType;
-
-	@Field("model_suffix")
-	private String modelSuffix;
+//	@Field("product_type")
+//	private String productType;
+//
+//	@Field("model_suffix")
+//	private String modelSuffix;
 
 	@Field("serial_number")
 	private String serialNumber;
