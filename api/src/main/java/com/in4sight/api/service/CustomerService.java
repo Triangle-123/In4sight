@@ -53,6 +53,12 @@ public class CustomerService {
 					if (System.currentTimeMillis() - startTime > 5000) {
 						throw new NotFoundCounselorException(phoneNumber);
 					} else {
+						if (customerCounselorMap.getMappedCounselor(phoneNumber) != null) {
+							log.info(customerCounselorMap.getMappedCounselor(phoneNumber));
+							CustomerResponseDto unconnectedCustomer = findCustomer(phoneNumber);
+							executor.shutdown();
+							throw new Exception("이미 상담중인 고객, 전화번호 : " + phoneNumber);
+						}
 						String availableCounselor;
 						do {
 							availableCounselor = customerCounselorMap.getAvailableCounselorTaskId();
@@ -91,4 +97,21 @@ public class CustomerService {
 		eventCacheRepository.removeCache(disconnectCustomer.getPhoneNumber());
 	}
 
+	public boolean setCustomerCallRequest(String phoneNumber) {
+		if (customerCounselorMap.getMappedCounselor(phoneNumber) != null) {
+			return false;
+		}
+
+		for (String taskId : customerCounselorMap.getAvailableCounselors(emitterService.getAllCounselors())) {
+			emitterService.sendEvent(taskId, "request_call", findCustomer(phoneNumber));
+		}
+
+		return true;
+	}
+
+	public void solveRequest(String phoneNumber) {
+		for (String taskId : customerCounselorMap.getAvailableCounselors(emitterService.getAllCounselors())) {
+			emitterService.sendEvent(taskId, "request_solved", findCustomer(phoneNumber));
+		}
+	}
 }
