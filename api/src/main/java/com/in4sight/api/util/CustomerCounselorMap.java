@@ -2,8 +2,10 @@ package com.in4sight.api.util;
 
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -75,5 +77,15 @@ public class CustomerCounselorMap {
 	 */
 	public String getMappedCustomer(String counselor) {
 		return mappedCustomer.getOrDefault(counselor, null);
+	}
+
+	public Set<String> getAvailableCounselors(Set<String> counselors) {
+		return counselors.stream()
+				.filter(counselor -> !mappedCounselor.containsKey(counselor))
+				.collect(Collectors.toSet());
+	}
+
+	public String getMappedCounselor(String customer) {
+		return mappedCounselor.get(customer);
 	}
 }
