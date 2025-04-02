@@ -180,7 +180,7 @@ const useStore = create<Store>((set, get) => {
       try {
         console.log('솔루션 정보 수신:', event.data)
         const solutionData = JSON.parse(event.data)
-        set({ solutionData })
+        set((state) => ({ solutionData: [...state.solutionData, solutionData] }))
       } catch (err) {
         console.error('솔루션 정보 파싱 에러:', event.data, err)
       }
@@ -223,7 +223,7 @@ const useStore = create<Store>((set, get) => {
       sensor_data: [],
     },
     eventData: null,
-    solutionData: null,
+    solutionData: [],
     selectedAppliance: null,
 
     // 액션
@@ -252,6 +252,7 @@ const useStore = create<Store>((set, get) => {
         sensorData: null,
         eventData: null,
         selectedAppliance: null,
+        solutionData: [],
       }),
   }
 })

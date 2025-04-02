@@ -153,19 +153,19 @@ export default function Dashboard() {
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                {customerInfo ? (
-                  <>
-                    <h2 className="text-xl font-semibold mb-2">
-                      가전제품을 선택하세요
-                    </h2>
-                    <p className="text-muted-foreground">
-                      왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가
-                      표시됩니다.
-                    </p>
-                  </>
-                ) : (
+                {/* {customerInfo ? ( */}
+                <>
+                  <h2 className="text-xl font-semibold mb-2">
+                    가전제품을 선택하세요
+                  </h2>
+                  <p className="text-muted-foreground">
+                    왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가
+                    표시됩니다.
+                  </p>
+                </>
+                {/* ) : (
                   <WaitingScreen />
-                )}
+                )} */}
               </div>
             </div>
           )}
