@@ -19,6 +19,15 @@ interface EventData {
   // 이벤트 데이터 타입 정의
 }
 
+// 고객 전화 큐 데이터 타입 정의의
+interface Call {
+  customerId: number
+  customerName: string
+  phoneNumber: string
+  timestamp: Date
+  address: string
+}
+
 // 상태 타입 정의
 interface State {
   // SSE 연결 상태
@@ -34,6 +43,10 @@ interface State {
   eventData: any | null // 실제 이벤트 데이터 타입으로 교체 필요
   selectedAppliance: ApplianceType | null
   solutionData: any | null // 실제 솔루션 데이터 타입으로 교체 필요
+
+  // 고객 연결 큐 상태
+  callQueue: Call[]
+  navigate: any | null
 }
 
 // 액션 타입 정의
@@ -55,6 +68,11 @@ interface Actions {
   setError: (error: string | null) => void
   setReconnectCount: (count: number) => void
   reset: () => void
+
+  // 고객 연결 큐 관리
+  addToCallQueue: (call: Call) => void
+  removeFromCallQueue: (phoneNumber: string) => void
+  setNavigate: (navigate: any) => void
 }
 
 // 전체 store 타입
@@ -75,7 +93,8 @@ const useStore = create<Store>((set, get) => {
   let eventSourceRef: EventSource | null = null
   let reconnectTimeoutRef: ReturnType<typeof setTimeout> | null = null
 
-  const createSseConnection = (taskId: string) => {
+  // taskId 없이 호출 시 기본값 null 사용 -> 어차피 쿠키로 쓰니까 상관없음음
+  const createSseConnection = (taskId: string | null = null) => {
     const { reconnectCount } = get()
 
     if (eventSourceRef) {
@@ -191,11 +210,36 @@ const useStore = create<Store>((set, get) => {
         console.log('고객 연결 끊김:', event.data)
         get().reset()
         resetSelectedAppliance(null)
+        // 고객 연결 끊김 후 큐 페이지로 이동
+        get().navigate('/call-queue')
       } catch (err) {
         console.error('고객 연결 끊김 파싱 에러:', event.data, err)
       }
     })
 
+    // 고객 전화 큐에 삽
+    eventSource.addEventListener('request_call', (event) => {
+      try {
+        console.log('고객 요청 호출:', event.data)
+        const callData = JSON.parse(event.data)
+        callData.timestamp = new Date()
+        get().addToCallQueue(callData)
+        console.log('고객 요청 호출 큐:', get().callQueue)
+      } catch (err) {
+        console.error('고객 요청 호출 파싱 에러:', event.data, err)
+      }
+    })
+
+    // 특정 상담원이 전화 연결 시 큐에서 제거
+    eventSource.addEventListener('request_solved', (event) => {
+      try {
+        console.log('고객 요청 해결:', event.data)
+        const callData = JSON.parse(event.data)
+        get().removeFromCallQueue(callData.id)
+      } catch (err) {
+        console.error('고객 요청 해결 파싱 에러:', event.data, err)
+      }
+    })
 
     return eventSource
   }
@@ -225,7 +269,7 @@ const useStore = create<Store>((set, get) => {
     eventData: null,
     solutionData: [],
     selectedAppliance: null,
-
+    callQueue: [],
     // 액션
     createSseConnection,
     closeSseConnection,
@@ -254,6 +298,14 @@ const useStore = create<Store>((set, get) => {
         selectedAppliance: null,
         solutionData: [],
       }),
+    addToCallQueue: (call) => set({ callQueue: [...get().callQueue, call] }),
+    removeFromCallQueue: (phoneNumber) =>
+      set({
+        callQueue: get().callQueue.filter(
+          (call) => call.phoneNumber !== phoneNumber,
+        ),
+      }),
+    setNavigate: (navigate) => set({ navigate }),
   }
 })
 
