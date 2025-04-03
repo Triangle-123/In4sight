@@ -2,20 +2,14 @@
 이 모듈은 데이터 분석과 이상치 감지 하고 eda로 다른 서버의 분석 결과를 보내는 모듈입니다.
 """
 
+import pandas as pd
 from influxdb_client import InfluxDBClient
 
-import pandas as pd
-
-from app.api_ref_data_sending import get_ref_refine_data, event_summary
-from app.api_wm_data_sending import get_wm_refine_data
 from app.api_ac_data_sending import get_ac_refine_data
-from app.config import (
-    INFLUXDB_BUCKET_EVENT,
-    INFLUXDB_BUCKET_SENSOR,
-    INFLUXDB_ORG,
-    INFLUXDB_TOKEN,
-    INFLUXDB_URL,
-)
+from app.api_ref_data_sending import event_summary, get_ref_refine_data
+from app.api_wm_data_sending import get_wm_refine_data
+from app.config import (INFLUXDB_BUCKET_EVENT, INFLUXDB_BUCKET_SENSOR,
+                        INFLUXDB_ORG, INFLUXDB_TOKEN, INFLUXDB_URL)
 from app.rag_data_sending import broadcast_rag_message
 from app.refrigerator_comp_pressure import detect_pressure_anomalies
 from app.refrigerator_door import check_door_anormality
@@ -23,11 +17,8 @@ from app.refrigerator_fan import check_fan_rpm_anormality
 from app.refrigerator_heater import detect_heater_anomalies
 from app.refrigerator_load import check_loading_rate_anormality
 from app.refrigerator_temp import detect_temperature_anomalies
-from app.util import (
-    broadcast_event_message,
-    broadcast_sensor_message,
-    convert_to_iso_utc,
-)
+from app.util import (broadcast_event_message, broadcast_sensor_message,
+                      convert_to_iso_utc)
 
 LIMIT_OPEN_NUMBER = 50
 LIMIT_MAX_INTERVAL = 20 * 60 * 10**9  # 20분을 나노초로 환산
@@ -134,7 +125,7 @@ def find_refrigerator_anomality(task_id, serial_number, df_sensor, df_event):
         task_id,
         serial_number,
         "data_sensor",
-        get_ref_refine_data(df_sensor, list(set(anomaly_sensor))),
+        get_ref_refine_data(df_sensor),
     )
     broadcast_event_message(task_id, serial_number, "data_event", event_data)
 

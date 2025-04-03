@@ -14,6 +14,17 @@ METRICS = {
     "weight": "세탁물 무게 변화",
 }
 
+# 센서 컬럼명과 한글 매핑
+MEASUREMENT_NAMES = {
+    "water_level": "수위",
+    "motor_current": "전류",
+    "voltage": "전압",
+    "drum_rpm": "속도",
+    "vibration": "진동",
+    "temperature": "온도",
+    "weight": "무게",
+}
+
 # 센서별 임계값 설정
 SENSOR_THRESHOLDS = {
     "water_level": {"warning": 30, "critical": 35},
@@ -33,7 +44,7 @@ SENSOR_MIN_MAX = {
     "drum_rpm": {"min": 0, "max": 1200},
     "vibration": {"min": 0, "max": 1.6},
     "temperature": {"min": 10, "max": 65},
-    "weight": {"warning": 0, "critical": 13},
+    "weight": {"min": 0, "max": 13},
 }
 
 UNIT = {
@@ -78,5 +89,6 @@ def get_wm_refine_data(df_sensor):
     sensor = refine_query_data(df_sensor, WM_SENSOR_DATA_LIST, DEFAULT_DATA_LIST)
 
     return api_data_refine(
-        sensor, [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON]
+        sensor,
+        [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON, MEASUREMENT_NAMES],
     )

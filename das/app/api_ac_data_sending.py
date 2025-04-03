@@ -13,6 +13,16 @@ METRICS = {
     "room_temp": "실내 온도 변화",
 }
 
+# 센서 컬럼명과 한글 매핑
+MEASUREMENT_NAMES = {
+    "evaporator_humidity": "습도",
+    "external_humidity": "습도",
+    "filter_dust": "오염도",
+    "refrigerant_pressure": "압력",
+    "refrigerant_temp": "온도",
+    "room_temp": "온도",
+}
+
 # 센서별 임계값 설정
 SENSOR_THRESHOLDS = {
     "evaporator_humidity": {"warning": 90, "critical": 95},
@@ -72,5 +82,6 @@ def get_ac_refine_data(df_sensor):
     sensor = refine_query_data(df_sensor, AC_SENSOR_DATA_LIST, DEFAULT_DATA_LIST)
 
     return api_data_refine(
-        sensor, [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON]
+        sensor,
+        [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON, MEASUREMENT_NAMES],
     )
