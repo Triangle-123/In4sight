@@ -5,13 +5,13 @@
 from app.api_data_refine import api_data_refine, refine_query_data
 
 METRICS = {
-    "water_level": "세탁기 내부 수위 변화",
-    "motor_current": "모터 전류 소비량 변화",
-    "voltage": "세탁기 내부 전압 변화",
-    "drum_rpm": "드럼 회전 속도 변화",
-    "vibration": "세탁기 진동 정도 변화",
-    "temperature": "세탁기 내부 온도 변화",
-    "weight": "세탁물 무게 변화",
+    "water_level": "세탁기 내부 수위",
+    "motor_current": "모터 전류 소비량",
+    "voltage": "세탁기 내부 전압",
+    "drum_rpm": "드럼 회전 속도",
+    "vibration": "세탁기 진동 세기",
+    "temperature": "세탁기 내부 온도",
+    "weight": "세탁물 무게",
 }
 
 # 센서 컬럼명과 한글 매핑
