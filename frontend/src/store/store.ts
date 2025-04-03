@@ -105,7 +105,9 @@ const useStore = create<Store>((set, get) => {
       `SSE 연결을 시도합니다: ${reconnectCount + 1} of ${MAX_RECONNECT_ATTEMPTS}`,
     )
 
-    const eventSource = new EventSource(`${API_URL}/counseling`)
+    // const eventSource = new EventSource(`${API_URL}/counseling`)
+    // 로컬 디버깅 용
+    const eventSource = new EventSource(`${API_URL}/counseling?local=true`)
     eventSourceRef = eventSource
 
     eventSource.onopen = () => {
@@ -199,7 +201,9 @@ const useStore = create<Store>((set, get) => {
       try {
         console.log('솔루션 정보 수신:', event.data)
         const solutionData = JSON.parse(event.data)
-        set((state) => ({ solutionData: [...state.solutionData, solutionData] }))
+        set((state) => ({
+          solutionData: [...state.solutionData, solutionData],
+        }))
       } catch (err) {
         console.error('솔루션 정보 파싱 에러:', event.data, err)
       }
@@ -261,11 +265,7 @@ const useStore = create<Store>((set, get) => {
     taskId: null,
     customerInfo: null,
     appliances: [],
-    sensorData: {
-      taskId: null,
-      serialNumber: null,
-      sensor_data: [],
-    },
+    sensorData: { taskId: null, serialNumber: null, sensor_data: [] },
     eventData: null,
     solutionData: [],
     selectedAppliance: null,

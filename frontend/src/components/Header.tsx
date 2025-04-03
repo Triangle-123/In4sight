@@ -2,15 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-// import { Button } from '@/components/ui/button'
-// import { ChevronLeft, ChevronRight } from 'lucide-react'
-
-interface HeaderProps {
-  sidebarOpen: boolean
-  setSidebarOpen: (open: boolean) => void
-}
-
-export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
+export function Header() {
   const [ip, setIp] = useState<string>('확인 중...')
 
   useEffect(() => {
@@ -29,7 +21,7 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   }, [])
 
   return (
-    <header className="h-14 border-b flex items-center justify-between px-4">
+    <header className="min-h-14 border-b flex items-center justify-between px-4">
       <div className="flex items-center">
         {/* <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-2">
           {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

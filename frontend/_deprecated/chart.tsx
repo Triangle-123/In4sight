@@ -35,7 +35,8 @@ export function LineChart({
           margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="1 1" vertical={false} />
-          <XAxis
+          <XAxis hide={true} />
+          {/* <XAxis
             dataKey={index}
             tickFormatter={(value) => {
               const date = new Date(value)
@@ -47,7 +48,7 @@ export function LineChart({
               // 그 외에는 시간만 표시
               return `${hours}시`
             }}
-          />
+          /> */}
           <YAxis
             tickCount={3}
             type="number"
