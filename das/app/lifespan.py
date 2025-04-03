@@ -9,7 +9,7 @@ import eda
 from fastapi import FastAPI
 
 from app.config import KAFKA_URL
-from app.sensor import get_refrigerator_analyze
+from app.sensor import get_analyze
 
 
 @asynccontextmanager
@@ -36,4 +36,4 @@ def callback(message: Any) -> None:
     Event 수신 콜백 함수
     """
     for number in message["serialNumbers"]:
-        get_refrigerator_analyze(message["taskId"], number, "2024-03-01", "2024-03-08")
+        get_analyze(message["taskId"], number, "2025-04-04", "2025-04-11")

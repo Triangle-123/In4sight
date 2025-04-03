@@ -5,13 +5,13 @@
 from app.api_data_refine import api_data_refine, refine_query_data
 
 METRICS = {
-    "water_level": "세탁기 내부 수위",
-    "motor_current": "모터 전류 소비량",
-    "voltage": "세탁기 내부 전압",
-    "drum_rpm": "드럼 회전 속도",
-    "vibration": "세탁기 진동 정도",
-    "temperature": "세탁기 내부 온도",
-    "weight": "세탁물 무게",
+    "water_level": "세탁기 내부 수위 변화",
+    "motor_current": "모터 전류 소비량 변화",
+    "voltage": "세탁기 내부 전압 변화",
+    "drum_rpm": "드럼 회전 속도 변화",
+    "vibration": "세탁기 진동 정도 변화",
+    "temperature": "세탁기 내부 온도 변화",
+    "weight": "세탁물 무게 변화",
 }
 
 # 센서별 임계값 설정
@@ -56,7 +56,7 @@ ICON = {
     "weight": "Weight",
 }
 
-SENSOR_DATA_LIST = [
+WM_SENSOR_DATA_LIST = [
     "water_level",
     "motor_current",
     "voltage",
@@ -75,7 +75,7 @@ def get_wm_refine_data(df_sensor):
     세탁기 시계열 데이터를 API 서버에 보낼 데이터를 정제하는 함수입니다.
     """
 
-    sensor = refine_query_data(df_sensor, SENSOR_DATA_LIST, DEFAULT_DATA_LIST)
+    sensor = refine_query_data(df_sensor, WM_SENSOR_DATA_LIST, DEFAULT_DATA_LIST)
 
     return api_data_refine(
         sensor, [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON]
