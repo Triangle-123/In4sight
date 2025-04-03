@@ -111,8 +111,8 @@ export function Recommendations() {
   // const allItems = [solutionPlaceholder, ...userQuestions]
 
   return (
-    <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-10rem)]">
-      <div className="flex justify-between items-center">
+    <div className="h-full overflow-y-auto overflow-x-hidden">
+      <div className="flex justify-between items-center sticky top-0 bg-white z-10 pb-4">
         <h2 className="text-xl font-semibold">권장 해결책</h2>
         {/* <button
           onClick={() => setUseDummyData(!useDummyData)}
@@ -138,6 +138,7 @@ export function Recommendations() {
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
                   ref={isLastItem ? lastCardRef : null}
+                  className="overflow-hidden"
                 >
                   <SolutionCard data={item} />
                 </motion.div>

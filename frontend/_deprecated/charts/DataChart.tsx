@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { BarChart, DonutChart, LineChart } from '@/components/ui/chart'
+import { LineChart } from '@/components/ui/chart'
 import * as Icons from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
 
@@ -7,7 +7,6 @@ interface DataChartProps {
   title: string
   icon: string
   data: Array<{ time: string; value: number }>
-  type: 'line' | 'bar' | 'donut'
   isNormal: boolean
   valueFormatter: (value: number) => string
   isLoading?: boolean
@@ -17,7 +16,6 @@ export function DataChart({
   title,
   icon,
   data,
-  type,
   isNormal,
   valueFormatter,
   isLoading = false,
@@ -35,10 +33,6 @@ export function DataChart({
     )
   }
 
-  const ChartComponent = { line: LineChart, bar: BarChart, donut: DonutChart }[
-    type
-  ]
-
   const Icon = (Icons as unknown as Record<string, LucideIcon>)[icon]
 
   return (
@@ -50,7 +44,7 @@ export function DataChart({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartComponent
+        <LineChart
           data={data}
           categories={['value']}
           index="time"
