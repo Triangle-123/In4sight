@@ -55,7 +55,7 @@ export default function Dashboard() {
     }
   }, [selectedAppliance])
 
-  // 상담사 상담 종료 요청 이벤트트
+  // 상담사 상담 종료 요청 이벤트
   const handleDisconnect = () => {
     fetch(`${API_URL}/counseling/customer/disconnect`, {
       method: 'POST',
@@ -75,11 +75,11 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <Header />
 
         {/* Main Panel */}
         <main className="flex-1 p-4 overflow-hidden">
-          {error && (
+          {/* {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
               {error}
             </div>
@@ -95,10 +95,10 @@ export default function Dashboard() {
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded">
               서버에 연결 중입니다...
             </div>
-          )}
+          )} */}
 
-          {selectedAppliance ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+          {selectedAppliance != null ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full overflow-hidden">
               {/* 왼쪽 섹션 - 제품 상태 모니터링 그래프들 */}
               <DeviceStatus />
 
@@ -108,19 +108,12 @@ export default function Dashboard() {
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                {/* {customerInfo ? ( */}
-                <>
-                  <h2 className="text-xl font-semibold mb-2">
-                    가전제품을 선택하세요
-                  </h2>
-                  <p className="text-muted-foreground">
-                    왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가
-                    표시됩니다.
-                  </p>
-                </>
-                {/* ) : (
-                  <WaitingScreen />
-                )} */}
+                <h2 className="text-xl font-semibold mb-2">
+                  가전제품을 선택하세요
+                </h2>
+                <p className="text-muted-foreground">
+                  왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.
+                </p>
               </div>
             </div>
           )}
