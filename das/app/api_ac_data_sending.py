@@ -5,12 +5,12 @@
 from app.api_data_refine import api_data_refine, refine_query_data
 
 METRICS = {
-    "evaporator_humidity": "증발기 주변 습도 변화",
-    "external_humidity": "외부 습도 변화",
-    "filter_dust": "필터 오염 정도 변화",
-    "refrigerant_pressure": "냉매 압력 변화",
-    "refrigerant_temp": "냉매 온도 변화",
-    "room_temp": "실내 온도 변화",
+    "evaporator_humidity": "증발기 주변 습도",
+    "external_humidity": "외부 습도",
+    "filter_dust": "필터 오염 정도",
+    "refrigerant_pressure": "냉매 압력",
+    "refrigerant_temp": "냉매 온도",
+    "room_temp": "실내 온도",
 }
 
 # 센서 컬럼명과 한글 매핑

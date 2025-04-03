@@ -7,12 +7,12 @@ import pandas as pd
 from app.api_data_refine import api_data_refine, refine_query_data
 
 METRICS = {
-    "fan_rpm": "팬 속도 변화",
-    "heater_temp": "히터 온도 변화",
-    "load_percent": "적재량 변화",
-    "refrigerant_pressure": "압력 센서 변화",
-    "temp_external": "외부 온도 변화",
-    "temp_internal": "내부 온도 변화",
+    "fan_rpm": "팬 속도",
+    "heater_temp": "히터 온도",
+    "load_percent": "적재량",
+    "refrigerant_pressure": "압력 센서",
+    "temp_external": "외부 온도",
+    "temp_internal": "내부 온도",
     "fridge": "냉장실",
     "freezer": "냉동실",
 }
