@@ -39,9 +39,9 @@ client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG
 query_api = client.query_api()
 
 
-def get_refrigerator_analyze(task_id, serial_number, startday, endday):
+def get_analyze(task_id, serial_number, startday, endday):
     """
-    이거 바꿔야 해요.
+    시리얼 넘버에 따라 기기 종류를 분류하고 그에 맞춰서 이상치를 판단하도록 하는 함수입니다.
     """
 
     # 날짜를 RFC3339(ISO) 형식으로 변환

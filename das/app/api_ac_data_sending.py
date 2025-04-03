@@ -5,12 +5,12 @@
 from app.api_data_refine import api_data_refine, refine_query_data
 
 METRICS = {
-    "evaporator_humidity": "증발기 주변 습도",
-    "external_humidity": "외부 습도",
-    "filter_dust": "필터 오염 정도",
-    "refrigerant_pressure": "냉매 압력",
-    "refrigerant_temp": "냉매 온도",
-    "room_temp": "실내 온도",
+    "evaporator_humidity": "증발기 주변 습도 변화",
+    "external_humidity": "외부 습도 변화",
+    "filter_dust": "필터 오염 정도 변화",
+    "refrigerant_pressure": "냉매 압력 변화",
+    "refrigerant_temp": "냉매 온도 변화",
+    "room_temp": "실내 온도 변화",
 }
 
 # 센서별 임계값 설정
@@ -51,7 +51,7 @@ ICON = {
     "room_temp": "ThermometerSun",
 }
 
-SENSOR_DATA_LIST = [
+AC_SENSOR_DATA_LIST = [
     "evaporator_humidity",
     "external_humidity",
     "filter_dust",
@@ -69,7 +69,7 @@ def get_ac_refine_data(df_sensor):
     에어컨 시계열 데이터를 API 서버에 보낼 데이터를 정제하는 함수입니다.
     """
 
-    sensor = refine_query_data(df_sensor, SENSOR_DATA_LIST, DEFAULT_DATA_LIST)
+    sensor = refine_query_data(df_sensor, AC_SENSOR_DATA_LIST, DEFAULT_DATA_LIST)
 
     return api_data_refine(
         sensor, [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON]
