@@ -17,6 +17,16 @@ METRICS = {
     "freezer": "냉동실",
 }
 
+# 센서 컬럼명과 한글 매핑
+MEASUREMENT_NAMES = {
+    "fan_rpm": "속도",
+    "heater_temp": "온도",
+    "load_percent": "적재량",
+    "refrigerant_pressure": "압력",
+    "temp_external": "온도",
+    "temp_internal": "온도",
+}
+
 # 센서별 임계값 설정
 SENSOR_THRESHOLDS = {
     "temp_internal": {
@@ -77,14 +87,15 @@ SENSOR_DATA_LIST = [
 DEFAULT_DATA_LIST = ["_time", "location"]
 
 
-def get_ref_refine_data(df_sensor, anomaly_sensor=None):
+def get_ref_refine_data(df_sensor):
     """
     API 서버에 보낼 데이터를 정제하는 함수입니다.
     """
 
     sensor = refine_query_data(df_sensor, SENSOR_DATA_LIST, DEFAULT_DATA_LIST)
     return api_data_refine(
-        sensor, [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON], anomaly_sensor
+        sensor,
+        [METRICS, SENSOR_THRESHOLDS, SENSOR_MIN_MAX, UNIT, ICON, MEASUREMENT_NAMES],
     )
 
 
