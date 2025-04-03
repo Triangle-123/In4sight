@@ -35,7 +35,7 @@ SENSOR_THRESHOLDS = {
 SENSOR_MIN_MAX = {
     "temp_internal": {
         "fridge": {"min": 0, "max": 30},
-        "freezer": {"min": -20, "max": -10},
+        "freezer": {"min": -20, "max": 0},
     },
     "temp_external": {"min": 10, "max": 30},
     "load_percent": {"min": 0, "max": 100},
