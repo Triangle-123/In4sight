@@ -2,15 +2,6 @@ import { ApplianceType, CustomerType } from '@/lib/types'
 import { resetSelectedAppliance } from '@/pages/Dashboard'
 import { create } from 'zustand'
 
-// SSE 관련 타입 정의
-interface CustomerInfo {
-  // 고객 정보 타입 정의
-}
-
-interface ApplianceInfo {
-  // 기기 정보 타입 정의
-}
-
 interface SensorData {
   // 센서 데이터 타입 정의
 }

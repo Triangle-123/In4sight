@@ -1,47 +1,44 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import type { ApplianceType } from '@/lib/types'
-import type { CustomerType } from '@/lib/types'
-import { Refrigerator, WashingMachine } from 'lucide-react'
 import useStore from '@/store/store'
+import { Refrigerator, WashingMachine, X } from 'lucide-react'
 
 interface SidebarProps {
-  sidebarOpen: boolean
-  appliances: ApplianceType[] | null
   callHistory: { date: string; time: string; topic: string }[]
-  customerInfo: CustomerType | null
 }
 
-export function Sidebar({
-  sidebarOpen,
-  appliances,
-  callHistory,
-  customerInfo,
-}: SidebarProps) {
+export function Sidebar({ callHistory }: SidebarProps) {
   const selectedAppliance = useStore((state) => state.selectedAppliance)
   const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
+  const customerInfo = useStore((state) => state.customerInfo)
+  const appliances = useStore((state) => state.appliances)
+
+  // 상담사 상담 종료 요청 이벤트
+  const handleDisconnect = () => {
+    fetch(`${API_URL}/counseling/customer/disconnect`, {
+      method: 'POST',
+      body: customerInfo?.phoneNumber,
+    })
+  }
 
   return (
-    <div
-      style={{ width: sidebarOpen ? '20rem' : '0', marginLeft: sidebarOpen ? '0' : '-20rem' }}
-      className="h-full bg-muted/40 border-r transition-all duration-300 flex flex-col"
-    >
+    <div className="w-80 h-full bg-muted/40 border-r flex flex-col">
       <div className="p-4 border-b">
         <h2 className="font-semibold text-lg mb-2">고객 정보</h2>
         <div className="space-y-2 text-sm">
           <p>
-            <span className="font-medium">이름:</span> {customerInfo ? customerInfo.customerName : ''}
+            <span className="font-medium">이름:</span>{' '}
+            {customerInfo ? customerInfo.customerName : ''}
           </p>
           <p>
-            <span className="font-medium">전화번호:</span> {customerInfo ? customerInfo.phoneNumber : ''}
+            <span className="font-medium">전화번호:</span>{' '}
+            {customerInfo ? customerInfo.phoneNumber : ''}
           </p>
           <p>
-            <span className="font-medium">주소:</span> {customerInfo ? customerInfo.address : ''}
+            <span className="font-medium">주소:</span>{' '}
+            {customerInfo ? customerInfo.address : ''}
           </p>
-          {/* <p>
-            <p className="font-medium">문의 내용:</p> 에어컨 틀었는데 하나도 안 시원한데요???? 빨리 해결해주세요!!!
-          </p> */}
         </div>
       </div>
 
@@ -91,14 +88,17 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="p-4 border-t flex justify-between">
-        {/* <Button variant="outline" size="icon" onClick={() => setVolumeEnabled(!volumeEnabled)}>
-          {volumeEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+      <div className="p-3 border-t flex justify-between">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            console.log('상담 종료')
+          }} 
+          className="w-full text-white bg-red-600 hover:bg-red-700 hover:text-white"
+        >
+          <X className="h-4 w-4 mr-2" />
+          상담 종료
         </Button>
-        <Button variant="outline" size="icon" onClick={() => setMicEnabled(!micEnabled)}>
-          {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-        </Button> */}
-        <p>전자연계 S004</p>
       </div>
     </div>
   )

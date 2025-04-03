@@ -29,16 +29,11 @@ export default function Dashboard() {
   const setError = useStore((state) => state.setError)
   const isConnected = useStore((state) => state.isConnected)
   const error = useStore((state) => state.error)
-  const customerInfo = useStore((state) => state.customerInfo)
-  const appliances = useStore((state) => state.appliances)
   const selectedAppliance = useStore((state) => state.selectedAppliance)
   const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
-  // const sensorData = useStore((state) => state.sensorData)
-  // const eventData = useStore((state) => state.eventData)
   const navigate = useNavigate()
   const setNavigate = useStore((state) => state.setNavigate)
   // UI States
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [loading, setLoading] = useState(false)
   const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(
     null,
@@ -55,21 +50,12 @@ export default function Dashboard() {
     }
   }, [selectedAppliance])
 
-  // 상담사 상담 종료 요청 이벤트
-  const handleDisconnect = () => {
-    fetch(`${API_URL}/counseling/customer/disconnect`, {
-      method: 'POST',
-      body: customerInfo?.phoneNumber,
-    })
-  }
+
 
   return (
     <div className="flex h-screen bg-background">
       {/* 사이드바 - 고객 정보, 고객의 가전 제품, 해당 고객과의 과거 통화 이력 */}
       <Sidebar
-        sidebarOpen={sidebarOpen}
-        customerInfo={customerInfo}
-        appliances={appliances}
         callHistory={callHistoryPlaceholder}
       />
       {/* Main Content */}
