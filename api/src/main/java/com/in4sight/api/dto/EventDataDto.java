@@ -3,7 +3,7 @@ package com.in4sight.api.dto;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +16,6 @@ public class EventDataDto {
 	private String taskId;
 	private String serialNumber;
 
-	@JsonProperty("event_data")
+	@JsonAlias("event_data")
 	private List<String> eventData;
 }
