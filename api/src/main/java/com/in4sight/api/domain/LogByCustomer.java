@@ -6,15 +6,13 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 @Document("log_by_customer")
-@Getter
-@RequiredArgsConstructor
-@NoArgsConstructor(force = true)
+@Data
+@NoArgsConstructor
 @ToString
 public class LogByCustomer {
 
@@ -22,8 +20,9 @@ public class LogByCustomer {
 	private String id;
 
 	@Field("customer_id")
-	private final int customerId;
+	private int customerId;
 
 	@Field("counseling_history")
-	private final List<CounselingHistory> counselingHistory;
+	private List<CounselingHistory> counselingHistory;
+
 }
