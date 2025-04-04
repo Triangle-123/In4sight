@@ -2,6 +2,7 @@
 API 서버와 데이터 형식을 맞추기 위해 데이터를 전처리하는 모듈입니다.
 """
 
+import pprint
 from collections import defaultdict
 from json import loads
 
@@ -84,6 +85,8 @@ def api_data_refine(df, device_info_list):
                 "data": {"time": times, "value": values},
             }
         )
+
+    pprint.pprint(sensor_data)
 
     return sensor_data
 
