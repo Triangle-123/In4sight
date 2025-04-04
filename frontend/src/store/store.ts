@@ -1,10 +1,6 @@
-import { ApplianceType, CustomerType } from '@/lib/types'
+import { ApplianceType, CustomerType, SensorData } from '@/lib/types'
 import { resetSelectedAppliance } from '@/pages/Dashboard'
 import { create } from 'zustand'
-
-interface SensorData {
-  // 센서 데이터 타입 정의
-}
 
 interface EventData {
   // 이벤트 데이터 타입 정의
@@ -30,7 +26,7 @@ interface State {
   // 데이터 상태
   customerInfo: CustomerType | null
   appliances: ApplianceType[]
-  sensorData: any | null // 실제 센서 데이터 타입으로 교체 필요
+  sensorData: SensorData | null
   eventData: any | null // 실제 이벤트 데이터 타입으로 교체 필요
   selectedAppliance: ApplianceType | null
   solutionData: any | null // 실제 솔루션 데이터 타입으로 교체 필요
@@ -50,7 +46,7 @@ interface Actions {
   // 데이터 업데이트
   setCustomerInfo: (data: CustomerType) => void
   setAppliances: (data: ApplianceType[]) => void
-  setSensorData: (data: any) => void
+  setSensorData: (data: SensorData) => void
   setEventData: (data: any) => void
   setSelectedAppliance: (appliance: ApplianceType | null) => void
 
@@ -256,11 +252,12 @@ const useStore = create<Store>((set, get) => {
     taskId: null,
     customerInfo: null,
     appliances: [],
-    sensorData: { taskId: null, serialNumber: null, sensor_data: [] },
+    sensorData: null,
     eventData: null,
     solutionData: [],
     selectedAppliance: null,
     callQueue: [],
+    navigate: null,
     // 액션
     createSseConnection,
     closeSseConnection,

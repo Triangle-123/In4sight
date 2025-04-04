@@ -52,14 +52,14 @@ export function Sidebar({ callHistory }: SidebarProps) {
               className="w-full justify-start overflow-hidden"
               onClick={() => setSelectedAppliance(appliance)}
             >
-              {appliance.productType === 'REF' ? (
+              {/* {appliance.productType === 'REF' ? (
                 <Refrigerator />
-              ) : appliance.productType === 'WASH' ? (
+              ) : appliance.productType === 'WM' ? (
                 <WashingMachine />
               ) : (
                 <div>기타 가전</div>
-              )}
-              <span
+              )} */}
+              {/* <span
                 className={`h-2 w-2 rounded-full${
                   appliance.status === 'normal'
                     ? 'bg-green-500'
@@ -67,7 +67,7 @@ export function Sidebar({ callHistory }: SidebarProps) {
                       ? 'bg-yellow-500'
                       : 'bg-red-500'
                 }`}
-              />
+              /> */}
               {appliance.modelName}
             </Button>
           ))}
