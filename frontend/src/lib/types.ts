@@ -80,3 +80,33 @@ export interface ApplianceFailureData {
     }
   }[]
 }
+
+export interface SensorDataPoint {
+  time: string
+  value: number
+}
+
+export interface SensorItem {
+  title: string
+  measurement: string
+  icon: string
+  unit: string
+  criteria: {
+    lowerLimit: number
+    upperLimit: number
+    threshold: {
+      warning: number
+      critical: number
+    }
+  }
+  sensorName: string
+  data: {
+    time: string[]
+    value: number[]
+  }
+}
+
+export interface SensorData {
+  serialNumber: string
+  sensorData: SensorItem[]
+}
