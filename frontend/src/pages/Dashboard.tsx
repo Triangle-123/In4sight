@@ -9,7 +9,7 @@ import {
 import { ApplianceDataType, ApplianceType } from '@/lib/types'
 import useStore from '@/store/store'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 // import { v4 as uuidv4 } from 'uuid'
 
@@ -48,6 +48,12 @@ export default function Dashboard() {
   // 전역 변수에 setter 함수 할당
   globalSetSelectedAppliance = setSelectedAppliance
   setNavigate(navigate)
+
+  useEffect(() => {
+    if (!isConnected) {
+      createSseConnection('')
+    }
+  }, [isConnected])
 
   useEffect(() => {
     if (selectedAppliance) {

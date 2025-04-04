@@ -1,11 +1,20 @@
 import useStore from '@/store/store'
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export default function CallQueue() {
   const navigate = useNavigate()
   const removeFromCallQueue = useStore((state) => state.removeFromCallQueue)
+  const createSseConnection = useStore((state) => state.createSseConnection)
+  const isConnected = useStore((state) => state.isConnected)
   const callQueue = useStore((state) => state.callQueue)
   const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
+  useEffect(() => {
+    if (!isConnected) {
+      createSseConnection('')
+    }
+  }, [isConnected])
 
   // 고객 전화 연결결
   const handleTakeCall = (phoneNumber: string) => {

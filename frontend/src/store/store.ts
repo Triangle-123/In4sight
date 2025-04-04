@@ -242,7 +242,7 @@ const useStore = create<Store>((set, get) => {
       try {
         console.log('고객 요청 해결:', event.data)
         const callData = JSON.parse(event.data)
-        get().removeFromCallQueue(callData.id)
+        get().removeFromCallQueue(callData.phoneNumber)
       } catch (err) {
         console.error('고객 요청 해결 파싱 에러:', event.data, err)
       }
