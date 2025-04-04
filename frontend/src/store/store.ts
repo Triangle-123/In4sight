@@ -80,6 +80,7 @@ type Store = State & Actions
 
 const MAX_RECONNECT_ATTEMPTS = 5
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const LOCAL_QUERY_STRING = import.meta.env.VITE_LOCAL_QUERY_STRING || ''
 
 if (!import.meta.env.VITE_API_BASE_URL) {
   console.warn(
@@ -107,7 +108,9 @@ const useStore = create<Store>((set, get) => {
 
     // const eventSource = new EventSource(`${API_URL}/counseling`)
     // 로컬 디버깅 용
-    const eventSource = new EventSource(`${API_URL}/counseling?local=true`)
+    const eventSource = new EventSource(
+      `${API_URL}/counseling${LOCAL_QUERY_STRING}`,
+    )
     eventSourceRef = eventSource
 
     eventSource.onopen = () => {
