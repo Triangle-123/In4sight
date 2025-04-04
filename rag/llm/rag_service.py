@@ -6,6 +6,8 @@ import concurrent.futures
 import json
 import logging
 import pprint
+import threading
+import time
 from typing import Any, Dict
 
 # Kafka에 이벤트 발행 (프로듀서 로직 필요)
@@ -20,86 +22,30 @@ from rag.llm.rag_response import DiagnosticResult
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-def suggest_additional_questions(message: Dict[str, Any]) -> None:
-    """
-    상담사의 추가 질문 이벤트를 처리합니다.
-
-    Args:
-        message: Kafka 메시지 내용
-    """
-    try:
-        logger.info("상담사 추가 질문 이벤트 수신: %s", message)
-
-        # 메시지에서 필요한 데이터 내용 추출
-        analysis_id = message.get("analysis_id")
-        # user_query = message.get("user_query")
-        # 어떤 추가 정보를 받을까?
-        # 현재 어떤 제품에 대해 질문하고 있는지??? -> LLM 서버 토큰 줄이기
-        # 해당 제품의 시계열 데이터를 바탕으로 DAS에서 '적당히' 분석해서 LLM에 던져주면, LLM을 통해 추론하는 방식도 괜찮을거 같긴 합니다.
-        # 약간 챗봇 느낌
-
-        if not analysis_id:
-            logger.error("유효하지 않은 메시지 형식: analysis_id가 없습니다")
-            return
-    except Exception as e:  # pylint: disable=broad-except
-        logger.error("추가 질문 이벤트 처리 중 오류 발생: %s", e, exc_info=True)
+customer_log_dict = {}
+customer_log_dict_lock = threading.Lock()  # 전역 락 객체
 
 
-def process_counseling_history_event(message: list[str, Any]) -> None:
+def process_counseling_history_event(
+    message: Dict[str, Any],
+) -> None:
     """
     고객의 과거 상담 이력 정보를 받아 캐싱합니다.
-
-    {
-        'taskId': [{
-            'failure': '증상',
-            'causes': ['원인1', '원인2'],
-            'solutions': []
-        }]
-    }
     """
-    # 테스트용 예시 데이터
-    message2 = [
-        {
-            "task_id": "01045309648",
-            "date": "2025-02-01",
-            "data": {
-                "serial_number": "DMKOJ1QEIO1JNE123141",
-                "cause": [
-                    "냉기 토출구 팬 rpm이 높은 구간이 감지되었습니다.",
-                    "과도하게 냉장고에 적재한 구간이 감지되었습니다.",
-                ],
-                "failure": "냉장실 내부 온도가 높습니다.(냉장실 공간 부족/토출구 막힘)",
-                "sensor": ["냉기토출구 팬RPM", "적재량"],
-                "solutions": {
-                    "personalized_solution": [
-                        {
-                            "personalized_context": "과거에 냉장실과 냉동실 온도가 올라갔던 문제와\
-                                  관련하여 냉기 토출구가 막혔던 원인이 있었습니다.\
-                                현재도 적재량이 많아지면 문제가 발생할 수 있습니다.",
-                            "recommended_solution": "냉장실의 물건을 줄여서 냉기 토출구가 막히지 않도록 해주세요",
-                            "status": "주의",
-                        }
-                    ],
-                    "preventative_advice": [
-                        "냉장고에 물건을 과도하게 적재하지 않도록 해주세요.",
-                        "냉기 토출구 주변은 항상 비워두어야 원활한 냉각이 가능합니다.",
-                    ],
-                },
-            },
-        }
-    ]
+
+    logger.info("고객 상담 이력 정보 수신")
+    if not message:
+        logger.error("유효하지 않은 메시지 형식: message가 없습니다")
+        return
+
     logger.info("고객 상담 이력 이벤트 수신")
-    message2 += "1"
-    print(message)
+    pprint.pprint(message)
     # 첫 번째 키를 가져옵니다
-    phone_number = message[0].get("task_id")
+    task_id = message.get("taskId")
 
-    # 해당 키의 값을 딕셔너리에 저장합니다
-    customer_log_dict[phone_number] = message
-
-
-customer_log_dict = {}
+    # 스레드 안전하게 딕셔너리에 값을 저장합니다
+    with customer_log_dict_lock:
+        customer_log_dict[task_id] = message
 
 
 def process_symptom_with_rag(
@@ -115,6 +61,7 @@ def process_symptom_with_rag(
         failure_item: 고장 증상 정보 (failure, causes, related_sensor 포함)
         product_type: 제품 타입
         client: GPT 클라이언트
+        task_id: 작업 아이디
 
     Returns:
         RAG 처리 결과
@@ -139,7 +86,7 @@ def process_symptom_with_rag(
         }
 
         customer_history = customer_log_dict.get(task_id)
-        # RAG 완료 호출
+
         response = handler.rag_completion(
             query_data=query_data,
             causes=causes,
@@ -183,9 +130,7 @@ def process_symptom_with_rag(
         }
 
 
-i = 0
-
-
+# pylint: disable=too-many-branches, too-many-statements
 def process_data_analysis_event(message: Dict[str, Any]) -> None:
     """
     데이터 분석 완료 이벤트를 처리합니다.
@@ -220,11 +165,48 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
         task_id = message.get("taskId")
         product_type = message.get("product_type")
 
+        # customer_log_dict에서 task_id를 통해 customer_history 가져오기 (최대 5번 시도)
+        retry_count = 0
+        max_retries = 5
+        wait_time = 1.5  # 초 단위 대기 시간
+
+        customer_history = None
+        customer_id = None
+        counseling_date = None
+
+        while retry_count < max_retries:
+            with customer_log_dict_lock:  # 락으로 보호
+                customer_history = customer_log_dict.get(task_id)
+                if customer_history is not None:
+                    customer_id = customer_history.get("customerId")
+                    counseling_date = customer_history.get("counselingDate")
+
+                    # 모든 필요한 데이터가 존재하는지 확인
+                    if customer_id is not None and counseling_date is not None:
+                        break
+
+            logger.info(
+                "customer_history 데이터가 완전하지 않습니다. %s번째 재시도 중... (대기 %s초)",
+                retry_count,
+                wait_time,
+            )
+            time.sleep(wait_time)
+            retry_count += 1
+
+        if customer_history is None or customer_id is None or counseling_date is None:
+            logger.warning(
+                "최대 재시도 횟수(%s)를 초과했습니다. 필요한 데이터를 찾을 수 없습니다.",
+                max_retries,
+            )
+
         if not task_id:
             logger.error("유효하지 않은 메시지 형식: task_id가 없습니다")
             return
 
         client = GPTClient()
+        symptom_length = len(data)  # atomic하게 관리
+        remaining_count = [symptom_length]  # 리스트로 감싸서 참조를 공유
+
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(8, len(data))
         ) as executor:
@@ -246,8 +228,17 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
 
                 try:
                     result = future.result()
+                    with customer_log_dict_lock:
+                        remaining_count[0] -= 1
+                        if remaining_count[0] == 0:  # 마지막 증상 처리가 완료되면
+                            customer_log_dict.pop(task_id, None)  # task_id 항목 제거m
+
                     publish_rag_completed_event(
-                        task_id=task_id, result=result, serial_number=serial_number
+                        task_id=task_id,
+                        result=result,
+                        serial_number=serial_number,
+                        customer_id=customer_id,
+                        counseling_date=counseling_date,
                     )
 
                 except Exception as e:  # pylint: disable=broad-except
@@ -263,40 +254,22 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
         logger.error("RAG 처리 중 오류 발생: %s", e, exc_info=True)
 
 
-def generate_query_from_analysis(analysis_results: Dict[str, Any]) -> str:
-    """
-    데이터 분석 결과를 바탕으로 질의문을 생성합니다.
-
-    Args:
-        analysis_results: 데이터 분석 결과
-
-    Returns:
-        생성된 질의문 문자열
-    """
-    # 분석 결과에서 중요 정보 추출 및 질의문 생성
-    summary = analysis_results.get("summary", "")
-    issues = analysis_results.get("issues", [])
-
-    query = f"가전제품 데이터 분석 결과: {summary}"
-
-    if issues:
-        issues_text = ", ".join(issues)
-        query += f" 발견된 문제점: {issues_text}. 이 문제들에 대한 해결책과 추가 정보를 제공해주세요."
-
-    return query
-
-
-def publish_rag_completed_event(task_id: str, result, serial_number: str) -> None:
+def publish_rag_completed_event(
+    task_id: str, result, serial_number: str, customer_id: str, counseling_date: str
+) -> None:
     """
     RAG 분석 완료 이벤트를 Kafka에 발행합니다.
 
     Args:
-        analysis_id: 분석 ID
+        task_id: 분석 ID
         result: GPT 응답 결과
+        serial_number: 제품 시리얼 넘버
+        customer_id: 고객 아이디
+        counseling_date: 상담 일자자
     """
     try:
         print("publish_rag_completed_event")
-        print(result)
+
         # DiagnosticResult 객체를 딕셔너리로 변환
         if "solutions" in result and isinstance(result["solutions"], list):
             result["solutions"] = [
@@ -306,14 +279,16 @@ def publish_rag_completed_event(task_id: str, result, serial_number: str) -> Non
 
         event_data = {
             "taskId": task_id,
+            "customer_id": customer_id,
+            "counseling_date": counseling_date,
             "result": {"serial_number": serial_number, "data": result},
         }
 
         producer = get_producer()
         if producer:
             print("=============이벤트발행==============")
-            eda.event_broadcast("rag-result", event_data)
             pprint.pprint(event_data)
+            eda.event_broadcast("rag-result", event_data)
             logger.info("RAG 분석 완료 이벤트가 성공적으로 발행되었습니다.")
         else:
             logger.error("Kafka 프로듀서가 설정되지 않았습니다.")

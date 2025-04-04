@@ -24,7 +24,7 @@ class GPTHandler:
     def __init__(self, client=None):
         """초기화 함수"""
         self.client = client or GPTClient()
-        self.db_ops = ChromaDBOperations(collection_name="device")
+        self.db_ops = ChromaDBOperations(collection_name="device-test")
 
     def simple_completion(self, user_message, system_message):
         """간단한 메시지 완성 요청 처리 함수"""
@@ -140,7 +140,7 @@ class GPTHandler:
         filtered_ids = []
         similarity_scores = []
 
-        # TF-IDF 벡터라이저 초기화 (전체 문서에 맞게 학습)
+        # TF-IDF 벡터라이저 초기화
         all_texts = [query_text] + [
             metadata["title"] for metadata in results["metadatas"][0]
         ]
@@ -165,9 +165,9 @@ class GPTHandler:
                 metadata["title"],
                 query_embedding,
                 title_embedding,
-                embedding_weight=0.5,  # 임베딩 유사도 가중치
+                embedding_weight=0.4,  # 임베딩 유사도 가중치
                 keyword_weight=0.3,  # 키워드 매칭 가중치
-                tfidf_weight=0.2,  # TF-IDF 유사도 가중치
+                tfidf_weight=0.3,  # TF-IDF 유사도 가중치
                 vectorizer=vectorizer,
             )
 
@@ -175,8 +175,8 @@ class GPTHandler:
                 f"쿼리: {query_text}, 제목: {metadata['title']}, 하이브리드 유사도: {similarity}"
             )
 
-            # 임계값 이상인 항목만 포함 (임계값 조정 가능)
-            if similarity >= 0.4:  # 임계값을 0.75에서 0.6으로 낮춤 (필요에 따라 조정)
+            # 임계값 이상인 항목만 포함
+            if similarity >= 0.60:
                 filtered_results.append(doc)
                 filtered_metadatas.append(metadata)
                 filtered_distances.append(distance)
@@ -273,23 +273,18 @@ class GPTHandler:
                 meta_items = [f"{k}: {v}" for k, v in relevant_meta.items()]
                 meta_str = f"[{', '.join(meta_items)}]"
 
-            # 유사도 점수 (있는 경우)
             score_str = f"(유사도: {dist:.4f})" if dist is not None else ""
 
             # 문서 내용 구성
-            # 만약 메타데이터에 solution 필드가 있고 非공백이면 그것을 사용
             document_content = doc
             if meta and "solution" in meta and meta["solution"].strip():
-                # 타이틀과 솔루션을 함께 표시
                 title = meta.get("title", "")
                 if title:
                     document_content = f"제목: {title}\n\n{meta['solution']}"
                 else:
                     document_content = meta["solution"]
 
-            # 개별 문서 포맷팅
             doc_str = f"--- 문서 {i+1} {meta_str} {score_str} ---\n{document_content}\n"
             context_parts.append(doc_str)
 
-        # 전체 컨텍스트 문자열 결합
         return "\n".join(context_parts)
