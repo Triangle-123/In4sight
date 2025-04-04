@@ -13,7 +13,7 @@ class GPTConfig:
     """GPT API 설정 관리 클래스"""
 
     # 기본 모델 설정
-    DEFAULT_MODEL = "gpt-4o-mini"
+    DEFAULT_MODEL = "gpt-4o"
 
     # API 요청 기본 설정
     DEFAULT_TEMPERATURE = 0.7
