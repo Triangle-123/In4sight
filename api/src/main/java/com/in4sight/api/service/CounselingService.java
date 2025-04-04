@@ -54,6 +54,7 @@ public class CounselingService {
 
 		log.info("replace");
 		log.info("Generated Query: " + query);
+		log.info("device : {}", device);
 		UpdateResult result = mongoTemplate.updateFirst(query, update, LogByCustomer.class);
 		log.info("Matched count: " + result.getMatchedCount());
 		log.info("Modified count: " + result.getModifiedCount());
