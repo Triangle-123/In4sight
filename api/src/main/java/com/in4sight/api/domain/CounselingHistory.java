@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Getter
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class CounselingHistory {

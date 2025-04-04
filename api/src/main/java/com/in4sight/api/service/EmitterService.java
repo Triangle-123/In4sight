@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.http.ResponseCookie;
@@ -24,9 +26,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.in4sight.api.domain.CustomerDevice;
+import com.in4sight.api.dto.CounselingHistoryDto;
 import com.in4sight.api.dto.CounselingRequestDto;
 import com.in4sight.api.dto.CounselorEmitterDto;
-import com.in4sight.api.dto.CurrentCounselingRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.EventDataDto;
@@ -66,6 +68,7 @@ public class EmitterService {
 				sendEvent(taskId, key, cache.get(key));
 			}
 		}
+		sendHeartBeat(taskId);
 		return emitter;
 	}
 
@@ -100,6 +103,30 @@ public class EmitterService {
 
 	public SseEmitter getEmitter(String taskId) {
 		return emitters.getOrDefault(taskId, null);
+	}
+
+	public void sendHeartBeat(String taskId) {
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
+		Runnable dropTheBeat = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					SseEmitter emitter = getEmitter(taskId);
+					if (emitter == null) {
+						executor.shutdown();
+					} else {
+						log.info("send SSE HeartBeat");
+						emitter.send("SSE HeartBeat");
+					}
+				} catch (Exception e) {
+					log.error(e.getMessage());
+					executor.shutdown();
+				}
+			}
+		};
+
+		executor.scheduleWithFixedDelay(dropTheBeat, 0, 5, TimeUnit.SECONDS);
 	}
 
 	public Set<String> getAllCounselors() {
@@ -141,10 +168,12 @@ public class EmitterService {
 			String counselingDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm"));
 			kafkaProducer.broadcastEvent("counseling_request",
 				new CounselingRequestDto(taskId, serialNumbers));
-			kafkaProducer.broadcastEvent("counseling_history",
+			CounselingHistoryDto history = new CounselingHistoryDto(taskId,
+				customerResponseDto.getCustomerId(),
+				counselingDate,
 				counselingService.findLog(customerResponseDto.getCustomerId()));
-			kafkaProducer.broadcastEvent("current_counseling",
-				new CurrentCounselingRequestDto(customerResponseDto.getCustomerId(), counselingDate));
+			kafkaProducer.broadcastEvent("counseling_history", history);
+			log.info("send counselingHistory : {}", history);
 			counselingService.addLog(customerResponseDto.getCustomerId(),
 				counselingDate,
 				devices);

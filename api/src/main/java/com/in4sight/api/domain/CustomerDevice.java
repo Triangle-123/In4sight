@@ -6,20 +6,16 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Getter
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString
 public class CustomerDevice {
-
-//	@Field("product_type")
-//	private String productType;
-//
-//	@Field("model_suffix")
-//	private String modelSuffix;
 
 	@Field("serial_number")
 	private String serialNumber;
