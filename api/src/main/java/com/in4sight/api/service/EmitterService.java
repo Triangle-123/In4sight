@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.http.ResponseCookie;
@@ -66,6 +68,7 @@ public class EmitterService {
 				sendEvent(taskId, key, cache.get(key));
 			}
 		}
+		sendHeartBeat(taskId);
 		return emitter;
 	}
 
@@ -100,6 +103,30 @@ public class EmitterService {
 
 	public SseEmitter getEmitter(String taskId) {
 		return emitters.getOrDefault(taskId, null);
+	}
+
+	public void sendHeartBeat(String taskId) {
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
+		Runnable dropTheBeat = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					SseEmitter emitter = getEmitter(taskId);
+					if (emitter == null) {
+						executor.shutdown();
+					} else {
+						log.info("send SSE HeartBeat");
+						emitter.send("SSE HeartBeat");
+					}
+				} catch (Exception e) {
+					log.error(e.getMessage());
+					executor.shutdown();
+				}
+			}
+		};
+
+		executor.scheduleWithFixedDelay(dropTheBeat, 0, 5, TimeUnit.SECONDS);
 	}
 
 	public Set<String> getAllCounselors() {
