@@ -63,7 +63,7 @@ public class TimeSeriesDataDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	private static class Threshold {
-		private int warning;
-		private int critical;
+		private Double warning;
+		private Double critical;
 	}
 }
