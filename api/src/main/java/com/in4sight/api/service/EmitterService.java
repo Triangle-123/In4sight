@@ -24,9 +24,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.in4sight.api.domain.CustomerDevice;
+import com.in4sight.api.dto.CounselingHistoryDto;
 import com.in4sight.api.dto.CounselingRequestDto;
 import com.in4sight.api.dto.CounselorEmitterDto;
-import com.in4sight.api.dto.CurrentCounselingRequestDto;
 import com.in4sight.api.dto.CustomerResponseDto;
 import com.in4sight.api.dto.DeviceResponseDto;
 import com.in4sight.api.dto.EventDataDto;
@@ -141,10 +141,12 @@ public class EmitterService {
 			String counselingDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd HH:mm"));
 			kafkaProducer.broadcastEvent("counseling_request",
 				new CounselingRequestDto(taskId, serialNumbers));
-			kafkaProducer.broadcastEvent("counseling_history",
+			CounselingHistoryDto history = new CounselingHistoryDto(taskId,
+				customerResponseDto.getCustomerId(),
+				counselingDate,
 				counselingService.findLog(customerResponseDto.getCustomerId()));
-			kafkaProducer.broadcastEvent("current_counseling",
-				new CurrentCounselingRequestDto(customerResponseDto.getCustomerId(), counselingDate));
+			kafkaProducer.broadcastEvent("counseling_history", history);
+			log.info("send counselingHistory : {}", history);
 			counselingService.addLog(customerResponseDto.getCustomerId(),
 				counselingDate,
 				devices);

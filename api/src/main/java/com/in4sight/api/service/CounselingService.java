@@ -27,6 +27,8 @@ public class CounselingService {
 	private final MongoTemplate mongoTemplate;
 
 	public void addLog(int customerId, String counselingDate, List<CustomerDevice> devices) {
+//		counselingRepository.deleteAll();
+
 		Query query = new Query(
 			Criteria.where("customer_id").is(customerId)
 		);
@@ -44,6 +46,8 @@ public class CounselingService {
 			Criteria.where("customer_id").is(customerId)
 				.and("counseling_history.counseling_date").is(counselingDate)
 				.and("counseling_history.devices.serial_number").is(device.getSerialNumber())
+//			Criteria.where("customer_id").is(3)
+//				.and("counseling_history.devices.serial_number").is(device.getSerialNumber())
 		);
 
 		Update update = new Update()
@@ -52,8 +56,12 @@ public class CounselingService {
 		update.filterArray("outer.counseling_date", counselingDate)
 			.filterArray("inner.serial_number", device.getSerialNumber());
 
+//		update.filterArray("outer.devices.serial_number", device.getSerialNumber())
+//			.filterArray("inner.serial_number", device.getSerialNumber());
+
 		log.info("replace");
 		log.info("Generated Query: " + query);
+		log.info("device : {}", device);
 		UpdateResult result = mongoTemplate.updateFirst(query, update, LogByCustomer.class);
 		log.info("Matched count: " + result.getMatchedCount());
 		log.info("Modified count: " + result.getModifiedCount());
