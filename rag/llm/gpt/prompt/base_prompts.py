@@ -63,6 +63,8 @@ class BasePrompts:
     - 제품 고장/비고장 메뉴얼에서 해당 증상과 일치하는 해결책을 찾아 제공합니다.
     - 현재 유저가 겪는 증상이 메뉴얼의 내용과 관련이 없는 경우 사용하지 마세요.
     - 정보가 부족한 경우, "정확한 정보를 제공하기 어렵습니다."라고 응답합니다.
+    - status의 경우 0이면 비고장, 1이면 고장입니다. 만약 메뉴얼의 status가 0이면 personalized_solution 필드의 status는 정상 또는 주의로 나타내주세요.
+    - status가 주의인 경우는 메뉴얼의 status가 0이지만 주의가 필요한 해결책인 경우 출력합니다.
 
     4. 고객 맞춤형 솔루션 추가
     - 고객의 사용 패턴과 과거 이력을 고려한 맞춤형 솔루션을 제공합니다.
@@ -77,8 +79,9 @@ class BasePrompts:
     ✅ "recommended_solution" 필드는 고객이 이해하기 쉽게 설명
     ✅ "personalized_context" 필드는 고객의 과거 상담 이력을 기반으로 맞춤형 설명 제공. 과거 상담 이력이 현재와 연관이 없다면 비워도 됨.
     ✅ "preventative_advice" 필드는 유사 문제가 반복되지 않도록 예방 조언 제공
-    ✅ 고객의 상담 이력을 적극 활용하여 맞춤형 솔루션 제공
-
+    ✅ 고객의 상담 이력을 적극 활용하여 맞춤형 솔루션 제공. 단, 현재 증상과 관련 없는 이력의 경우 historical_context는 비워 둘 것.
+    ✅ 고객 기기의 이벤트를 보고 잠재적인 문제가 있는지도 판단.
+    
     """
 
     @staticmethod
@@ -91,11 +94,9 @@ class BasePrompts:
         # 메타데이터, 유사도, 문서 내용 추출
         documents = []
         metadatas = []
-        distances = []
 
         for match in matches:
             meta_str = match[1]
-            similarity = float(match[2])
             content = match[3].strip()
 
             # 메타데이터 파싱 - 키:값 쌍으로 구성
@@ -107,9 +108,8 @@ class BasePrompts:
 
             documents.append(content)
             metadatas.append(metadata)
-            distances.append(similarity)
 
-        return documents, metadatas, distances
+        return documents, metadatas
 
     @staticmethod
     def _create_manuals(documents, metadatas):
@@ -146,6 +146,7 @@ class BasePrompts:
 
         return formatted_context
 
+    # pylint: disable=too-many-branches
     @staticmethod
     def _format_history(customer_history):
         """고객 상담 이력을 포맷팅된 문자열로 변환"""
@@ -153,39 +154,64 @@ class BasePrompts:
         if not customer_history:
             return formatted_customer_history
 
-        for i, history in enumerate(customer_history):
+        histories = customer_history.get("histories", {}).get("counselingHistory", [])
+
+        for i, history in enumerate(histories):
             formatted_customer_history += f"\n\t{i + 1}번째 상담 이력"
             formatted_customer_history += "\n\n\t# 날짜: "
-            formatted_customer_history += history.get("date", "")
+            formatted_customer_history += history.get("counselingDate", "")
 
-            failure = history.get("data", {}).get("failure", "")
-            formatted_customer_history += "\n\t# 증상: " + failure
+            # devices 배열의 첫 번째 항목을 사용 (있을 경우)
+            devices = history.get("devices", [])
+            if not devices:
+                formatted_customer_history += "\n\t# 장치 정보 없음\n"
+                continue
+
+            device = devices[0]  # 첫 번째 장치 정보 사용
+
+            failure = device.get("failure", "")
+            formatted_customer_history += "\n\t# 증상: " + (
+                failure if failure else "정보 없음"
+            )
 
             formatted_customer_history += "\n\t# 원인: \n"
-            causes = history.get("data", {}).get("cause", [])
-            for j, cause in enumerate(causes):
-                formatted_customer_history += f"\t{j + 1}. {cause}\n"
+            causes = device.get("cause", [])
+            if causes:
+                for j, cause in enumerate(causes):
+                    formatted_customer_history += f"\t{j + 1}. {cause}\n"
+            else:
+                formatted_customer_history += "\t정보 없음\n"
 
             formatted_customer_history += "\n\t# 관련 센서: "
-            sensors = history.get("data", {}).get("sensor", [])
+            sensors = device.get("sensor", [])
             if sensors:
                 formatted_customer_history += ", ".join(sensors)
+            else:
+                formatted_customer_history += "정보 없음"
 
             formatted_customer_history += "\n\t# 해결책: "
-            solutions = (
-                history.get("data", {})
-                .get("solutions", {})
-                .get("personalized_solution", [])
-            )
-            for k, solution in enumerate(solutions):
-                formatted_customer_history += f"{k + 1}. "
-                formatted_customer_history += solution.get("personalized_context", "")
-                formatted_customer_history += " "
-                formatted_customer_history += solution.get("recommended_solution", "")
-                formatted_customer_history += "\t심각도: "
-                formatted_customer_history += solution.get("status", "")
-                formatted_customer_history += "\n"
+            solutions = device.get("solutions", {})
+            if solutions:
+                personalized_solutions = solutions.get("personalized_solution", [])
+                if personalized_solutions:
+                    for k, solution in enumerate(personalized_solutions):
+                        formatted_customer_history += f"{k + 1}. "
+                        formatted_customer_history += solution.get(
+                            "personalized_context", ""
+                        )
+                        formatted_customer_history += " "
+                        formatted_customer_history += solution.get(
+                            "recommended_solution", ""
+                        )
+                        formatted_customer_history += "\t심각도: "
+                        formatted_customer_history += solution.get("status", "")
+                        formatted_customer_history += "\n"
+                else:
+                    formatted_customer_history += "정보 없음\n"
+            else:
+                formatted_customer_history += "정보 없음\n"
 
+            formatted_customer_history += "\n"
         return formatted_customer_history
 
     @staticmethod
@@ -194,8 +220,8 @@ class BasePrompts:
     ):
         """RAG 프롬프트 포맷팅 함수"""
         # 컨텍스트 파싱
-        documents, metadatas, distances = BasePrompts._parse_context(context)
-        print(distances)
+        documents, metadatas = BasePrompts._parse_context(context)
+
         # 메뉴얼 구조 생성
         structured_manuals = BasePrompts._create_manuals(documents, metadatas)
 
