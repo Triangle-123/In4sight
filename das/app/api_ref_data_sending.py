@@ -31,7 +31,7 @@ MEASUREMENT_NAMES = {
 SENSOR_THRESHOLDS = {
     "temp_internal": {
         "fridge": {"warning": 8, "critical": 12},  # 냉장실 온도 임계값
-        "freezer": {"warning": -15, "critical": -17},  # 냉동실 온도 임계값
+        "freezer": {"warning": -17, "critical": -15},  # 냉동실 온도 임계값
     },
     "temp_external": {"warning": 35, "critical": 40},  # 외부 온도 임계값
     "load_percent": {"warning": 75, "critical": 85},  # 부하율 임계값
