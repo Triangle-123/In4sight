@@ -2,9 +2,7 @@ package com.in4sight.api.dto;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,7 +17,7 @@ public class TimeSeriesDataDto {
 	private String taskId;
 	private String serialNumber;
 
-	@JsonProperty("sensor_data")
+	@JsonAlias("sensor_data")
 	private List<SensorData> sensorData;
 
 
@@ -28,19 +26,44 @@ public class TimeSeriesDataDto {
 	@AllArgsConstructor
 	public static class SensorData {
 		private String title;
+		private String measurement;
 		private String icon;
 		private String unit;
-		private boolean normal;
-		private List<FieldData> data;
+
+		private Criteria criteria;
+
+		@JsonAlias("sensor_name")
+		private String sensorName;
+
+		private FieldData data;
 	}
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class FieldData {
-		private String time;
-		private Double value;
-		private int status;
+		private List<String> time;
+		private List<Double> value;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Criteria {
+		@JsonAlias("lower_limit")
+		private int lowerLimit;
+
+		@JsonAlias("upper_limit")
+		private int upperLimit;
+
+		private Threshold threshold;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Threshold {
+		private int warning;
+		private int critical;
 	}
 }

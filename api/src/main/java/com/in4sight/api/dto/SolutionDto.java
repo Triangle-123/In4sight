@@ -2,9 +2,7 @@ package com.in4sight.api.dto;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,10 +17,10 @@ public class SolutionDto {
 
 	private String taskId;
 
-	@JsonProperty("customer_id")
+	@JsonAlias("customer_id")
 	private int customerId;
 
-	@JsonProperty("counseling_date")
+	@JsonAlias("counseling_date")
 	private String counselingDate;
 
 	private Result result;
@@ -30,8 +28,9 @@ public class SolutionDto {
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class Result {
+
+		@JsonAlias("serial_number")
 		private String serialNumber;
 		private TotalAnswer data;
 	}
@@ -39,7 +38,6 @@ public class SolutionDto {
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class TotalAnswer {
 		private String failure;
 		private List<String> cause;
@@ -50,8 +48,8 @@ public class SolutionDto {
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
-	@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 	public static class HistoricalContext {
+		@JsonAlias("previous_issues")
 		private List<PreviousIssue> previousIssues;
 	}
 
