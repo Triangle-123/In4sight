@@ -26,31 +26,44 @@ public class TimeSeriesDataDto {
 	@AllArgsConstructor
 	public static class SensorData {
 		private String title;
+		private String measurement;
 		private String icon;
 		private String unit;
 
-		@JsonAlias("lower_bound")
-		private int lowerBound;
+		private Criteria criteria;
 
-		@JsonAlias("upper_bound")
-		private int upperBound;
+		@JsonAlias("sensor_name")
+		private String sensorName;
 
-		@JsonAlias("warning_threshold")
-		private int warningThreshold;
-
-		@JsonAlias("danger_threshold")
-		private int dangerThreshold;
-
-		private boolean normal;
-		private List<FieldData> data;
+		private FieldData data;
 	}
 
 	@lombok.Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class FieldData {
-		private String time;
-		private Double value;
-		private int status;
+		private List<String> time;
+		private List<Double> value;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Criteria {
+		@JsonAlias("lower_limit")
+		private int lowerLimit;
+
+		@JsonAlias("upper_limit")
+		private int upperLimit;
+
+		private Threshold threshold;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Threshold {
+		private int warning;
+		private int critical;
 	}
 }
