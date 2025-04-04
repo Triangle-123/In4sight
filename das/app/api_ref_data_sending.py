@@ -2,8 +2,6 @@
 냉장고 시계열 데이터를 API 서버에 데이터를 보내는 형식으로 바꾸기 위한 모듈입니다.
 """
 
-import pandas as pd
-
 from app.api_data_refine import api_data_refine, refine_query_data
 
 METRICS = {
@@ -15,6 +13,9 @@ METRICS = {
     "temp_internal": "내부 온도",
     "fridge": "냉장실",
     "freezer": "냉동실",
+    "door_open": "문열림",
+    "defrost_cycle": "제상 사이클 진행",
+    "load_change": "적재량 변화",
 }
 
 # 센서 컬럼명과 한글 매핑
@@ -86,6 +87,10 @@ SENSOR_DATA_LIST = [
 
 DEFAULT_DATA_LIST = ["_time", "location"]
 
+LOCATION_EVENT_DATA_LIST = ["door_open", "load_change"]
+
+SIMPLE_EVENT_DATA_LIST = ["defrost_cycle"]
+
 
 def get_ref_refine_data(df_sensor):
     """
@@ -99,33 +104,37 @@ def get_ref_refine_data(df_sensor):
     )
 
 
-def event_summary(df_event, df_sensor):
+def event_summary(df_event):
     """
-    이벤트 데이터를 요약해주는 메소드입니다.
+    문 열림 이벤트 데이터를 요약해주는 메소드입니다.
     """
-
-    if (
-        df_event.empty
-        or "_time" not in df_event.columns
-        or "event_type" not in df_event.columns
-    ):
-        return ["이벤트 데이터가 없습니다."]
-
-    df_event = df_event.copy()
-    df_event["_time"] = pd.to_datetime(df_event["_time"])
-
-    start_date = df_sensor["_time"].min().strftime("%Y.%m.%d")
-    end_date = df_sensor["_time"].max().strftime("%Y.%m.%d")
-
-    # event_type이 'door_open'인 것만 필터링
-    door_open_df = df_event[df_event["event_type"] == "door_open"]
 
     event_dataset = []
+    for event in LOCATION_EVENT_DATA_LIST:
+        target_df_event = df_event[df_event["event_type"] == event]
 
-    for location in EVENT_LOCATION:
-        door_open_count = len(door_open_df[door_open_df["location"] == location])
-        event_dataset.append(
-            f"{start_date} ~ {end_date} {METRICS[location]} 문열림 감지 이벤트 {door_open_count}회 발생"
-        )
+        for location in EVENT_LOCATION:
+            target_location_df_event = target_df_event[
+                target_df_event["location"] == location
+            ]
+            event_data = {}
+            event_data["field"] = f"{event}_{location}"
+            event_data["measurement"] = f"{METRICS[location]} {METRICS[event]}"
+            event_data["time"] = [
+                d.strftime("%Y-%m-%d %H:%M:%S")
+                for d in target_location_df_event["_time"]
+            ]
+
+            event_dataset.append(event_data)
+
+    for event in SIMPLE_EVENT_DATA_LIST:
+        event_data = {}
+        event_data["field"] = f"{event}"
+        event_data["measurement"] = f"{METRICS[event]}"
+        event_data["time"] = [
+            d.strftime("%Y-%m-%d %H:%M:%S") for d in target_df_event["_time"]
+        ]
+
+        event_dataset.append(event_data)
 
     return event_dataset
