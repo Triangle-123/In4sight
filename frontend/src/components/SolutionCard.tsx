@@ -1,8 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { solutionPlaceholder } from '@/lib/placeholder-data'
-import { ApplianceFailureData } from '@/lib/types'
+import { SolutionItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { AlertTriangle, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
@@ -49,32 +48,17 @@ const getStatusColor = (status: string) => {
 }
 
 interface SolutionCardProps {
-  data: {
-    result: {
-      data: {
-        failure: string
-        cause: string[]
-        solutions: {
-          personalized_solution: Array<{
-            status: string
-            recommended_solution: string
-            personalized_context: string
-          }>
-          preventative_advice: string[]
-        } | null
-      }
-    }
-  }
+  data: SolutionItem
 }
 
 export default function SolutionCard({ data }: SolutionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const { failure, cause, solutions } = data.result.data
-  const personalized_solution = solutions?.personalized_solution || []
-  const preventative_advice = solutions?.preventative_advice || []
+  const personalizedSolution = solutions.personalizedSolution || []
+  const preventativeAdvice = solutions.preventativeAdvice || []
 
-  const status = personalized_solution[0]?.status || 'default'
+  const status = personalizedSolution[0]?.status || 'default'
   const colors = getStatusColor(status)
 
   return (
@@ -88,7 +72,6 @@ export default function SolutionCard({ data }: SolutionCardProps) {
         <CardHeader className="flex flex-row items-start justify-between p-5 pb-2">
           <div className="flex items-start gap-3">
             <div className="relative mt-1">
-              {/* <div className={cn("w-2 h-2 rounded-full absolute -left-1 -top-1", colors.dot)} /> */}
               <AlertTriangle className={cn('h-5 w-5', colors.icon)} />
             </div>
             <div>
@@ -129,7 +112,7 @@ export default function SolutionCard({ data }: SolutionCardProps) {
             <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-3">
               해결 방법
             </h3>
-            {personalized_solution.map(
+            {personalizedSolution.map(
               (
                 solution: {
                   recommended_solution: string
@@ -160,7 +143,7 @@ export default function SolutionCard({ data }: SolutionCardProps) {
               예방 조치
             </h3>
             <div className="space-y-2 pl-1">
-              {preventative_advice.map((advice: string, index: number) => (
+              {preventativeAdvice.map((advice: string, index: number) => (
                 <div key={index} className="flex items-start gap-2">
                   <span className="text-gray-400 mt-1">•</span>
                   <span className="text-sm text-gray-700 leading-relaxed">

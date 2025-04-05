@@ -2,23 +2,32 @@
 
 import { Button } from '@/components/ui/button'
 import useStore from '@/store/store'
-import { Refrigerator, WashingMachine, X } from 'lucide-react'
-
+import { X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 interface SidebarProps {
   callHistory: { date: string; time: string; topic: string }[]
 }
+
+const API_URL = import.meta.env.VITE_API_BASE_URL
 
 export function Sidebar({ callHistory }: SidebarProps) {
   const selectedAppliance = useStore((state) => state.selectedAppliance)
   const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
   const customerInfo = useStore((state) => state.customerInfo)
   const appliances = useStore((state) => state.appliances)
+  const navigate = useNavigate()
+  const reset = useStore((state) => state.reset)
 
+  
   // 상담사 상담 종료 요청 이벤트
   const handleDisconnect = () => {
     fetch(`${API_URL}/counseling/customer/disconnect`, {
       method: 'POST',
       body: customerInfo?.phoneNumber,
+    }).then((response) => {
+      console.log('상담 종료 요청 성공:', response)
+    }).catch((error) => {
+      console.error('상담 종료 요청 실패:', error)
     })
   }
 

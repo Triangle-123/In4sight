@@ -1,4 +1,9 @@
-import { ApplianceType, CustomerType, SensorData } from '@/lib/types'
+import {
+  ApplianceType,
+  CustomerType,
+  SensorData,
+  SolutionItem,
+} from '@/lib/types'
 import { resetSelectedAppliance } from '@/pages/Dashboard'
 import { create } from 'zustand'
 
@@ -26,14 +31,14 @@ interface State {
   // 데이터 상태
   customerInfo: CustomerType | null
   appliances: ApplianceType[]
-  sensorData: SensorData | null
-  eventData: any | null // 실제 이벤트 데이터 타입으로 교체 필요
+  sensorData: SensorData[]
+  eventData: EventData[]
   selectedAppliance: ApplianceType | null
-  solutionData: any | null // 실제 솔루션 데이터 타입으로 교체 필요
+  solutionData: SolutionItem[]
 
   // 고객 연결 큐 상태
   callQueue: Call[]
-  navigate: any | null
+  navigate: ((path: string) => void) | null
 }
 
 // 액션 타입 정의
@@ -46,8 +51,8 @@ interface Actions {
   // 데이터 업데이트
   setCustomerInfo: (data: CustomerType) => void
   setAppliances: (data: ApplianceType[]) => void
-  setSensorData: (data: SensorData) => void
-  setEventData: (data: any) => void
+  setSensorData: (data: SensorData[]) => void
+  setEventData: (data: EventData[]) => void
   setSelectedAppliance: (appliance: ApplianceType | null) => void
 
   // 상태 업데이트
@@ -59,7 +64,7 @@ interface Actions {
   // 고객 연결 큐 관리
   addToCallQueue: (call: Call) => void
   removeFromCallQueue: (phoneNumber: string) => void
-  setNavigate: (navigate: any) => void
+  setNavigate: (navigate: (path: string) => void) => void
 }
 
 // 전체 store 타입
@@ -93,8 +98,6 @@ const useStore = create<Store>((set, get) => {
       `SSE 연결을 시도합니다: ${reconnectCount + 1} of ${MAX_RECONNECT_ATTEMPTS}`,
     )
 
-    // const eventSource = new EventSource(`${API_URL}/counseling`)
-    // 로컬 디버깅 용
     const eventSource = new EventSource(
       `${API_URL}/counseling${LOCAL_QUERY_STRING}`,
     )
@@ -169,8 +172,12 @@ const useStore = create<Store>((set, get) => {
     eventSource.addEventListener('sensor-data', (event) => {
       try {
         console.log('센서 정보 수신:', event.data)
-        const sensorData = JSON.parse(event.data)
-        set({ sensorData })
+        const sensorData: SensorData = JSON.parse(event.data)
+        set((state) => ({
+          sensorData: state.sensorData
+            ? [...state.sensorData, sensorData]
+            : [sensorData],
+        }))
       } catch (err) {
         console.error('센서 정보 파싱 에러:', event.data, err)
       }
@@ -179,20 +186,25 @@ const useStore = create<Store>((set, get) => {
     eventSource.addEventListener('event-data', (event) => {
       try {
         console.log('이벤트 정보 수신:', event.data)
-        const eventData = JSON.parse(event.data)
-        set({ eventData })
+        const eventData: EventData = JSON.parse(event.data)
+        set((state) => ({
+          eventData: state.eventData
+            ? [...state.eventData, eventData]
+            : [eventData],
+        }))
       } catch (err) {
         console.error('이벤트 정보 파싱 에러:', event.data, err)
       }
     })
 
-    // TODO: 이벤트 이름 수정(solution -> solution-data)
     eventSource.addEventListener('solution', (event) => {
       try {
         console.log('솔루션 정보 수신:', event.data)
         const solutionData = JSON.parse(event.data)
         set((state) => ({
-          solutionData: [...state.solutionData, solutionData],
+          solutionData: state.solutionData
+            ? [...state.solutionData, solutionData]
+            : [solutionData],
         }))
       } catch (err) {
         console.error('솔루션 정보 파싱 에러:', event.data, err)
@@ -205,13 +217,13 @@ const useStore = create<Store>((set, get) => {
         get().reset()
         resetSelectedAppliance(null)
         // 고객 연결 끊김 후 큐 페이지로 이동
-        get().navigate('/call-queue')
+        get().navigate!('/call-queue')
       } catch (err) {
         console.error('고객 연결 끊김 파싱 에러:', event.data, err)
       }
     })
 
-    // 고객 전화 큐에 삽
+    // 고객 전화 큐에 삽입
     eventSource.addEventListener('request_call', (event) => {
       try {
         console.log('고객 요청 호출:', event.data)
@@ -255,8 +267,8 @@ const useStore = create<Store>((set, get) => {
     taskId: null,
     customerInfo: null,
     appliances: [],
-    sensorData: null,
-    eventData: null,
+    sensorData: [],
+    eventData: [],
     solutionData: [],
     selectedAppliance: null,
     callQueue: [],
@@ -267,9 +279,9 @@ const useStore = create<Store>((set, get) => {
     setTaskId: (taskId) => set({ taskId }),
     setCustomerInfo: (data) => set({ customerInfo: data }),
     setAppliances: (data) => set({ appliances: data }),
-    setSensorData: (data) => set({ sensorData: data }),
-    setEventData: (data) => set({ eventData: data }),
-    setSolutionData: (data) => set({ solutionData: data }),
+    setSensorData: (data: SensorData[]) => set({ sensorData: data }),
+    setEventData: (data: EventData[]) => set({ eventData: data }),
+    setSolutionData: (data: SolutionItem[]) => set({ solutionData: data }),
     setSelectedAppliance: (appliance) => {
       set({ selectedAppliance: appliance })
       console.log('선택된 기기:', appliance)
@@ -284,8 +296,8 @@ const useStore = create<Store>((set, get) => {
         taskId: null,
         customerInfo: null,
         appliances: [],
-        sensorData: null,
-        eventData: null,
+        sensorData: [],
+        eventData: [],
         selectedAppliance: null,
         solutionData: [],
       }),
