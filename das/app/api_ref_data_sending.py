@@ -137,7 +137,4 @@ def event_summary(df_event):
             d.strftime("%Y-%m-%d %H:%M:%S") for d in target_df_event["_time"]
         ]
 
-        print(event_data)
-        event_dataset.append(event_data)
-
     return event_dataset
