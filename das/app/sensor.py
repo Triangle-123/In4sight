@@ -77,6 +77,10 @@ def get_analyze(task_id, serial_number, startday, endday):
 
         df_event = query_api.query_data_frame(org=INFLUXDB_ORG, query=event_query)
 
+        if isinstance(df_event, list):
+            measurement = df_event[0]["_measurement"].iloc[0]
+            df_event = pd.concat(df_event, ignore_index=True)
+
         find_refrigerator_anomality(task_id, serial_number, df_sensor, df_event)
 
     elif measurement == "washing_machine":
