@@ -46,17 +46,31 @@ ANOMALITY = [
 
 RELATED_SENSOR = [
     "컴프레서 압력",
-    "문",
+    "냉장실 문",
     "냉기 토출구 팬 RPM",
-    "히터",
-    "적재량",
+    "히터 온도",
+    "냉장실 적재량",
     "냉장실 내부 온도",
     "냉장실 내부 온도",
     "냉동실 내부 온도",
     "외부 온도",
     "외부 온도",
-    "히터",
+    "히터 온도",
 ]
+
+# RELATED_SENSOR_EN = [
+#     "refrigerant_pressure",
+#     "door_fridge",
+#     "fan_rpm",
+#     "heater_temp",
+#     "load_percent_fridge",
+#     "temp_internal_fridge",
+#     "temp_internal_fridge",
+#     "temp_internal_freezer",
+#     "temp_external",
+#     "temp_external",
+#     "heater_temp",
+# ]
 
 EXPECTED_SYMPTOM = [
     "냉장실 내부 온도가 높습니다.(냉매 누출)",
@@ -130,6 +144,7 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list):
             "failure": EXPECTED_SYMPTOM[scenario_index],
             "causes": [],
             "related_sensor": [],
+            # "related_sensor_en": [],
             "event": [],
         }
 
@@ -137,6 +152,7 @@ def broadcast_rag_message(task_id, serial_number, topic, anomality_list):
             if symptom_number & (1 << index) != 0:
                 symptom_data["causes"].append(ANOMALITY[index])
                 symptom_data["related_sensor"].append(RELATED_SENSOR[index])
+                # symptom_data["related_sensor_en"].append(RELATED_SENSOR_EN[index])
                 symptom_data["event"] += insert_event(index, anomality_list)
 
         symptom_dataset.append(symptom_data)
