@@ -116,7 +116,7 @@ public class EmitterService {
 					if (emitter == null) {
 						executor.shutdown();
 					} else {
-						log.info("send SSE HeartBeat");
+						log.info("send SSE HeartBeat : {}", taskId);
 						emitter.send("SSE HeartBeat");
 					}
 				} catch (Exception e) {
