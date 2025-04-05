@@ -17,5 +17,14 @@ public class EventDataDto {
 	private String serialNumber;
 
 	@JsonAlias("event_data")
-	private List<String> eventData;
+	private List<EventData> eventData;
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class EventData {
+		private String field;
+		private String measurement;
+		private List<String> time;
+	}
 }
