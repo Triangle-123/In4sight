@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -48,9 +49,11 @@ public class CounselingController {
 		@CookieValue(value = "task_id", required = false)
 		String taskId,
 		@RequestAttribute(value = "CLIENT_IPV4")
-		String ip
+		String ip,
+		@RequestParam(value = "local", required = false)
+		boolean local
 	) throws Exception {
-		if (taskId == null && ip.equals("127.0.0.1")) {
+		if (local) {
 			taskId = "localhost-static-task-id";
 		}
 		CounselorEmitterDto counselorEmitter = emitterService.addEmitter(taskId);

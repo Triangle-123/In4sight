@@ -53,7 +53,7 @@ for project_root in "${PROJECT_ROOTS[@]}"; do
     elif [ -f "$PROJECT_PATH/pom.xml" ] || [ -f "$PROJECT_PATH/build.gradle" ]; then
         PROJECT_TYPE="java"
     # react project detection (package.json contains react)
-    elif [ -f "$PROJECT_PATH/package.json" ] && grep -q "\"react\"" "$PROJECT_PATH/package.json"; then
+    elif [ -f "$PROJECT_PATH/package.json" ] || [ -f "$PROJECT_PATH/package-lock.json" ]; then
         PROJECT_TYPE="react"
     fi
     
@@ -199,7 +199,61 @@ for project_root in "${PROJECT_ROOTS[@]}"; do
             ;;
             
         "react")
-            echo "eslint을 통한 자바스크립트 린팅 로직 추가 필요"
+            # get all .js, .jsx, .ts, .tsx   files from staged files
+            project_staged_react_files=$(echo "$STAGED_FILES" | grep -E "\.(js|jsx|ts|tsx)$")
+            
+            # cd to project root
+            cd "$REPO_ROOT/$project_root"
+
+            # no react files
+            if [ -z "$project_staged_react_files" ]; then
+                echo "스테이징된 자바스크립트 파일이 없습니다."
+                continue
+            fi
+
+            echo "다음 스크립트 파일들을 포매팅합니다:"
+            echo "$project_staged_react_files"
+
+
+            echo "-------------------------------- prettier 포매팅 시작 --------------------------------"
+            # prettier file formatting
+            for file in $project_staged_react_files; do
+                echo "포매팅: $file"
+                npx prettier --write "$REPO_ROOT/$file"
+            done
+
+            echo "-------------------------------- eslint 린팅 시작 --------------------------------"
+            # eslint file linting
+            for file in $project_staged_react_files; do
+                echo "린팅: $file"
+                npx eslint --fix "$REPO_ROOT/$file"
+                eslint_result=$?
+
+                if [ $eslint_result -ne 0 ]; then
+                    echo "⚠️ $file 파일에서 eslint 경고 또는 오류가 발견되었습니다."
+                    echo "   코드를 수정한 후 다시 커밋해주세요."
+                    error_count=$((error_count + 1))
+                fi
+            done
+
+            echo "-------------------------------- tsc 검사 시작 --------------------------------"
+            # tsc check
+            npx tsc --noEmit
+            tsc_result=$?
+
+            if [ $tsc_result -ne 0 ]; then
+                echo "⚠️ tsc 검사에서 오류가 발견되었습니다."
+                echo "   코드를 수정한 후 다시 커밋해주세요."
+                error_count=$((error_count + 1))
+            fi
+
+            # formatted files re-staging
+            echo "$project_staged_react_files" | xargs git add
+
+            # cd to project root
+            cd "$REPO_ROOT"
+
+            echo "✅ 자바스크립트 파일 처리 완료!"
             ;;
     esac
 done
