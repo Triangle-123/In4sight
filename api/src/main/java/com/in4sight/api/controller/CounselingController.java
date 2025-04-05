@@ -57,9 +57,9 @@ public class CounselingController {
 			taskId = "localhost-static-task-id";
 		}
 		CounselorEmitterDto counselorEmitter = emitterService.addEmitter(taskId);
-
 		return ResponseEntity.ok()
 			.header(HttpHeaders.SET_COOKIE, counselorEmitter.taskCookie().toString())
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_EVENT_STREAM_VALUE)
 			.body(counselorEmitter.sseEmitter());
 	}
 
