@@ -129,12 +129,15 @@ def event_summary(df_event):
 
     for event in SIMPLE_EVENT_DATA_LIST:
         event_data = {}
+        target_df_event = df_event[df_event["event_type"] == event]
+
         event_data["field"] = f"{event}"
         event_data["measurement"] = f"{METRICS[event]}"
         event_data["time"] = [
             d.strftime("%Y-%m-%d %H:%M:%S") for d in target_df_event["_time"]
         ]
 
+        print(event_data)
         event_dataset.append(event_data)
 
     return event_dataset
