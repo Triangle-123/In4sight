@@ -42,7 +42,7 @@ def check_loading_rate_anormality(
 
         if eventset:
             anormality_list.append((4, eventset))
-            related_sensor.append("적재량")
+            related_sensor.append("냉장실 적재량")
             anomaly_sensor.append("load")
 
     if high_freezer_load_range:
@@ -52,5 +52,5 @@ def check_loading_rate_anormality(
 
         if eventset:
             anormality_list.append((11, eventset))
-            related_sensor.append("적재량")
+            related_sensor.append("냉동실 적재량")
             anomaly_sensor.append("load")
