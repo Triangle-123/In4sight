@@ -110,3 +110,25 @@ export interface SensorData {
   serialNumber: string
   sensorData: SensorItem[]
 }
+
+export interface SolutionItem {
+  result: {
+    serialNumber: string;
+    data: {
+      failure: string;
+      cause: string[];
+      sensor: string[];
+      solutions: {
+        historicalContext: {
+          previousIssues: any[];
+        };
+        personalizedSolution: {
+          personalizedContext: string;
+          recommendedSolution: string;
+          status: string;
+        }[];
+        preventativeAdvice: string[];
+      };
+    };
+  };
+}
