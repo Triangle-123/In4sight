@@ -93,9 +93,10 @@ public class EmitterService {
 
 		// TaskId에 맞는 SSE Emitter 생성
 		SseEmitter emitter = emitters.get(taskId);
-		if (emitter == null) {
-			emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(10));
+		if (emitter != null) {
+			emitter.complete();
 		}
+		emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(10));
 		emitter = addEmitter(taskId, emitter);
 
 		return new CounselorEmitterDto(taskCookie, emitter);
@@ -126,7 +127,7 @@ public class EmitterService {
 			}
 		};
 
-		executor.scheduleWithFixedDelay(dropTheBeat, 0, 5, TimeUnit.SECONDS);
+		executor.scheduleWithFixedDelay(dropTheBeat, 0, 30, TimeUnit.SECONDS);
 	}
 
 	public Set<String> getAllCounselors() {
