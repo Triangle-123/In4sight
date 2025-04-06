@@ -1,123 +1,78 @@
+import DashboardSidebar from '@/components/DashboardSidebar'
 import { DeviceStatus } from '@/components/DeviceStatus'
-import { Header } from '@/components/Header'
 import { Recommendations } from '@/components/Recommendations'
-import { Sidebar } from '@/components/Sidebar'
-import {
-  callHistoryPlaceholder,
-  getAppliancePlaceholder,
-} from '@/lib/placeholder-data'
-import { ApplianceDataType, ApplianceType } from '@/lib/types'
+import { Separator } from '@/components/ui/separator'
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import useStore from '@/store/store'
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-
-// import { v4 as uuidv4 } from 'uuid'
-
-// Constants
-// const API_URL = import.meta.env.VITE_API_BASE_URL
-const TASK_ID = 'frontend_test'
-
-// 전역 변수 선언
-let globalSetSelectedAppliance: React.Dispatch<
-  React.SetStateAction<ApplianceType | null>
-> | null = null
+import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
   const createSseConnection = useStore((state) => state.createSseConnection)
-  const closeSseConnection = useStore((state) => state.closeSseConnection)
-  const setTaskId = useStore((state) => state.setTaskId)
-  const setError = useStore((state) => state.setError)
   const isConnected = useStore((state) => state.isConnected)
-  const error = useStore((state) => state.error)
   const selectedAppliance = useStore((state) => state.selectedAppliance)
-  const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
   const navigate = useNavigate()
   const setNavigate = useStore((state) => state.setNavigate)
-  // UI States
-  const [loading, setLoading] = useState(false)
-  const [applianceData, setApplianceData] = useState<ApplianceDataType | null>(
-    null,
-  )
-  // const [graphData, setGraphData] = useState(null)
+  const [ip, setIp] = useState<string>('확인 중...')
 
-  // 전역 변수에 setter 함수 할당
-  globalSetSelectedAppliance = setSelectedAppliance
-  setNavigate(navigate)
+  useEffect(() => {
+    const fetchIP = async () => {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json')
+        const data = await response.json()
+        setIp(data.ip)
+      } catch (error) {
+        console.error('IP 주소를 가져오는데 실패했습니다:', error)
+        setIp('확인 실패')
+      }
+    }
+
+    fetchIP()
+  }, [])
+
+  useEffect(() => {
+    setNavigate(navigate)
+  }, [navigate, setNavigate])
 
   useEffect(() => {
     if (!isConnected) {
       createSseConnection('')
     }
-  }, [isConnected])
-
-  useEffect(() => {
-    if (selectedAppliance) {
-      setApplianceData(getAppliancePlaceholder(selectedAppliance))
-    }
-  }, [selectedAppliance])
-
-
+  }, [isConnected, createSseConnection])
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* 사이드바 - 고객 정보, 고객의 가전 제품, 해당 고객과의 과거 통화 이력 */}
-      <Sidebar
-        callHistory={callHistoryPlaceholder}
-      />
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header */}
-        <Header />
-
-        {/* Main Panel */}
-        <main className="flex-1 p-4 overflow-hidden">
-          {/* {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-              {error}
+    <SidebarProvider className="h-screen">
+      <DashboardSidebar />
+      <main className="flex-1 overflow-hidden">
+        <header className="min-h-14 border-b flex items-center justify-between px-4">
+          <div className="flex gap-2">
+            <SidebarTrigger />
+            <h1 className="font-bold text-lg">고객 지원 대시보드</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-sm">
+              <span className="font-semibold">상담사 : </span>
+              <span>조현준 (대전 센터)</span>
+              <Separator />
+              <span className="font-semibold">접속 IP : </span>
+              <span>{ip}</span>
             </div>
-          )}
-
-          {loading && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded">
-              솔루션을 분석 중입니다...
+          </div>
+        </header>
+        {selectedAppliance != null ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full p-4">
+            <DeviceStatus />
+            <Recommendations />
+          </div>
+        ) : (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
+              <p>왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.</p>
             </div>
-          )}
-
-          {!isConnected && !error && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded">
-              서버에 연결 중입니다...
-            </div>
-          )} */}
-
-          {selectedAppliance != null ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full overflow-hidden">
-              {/* 왼쪽 섹션 - 제품 상태 모니터링 그래프들 */}
-              <DeviceStatus />
-
-              {/* 오른쪽 섹션 - 추천 솔루션(LLM) */}
-              <Recommendations />
-            </div>
-          ) : (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">
-                  가전제품을 선택하세요
-                </h2>
-                <p className="text-muted-foreground">
-                  왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.
-                </p>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
-    </div>
+          </div>
+        )}
+      </main>
+    </SidebarProvider>
   )
-}
-
-// 함수 이름을 변경하여 재귀 호출 문제 해결
-export const resetSelectedAppliance = (appliance: ApplianceType | null) => {
-  if (globalSetSelectedAppliance) {
-    globalSetSelectedAppliance(appliance)
-  }
 }
