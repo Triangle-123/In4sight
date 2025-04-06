@@ -115,8 +115,8 @@ export default function SolutionCard({ data }: SolutionCardProps) {
             {personalizedSolution.map(
               (
                 solution: {
-                  recommended_solution: string
-                  personalized_context: string
+                  recommendedSolution: string
+                  personalizedContext: string
                 },
                 index: number,
               ) => (
@@ -127,10 +127,10 @@ export default function SolutionCard({ data }: SolutionCardProps) {
                       colors.badge,
                     )}
                   >
-                    {solution.recommended_solution}
+                    {solution.recommendedSolution}
                   </div>
                   <div className="text-sm text-gray-600 leading-relaxed pl-1">
-                    {solution.personalized_context}
+                    {solution.personalizedContext}
                   </div>
                 </div>
               ),

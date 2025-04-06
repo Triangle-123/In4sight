@@ -123,8 +123,8 @@ export interface SolutionItem {
           previousIssues: any[];
         };
         personalizedSolution: {
-          personalized_context: string;
-          recommended_solution: string;
+          personalizedContext: string;
+          recommendedSolution: string;
           status: string;
         }[];
         preventativeAdvice: string[];

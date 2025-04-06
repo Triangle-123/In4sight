@@ -4,7 +4,6 @@ import {
   SensorData,
   SolutionItem,
 } from '@/lib/types'
-import { resetSelectedAppliance } from '@/pages/Dashboard'
 import { create } from 'zustand'
 
 interface EventData {
@@ -201,11 +200,28 @@ const useStore = create<Store>((set, get) => {
       try {
         console.log('솔루션 정보 수신:', event.data)
         const solutionData = JSON.parse(event.data)
-        set((state) => ({
-          solutionData: state.solutionData
-            ? [...state.solutionData, solutionData]
-            : [solutionData],
-        }))
+        set((state) => {
+          // 중복 체크: serialNumber와 failure가 일치하는 데이터 찾기
+          const existingIndex = state.solutionData.findIndex(
+            (item) =>
+              item.result.serialNumber === solutionData.result.serialNumber &&
+              item.result.data.failure === solutionData.result.data.failure
+          )
+
+          if (existingIndex !== -1) {
+            // 중복 데이터가 있으면 해당 데이터를 새 데이터로 대체
+            const newSolutionData = [...state.solutionData]
+            newSolutionData[existingIndex] = solutionData
+            return { solutionData: newSolutionData }
+          } else {
+            // 중복 데이터가 없으면 새 데이터 추가
+            return {
+              solutionData: state.solutionData
+                ? [...state.solutionData, solutionData]
+                : [solutionData],
+            }
+          }
+        })
       } catch (err) {
         console.error('솔루션 정보 파싱 에러:', event.data, err)
       }
@@ -215,7 +231,6 @@ const useStore = create<Store>((set, get) => {
       try {
         console.log('고객 연결 끊김:', event.data)
         get().reset()
-        resetSelectedAppliance(null)
         // 고객 연결 끊김 후 큐 페이지로 이동
         get().navigate!('/call-queue')
       } catch (err) {
