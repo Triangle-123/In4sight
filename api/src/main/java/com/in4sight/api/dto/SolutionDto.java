@@ -41,6 +41,10 @@ public class SolutionDto {
 	public static class TotalAnswer {
 		private String failure;
 		private List<String> cause;
+
+		@JsonAlias("related_sensor_en")
+		private List<String> relatedSensorEn;
+
 		private List<String> sensor;
 		private Solution solutions;
 	}
