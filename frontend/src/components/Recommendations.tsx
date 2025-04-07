@@ -4,24 +4,21 @@
 import { SolutionItem } from '@/lib/types'
 import useStore from '@/store/store'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useRef, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import { AIThinking } from './AIThinking'
 import SolutionCard from './SolutionCard'
 
 export function Recommendations() {
   const lastCardRef = useRef<HTMLDivElement>(null)
-  const solutionData = useStore((state) => state.solutionData) as
-    | SolutionItem[]
-    | undefined
+  const solutionData = useStore((state) => state.solutionData) as SolutionItem[] | undefined
   const selectedAppliance = useStore((state) => state.selectedAppliance)
+  const selectedSolution = useStore((state) => state.selectedSolution)
+  const setSelectedSolution = useStore((state) => state.setSelectedSolution)
+  
   const applianceSerialNumber = selectedAppliance?.serialNumber
 
-  const statusPriority: Record<string, number> = {
-    '고장': 1,
-    '주의': 2,
-    '정상': 3
-  }
+  const statusPriority: Record<string, number> = { 고장: 1, 주의: 2, 정상: 3 }
 
   const filteredSolutionData = useMemo(() => {
     return solutionData
@@ -30,11 +27,11 @@ export function Recommendations() {
         // 상태 우선순위에 따른 정렬
         const statusA = statusPriority[a.result.data.solutions.personalizedSolution[0].status]
         const statusB = statusPriority[b.result.data.solutions.personalizedSolution[0].status]
-        
+
         if (statusA !== statusB) {
           return statusA - statusB
         }
-        
+
         // 상태가 같으면 failure 문자열로 알파벳 순 정렬
         return a.result.data.failure.localeCompare(b.result.data.failure)
       })
@@ -58,12 +55,12 @@ export function Recommendations() {
           <AIThinking message="AI 어시스턴트가 해결책을 찾고 있습니다" />
         ) : (
           <AnimatePresence>
-            {filteredSolutionData.map((item: SolutionItem, index: number) => {
+            {filteredSolutionData.map((solution: SolutionItem, index: number) => {
               const isLastItem = index === filteredSolutionData.length - 1
 
               return (
                 <motion.div
-                  key={`${index}-${item.result.data.failure}`}
+                  key={`${index}-${solution.result.data.failure}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0 }}
@@ -71,7 +68,13 @@ export function Recommendations() {
                   ref={isLastItem ? lastCardRef : null}
                   className="overflow-hidden"
                 >
-                  <SolutionCard data={item} />
+                  <SolutionCard
+                    data={solution}
+                    isExpanded={solution === selectedSolution}
+                    onExpand={() => {
+                      setSelectedSolution(solution === selectedSolution ? null : solution)
+                    }}
+                  />
                 </motion.div>
               )
             })}
