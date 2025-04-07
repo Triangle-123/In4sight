@@ -118,6 +118,7 @@ export interface SolutionItem {
       failure: string;
       cause: string[];
       sensor: string[];
+      relatedSensorEn: string[];
       solutions: {
         historicalContext: {
           previousIssues: any[];

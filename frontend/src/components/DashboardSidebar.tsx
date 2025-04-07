@@ -1,14 +1,6 @@
 'use client'
 
 import MarqueeButton from '@/components/MarqueeButton'
-import { Button } from '@/components/ui/button'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
-} from '@/components/ui/sidebar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,18 +11,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader } from '@/components/ui/sidebar'
+import { callHistoryPlaceholder } from '@/lib/placeholder-data'
 import useStore from '@/store/store'
 import { X } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { callHistoryPlaceholder } from '@/lib/placeholder-data'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const API_URL = import.meta.env.VITE_API_BASE_URL
 
 export default function DashboardSidebar() {
   const selectedAppliance = useStore((state) => state.selectedAppliance)
   const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
+  const setSelectedSolution = useStore((state) => state.setSelectedSolution)
   const customerInfo = useStore((state) => state.customerInfo)
   const appliances = useStore((state) => state.appliances)
   const navigate = useNavigate()
@@ -39,10 +34,7 @@ export default function DashboardSidebar() {
 
   // 상담사 상담 종료 요청 이벤트
   const handleDisconnect = () => {
-    fetch(`${API_URL}/counseling/customer/disconnect`, {
-      method: 'POST',
-      body: customerInfo?.phoneNumber,
-    })
+    fetch(`${API_URL}/counseling/customer/disconnect`, { method: 'POST', body: customerInfo?.phoneNumber })
       .then((response) => {
         console.log('상담 종료 요청 성공:', response)
         reset()
@@ -81,7 +73,10 @@ export default function DashboardSidebar() {
               <MarqueeButton
                 key={appliance.serialNumber}
                 className={`w-full ${selectedAppliance?.serialNumber === appliance.serialNumber ? '!bg-blue-600 !text-white hover:!bg-blue-700' : 'hover:bg-gray-100'}`}
-                onClick={() => setSelectedAppliance(appliance)}
+                onClick={() => {
+                  setSelectedAppliance(appliance)
+                  setSelectedSolution(null)
+                }}
               >
                 {appliance.modelName}
               </MarqueeButton>
@@ -117,15 +112,11 @@ export default function DashboardSidebar() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>상담을 종료하시겠습니까?</AlertDialogTitle>
-              <AlertDialogDescription>
-                상담을 종료하면 현재 진행 중인 상담이 모두 종료됩니다.
-              </AlertDialogDescription>
+              <AlertDialogDescription>상담을 종료하면 현재 진행 중인 상담이 모두 종료됩니다.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDisconnect}>
-                확인
-              </AlertDialogAction>
+              <AlertDialogAction onClick={handleDisconnect}>확인</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
