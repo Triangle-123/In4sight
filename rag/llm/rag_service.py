@@ -27,7 +27,7 @@ customer_log_dict = manager.dict()
 
 
 def process_counseling_history_event(
-    message: Dict[str, Any],
+    message: Any,
 ) -> None:
     """
     고객의 과거 상담 이력 정보를 받아 캐싱합니다.
@@ -38,7 +38,6 @@ def process_counseling_history_event(
         logger.error("유효하지 않은 메시지 형식: message가 없습니다")
         return
 
-    logger.info("고객 상담 이력 이벤트 수신")
     pprint.pprint(message)
     # 첫 번째 키를 가져옵니다
     task_id = message.get("taskId")
@@ -205,9 +204,6 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
             return
 
         client = GPTClient()
-        symptom_length = len(data)  # atomic하게 관리
-        counter_lock = manager.Lock()
-        remaining_counter = manager.Value("i", symptom_length)
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(8, len(data))
@@ -229,11 +225,6 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
                 failure = future_to_symptom[future]
                 try:
                     result = future.result()
-
-                    with counter_lock:
-                        remaining_counter.value -= 1
-                        if remaining_counter.value == 0:
-                            customer_log_dict.pop(task_id, None)
 
                     publish_rag_completed_event(
                         task_id=task_id,
