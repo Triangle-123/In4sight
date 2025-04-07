@@ -28,7 +28,6 @@ MEASUREMENT_NAMES = {
     "temp_internal": "온도",
 }
 
-# 센서별 임계값 설정
 SENSOR_THRESHOLDS = {
     "temp_internal": {
         "fridge": {"warning": 8, "critical": 12},  # 냉장실 온도 임계값
@@ -41,11 +40,25 @@ SENSOR_THRESHOLDS = {
     "heater_temp": {"warning": 60, "critical": 70},  # 히터 온도 임계값
 }
 
+# SENSOR_THRESHOLDS_LOW = {
+#     "temp_internal": {
+#         "fridge": {"warning": None, "critical": None},  # 냉장실 온도 임계값
+#         "freezer": {"warning": None, "critical": None},  # 냉동실 온도 임계값
+#     },
+#     "temp_external": {"warning": None, "critical": None},  # 외부 온도 임계값
+#     "load_percent": {"warning": None, "critical": None},  # 부하율 임계값
+#     "refrigerant_pressure": {"warning": 0.8, "critical": 0.6},  # 냉매 압력 임계값
+#     "fan_rpm": {"warning": None, "critical": None},  # 팬 RPM 임계값
+#     "heater_temp": {"warning": None, "critical": None},  # 히터 온도 임계값
+# }
+
+# SENSOR_THRESHOLDS = [SENSOR_THRESHOLDS_HIGH, SENSOR_THRESHOLDS_LOW]
+
 # 센서별 그래프 min,max 값
 SENSOR_MIN_MAX = {
     "temp_internal": {
         "fridge": {"min": 0, "max": 30},
-        "freezer": {"min": -20, "max": 0},
+        "freezer": {"min": -22, "max": 0},
     },
     "temp_external": {"min": 10, "max": 50},
     "load_percent": {"min": 0, "max": 100},
