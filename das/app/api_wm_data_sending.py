@@ -36,6 +36,18 @@ SENSOR_THRESHOLDS = {
     "weight": {"warning": 10, "critical": 12},
 }
 
+# SENSOR_THRESHOLDS_LOW = {
+#     "water_level": {"warning": None, "critical": None},
+#     "motor_current": {"warning": None, "critical": None},
+#     "voltage": {"warning": None, "critical": None},
+#     "drum_rpm": {"warning": None, "critical": None},
+#     "vibration": {"warning": None, "critical": None},
+#     "temperature": {"warning": None, "critical": None},
+#     "weight": {"warning": None, "critical": None},
+# }
+
+# SENSOR_THRESHOLDS = [SENSOR_THRESHOLDS_HIGH, SENSOR_THRESHOLDS_LOW]
+
 # 센서별 그래프 min,max 값
 SENSOR_MIN_MAX = {
     "water_level": {"min": 0, "max": 40},
