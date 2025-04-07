@@ -127,7 +127,7 @@ public class EmitterService {
 			}
 		};
 
-		executor.scheduleWithFixedDelay(dropTheBeat, 0, 30, TimeUnit.SECONDS);
+		executor.scheduleWithFixedDelay(dropTheBeat, 0, 10, TimeUnit.SECONDS);
 	}
 
 	public Set<String> getAllCounselors() {
