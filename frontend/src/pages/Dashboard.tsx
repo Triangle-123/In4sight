@@ -41,10 +41,13 @@ export default function Dashboard() {
   }, [isConnected, createSseConnection])
 
   return (
-    <SidebarProvider className="h-screen">
+    <SidebarProvider 
+      className="h-screen"
+      style={{ "--sidebar-width": "18rem" } as React.CSSProperties}
+    >
       <DashboardSidebar />
       <main className="flex-1 overflow-hidden">
-        <header className="min-h-14 border-b flex items-center justify-between px-4">
+        <header className="h-[5vh] border-b flex items-center justify-between px-4">
           <div className="flex gap-2">
             <SidebarTrigger />
             <h1 className="font-bold text-lg">고객 지원 대시보드</h1>
@@ -60,12 +63,12 @@ export default function Dashboard() {
           </div>
         </header>
         {selectedAppliance != null ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full p-4">
+          <div className="h-[95vh] grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
             <DeviceStatus />
             <Recommendations />
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center">
+          <div className="h-[95vh] flex items-center justify-center">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">가전제품을 선택하세요</h2>
               <p>왼쪽 사이드바에서 가전제품을 선택하면 상세 정보가 표시됩니다.</p>
