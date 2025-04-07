@@ -9,10 +9,22 @@ import {
   SidebarGroup,
   SidebarHeader,
 } from '@/components/ui/sidebar'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import useStore from '@/store/store'
 import { X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { callHistoryPlaceholder } from '@/lib/placeholder-data'
+import { useState } from 'react'
 
 const API_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -23,6 +35,7 @@ export default function DashboardSidebar() {
   const appliances = useStore((state) => state.appliances)
   const navigate = useNavigate()
   const reset = useStore((state) => state.reset)
+  const [isOpen, setIsOpen] = useState(false)
 
   // 상담사 상담 종료 요청 이벤트
   const handleDisconnect = () => {
@@ -32,6 +45,8 @@ export default function DashboardSidebar() {
     })
       .then((response) => {
         console.log('상담 종료 요청 성공:', response)
+        reset()
+        navigate('/')
       })
       .catch((error) => {
         console.error('상담 종료 요청 실패:', error)
@@ -39,7 +54,7 @@ export default function DashboardSidebar() {
   }
 
   return (
-    <Sidebar>
+    <Sidebar className="sidebar">
       <SidebarHeader className="border-b">
         <h2 className="font-bold text-lg mb-2">고객 정보</h2>
         <div className="space-y-2 text-sm overflow-x-hidden">
@@ -89,16 +104,31 @@ export default function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <Button
-          variant="outline"
-          onClick={() => {
-            console.log('상담 종료')
-          }}
-          className="text-white bg-red-600 hover:bg-white hover:text-red-600 hover:shadow-md"
-        >
-          <X className="h-4 w-4 mr-2" />
-          상담 종료
-        </Button>
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="text-white bg-red-600 hover:bg-white hover:text-red-600 hover:shadow-md"
+            >
+              <X className="h-4 w-4 mr-2" />
+              상담 종료
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>상담을 종료하시겠습니까?</AlertDialogTitle>
+              <AlertDialogDescription>
+                상담을 종료하면 현재 진행 중인 상담이 모두 종료됩니다.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDisconnect}>
+                확인
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SidebarFooter>
     </Sidebar>
   )
