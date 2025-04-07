@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { SolutionItem } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { AlertTriangle, Check, ChevronDown, ChevronUp } from 'lucide-react'
-import { useState } from 'react'
 
 // Helper function to get status color
 const getStatusColor = (status: string) => {
@@ -49,11 +48,11 @@ const getStatusColor = (status: string) => {
 
 interface SolutionCardProps {
   data: SolutionItem
+  isExpanded: boolean
+  onExpand: () => void
 }
 
-export default function SolutionCard({ data }: SolutionCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
+export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCardProps) {
   const { failure, cause, solutions } = data.result.data
   const personalizedSolution = solutions.personalizedSolution || []
   const preventativeAdvice = solutions.preventativeAdvice || []
@@ -67,7 +66,7 @@ export default function SolutionCard({ data }: SolutionCardProps) {
     >
       <div
         className="cursor-pointer bg-white"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={onExpand}
       >
         <CardHeader className="flex flex-row items-start justify-between p-5 pb-2">
           <div className="flex items-start gap-3">
