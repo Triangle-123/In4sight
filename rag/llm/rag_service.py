@@ -6,8 +6,8 @@ import concurrent.futures
 import json
 import logging
 import pprint
-import threading
 import time
+from multiprocessing import Manager
 from typing import Any, Dict
 
 # Kafka에 이벤트 발행 (프로듀서 로직 필요)
@@ -22,8 +22,8 @@ from rag.llm.rag_response import DiagnosticResult
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-customer_log_dict = {}
-customer_log_dict_lock = threading.Lock()  # 전역 락 객체
+manager = Manager()
+customer_log_dict = manager.dict()
 
 
 def process_counseling_history_event(
@@ -44,8 +44,7 @@ def process_counseling_history_event(
     task_id = message.get("taskId")
 
     # 스레드 안전하게 딕셔너리에 값을 저장합니다
-    with customer_log_dict_lock:
-        customer_log_dict[task_id] = message
+    customer_log_dict[task_id] = message
 
 
 def process_symptom_with_rag(
@@ -72,6 +71,7 @@ def process_symptom_with_rag(
         failure = failure_item.get("failure", "")
         causes = failure_item.get("causes", [])
         related_sensors = failure_item.get("related_sensor", [])
+        related_sensor_en = failure_item.get("related_sensor_en", [])
         event = failure_item.get("event", [])
         logger.info("고장 증상 '%s'에 대한 RAG 처리 시작", failure)
 
@@ -114,6 +114,7 @@ def process_symptom_with_rag(
             "failure": failure,
             "cause": causes,
             "sensor": related_sensors,
+            "related_sensor_en": related_sensor_en,
             "solutions": result,
         }
     except Exception as e:  # pylint: disable=broad-except
@@ -175,15 +176,15 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
         counseling_date = None
 
         while retry_count < max_retries:
-            with customer_log_dict_lock:  # 락으로 보호
-                customer_history = customer_log_dict.get(task_id)
-                if customer_history is not None:
-                    customer_id = customer_history.get("customerId")
-                    counseling_date = customer_history.get("counselingDate")
+            # 락 없이 직접 딕셔너리에 접근 (manager.dict()는 내부적으로 동기화 처리)
+            customer_history = customer_log_dict.get(task_id)
+            if customer_history is not None:
+                customer_id = customer_history.get("customerId")
+                counseling_date = customer_history.get("counselingDate")
 
-                    # 모든 필요한 데이터가 존재하는지 확인
-                    if customer_id is not None and counseling_date is not None:
-                        break
+                # 모든 필요한 데이터가 존재하는지 확인
+                if customer_id is not None and counseling_date is not None:
+                    break
 
             logger.info(
                 "customer_history 데이터가 완전하지 않습니다. %s번째 재시도 중... (대기 %s초)",
@@ -205,7 +206,8 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
 
         client = GPTClient()
         symptom_length = len(data)  # atomic하게 관리
-        remaining_count = [symptom_length]  # 리스트로 감싸서 참조를 공유
+        counter_lock = manager.Lock()
+        remaining_counter = manager.Value("i", symptom_length)
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(8, len(data))
@@ -225,13 +227,13 @@ def process_data_analysis_event(message: Dict[str, Any]) -> None:
 
             for future in concurrent.futures.as_completed(future_to_symptom):
                 failure = future_to_symptom[future]
-
                 try:
                     result = future.result()
-                    with customer_log_dict_lock:
-                        remaining_count[0] -= 1
-                        if remaining_count[0] == 0:  # 마지막 증상 처리가 완료되면
-                            customer_log_dict.pop(task_id, None)  # task_id 항목 제거m
+
+                    with counter_lock:
+                        remaining_counter.value -= 1
+                        if remaining_counter.value == 0:
+                            customer_log_dict.pop(task_id, None)
 
                     publish_rag_completed_event(
                         task_id=task_id,
