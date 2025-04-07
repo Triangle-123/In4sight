@@ -95,6 +95,7 @@ public class EmitterService {
 		SseEmitter emitter = emitters.get(taskId);
 		if (emitter != null) {
 			emitter.complete();
+			emitters.remove(taskId);
 		}
 		emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(10));
 		emitter = addEmitter(taskId, emitter);
@@ -155,7 +156,6 @@ public class EmitterService {
 			)
 		);
 		CompletableFuture<Void> sendCounsellingRequest = CompletableFuture.runAsync(() -> {
-
 			List<DeviceResponseDto> deviceResponse = deviceService.findDevice(customerResponseDto.getCustomerId());
 			List<CustomerDevice> devices = new ArrayList<>();
 			List<String> serialNumbers = new ArrayList<>();
