@@ -1,9 +1,4 @@
-import {
-  ApplianceType,
-  CustomerType,
-  SensorData,
-  SolutionItem,
-} from '@/lib/types'
+import { ApplianceType, CustomerType, SensorData, SolutionItem } from '@/lib/types'
 import { create } from 'zustand'
 
 interface EventData {
@@ -34,6 +29,7 @@ interface State {
   eventData: EventData[]
   selectedAppliance: ApplianceType | null
   solutionData: SolutionItem[]
+  selectedSolution: SolutionItem | null
 
   // 고객 연결 큐 상태
   callQueue: Call[]
@@ -53,6 +49,7 @@ interface Actions {
   setSensorData: (data: SensorData[]) => void
   setEventData: (data: EventData[]) => void
   setSelectedAppliance: (appliance: ApplianceType | null) => void
+  setSelectedSolution: (solution: SolutionItem | null) => void
 
   // 상태 업데이트
   setIsConnected: (isConnected: boolean) => void
@@ -74,9 +71,7 @@ const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 const LOCAL_QUERY_STRING = import.meta.env.VITE_LOCAL_QUERY_STRING || ''
 
 if (!import.meta.env.VITE_API_BASE_URL) {
-  console.warn(
-    '⚠️ VITE_API_BASE_URL이 설정되지 않았습니다. 기본값을 사용합니다.',
-  )
+  console.warn('⚠️ VITE_API_BASE_URL이 설정되지 않았습니다. 기본값을 사용합니다.')
 }
 
 // store 생성
@@ -93,13 +88,9 @@ const useStore = create<Store>((set, get) => {
       eventSourceRef.close()
     }
 
-    console.log(
-      `SSE 연결을 시도합니다: ${reconnectCount + 1} of ${MAX_RECONNECT_ATTEMPTS}`,
-    )
+    console.log(`SSE 연결을 시도합니다: ${reconnectCount + 1} of ${MAX_RECONNECT_ATTEMPTS}`)
 
-    const eventSource = new EventSource(
-      `${API_URL}/counseling${LOCAL_QUERY_STRING}`,
-    )
+    const eventSource = new EventSource(`${API_URL}/counseling${LOCAL_QUERY_STRING}`)
     eventSourceRef = eventSource
 
     eventSource.onopen = () => {
@@ -122,10 +113,7 @@ const useStore = create<Store>((set, get) => {
       eventSource.close()
 
       if (reconnectCount < MAX_RECONNECT_ATTEMPTS) {
-        const nextReconnectDelay = Math.min(
-          1000 * Math.pow(1.5, reconnectCount),
-          10000,
-        )
+        const nextReconnectDelay = Math.min(1000 * Math.pow(1.5, reconnectCount), 10000)
         console.log(`재연결 시도 중... ${nextReconnectDelay}ms`)
 
         set({
@@ -141,10 +129,7 @@ const useStore = create<Store>((set, get) => {
           createSseConnection(taskId)
         }, nextReconnectDelay)
       } else {
-        set({
-          error:
-            'SSE 연결에 반복적으로 실패했습니다. 페이지를 새로고침 해주세요.',
-        })
+        set({ error: 'SSE 연결에 반복적으로 실패했습니다. 페이지를 새로고침 해주세요.' })
       }
     }
 
@@ -172,11 +157,7 @@ const useStore = create<Store>((set, get) => {
       try {
         console.log('센서 정보 수신:', event.data)
         const sensorData: SensorData = JSON.parse(event.data)
-        set((state) => ({
-          sensorData: state.sensorData
-            ? [...state.sensorData, sensorData]
-            : [sensorData],
-        }))
+        set((state) => ({ sensorData: state.sensorData ? [...state.sensorData, sensorData] : [sensorData] }))
       } catch (err) {
         console.error('센서 정보 파싱 에러:', event.data, err)
       }
@@ -186,11 +167,7 @@ const useStore = create<Store>((set, get) => {
       try {
         console.log('이벤트 정보 수신:', event.data)
         const eventData: EventData = JSON.parse(event.data)
-        set((state) => ({
-          eventData: state.eventData
-            ? [...state.eventData, eventData]
-            : [eventData],
-        }))
+        set((state) => ({ eventData: state.eventData ? [...state.eventData, eventData] : [eventData] }))
       } catch (err) {
         console.error('이벤트 정보 파싱 에러:', event.data, err)
       }
@@ -205,7 +182,7 @@ const useStore = create<Store>((set, get) => {
           const existingIndex = state.solutionData.findIndex(
             (item) =>
               item.result.serialNumber === solutionData.result.serialNumber &&
-              item.result.data.failure === solutionData.result.data.failure
+              item.result.data.failure === solutionData.result.data.failure,
           )
 
           if (existingIndex !== -1) {
@@ -215,11 +192,7 @@ const useStore = create<Store>((set, get) => {
             return { solutionData: newSolutionData }
           } else {
             // 중복 데이터가 없으면 새 데이터 추가
-            return {
-              solutionData: state.solutionData
-                ? [...state.solutionData, solutionData]
-                : [solutionData],
-            }
+            return { solutionData: state.solutionData ? [...state.solutionData, solutionData] : [solutionData] }
           }
         })
       } catch (err) {
@@ -286,6 +259,7 @@ const useStore = create<Store>((set, get) => {
     eventData: [],
     solutionData: [],
     selectedAppliance: null,
+    selectedSolution: null,
     callQueue: [],
     navigate: null,
     // 액션
@@ -300,6 +274,10 @@ const useStore = create<Store>((set, get) => {
     setSelectedAppliance: (appliance) => {
       set({ selectedAppliance: appliance })
       console.log('선택된 기기:', appliance)
+    },
+    setSelectedSolution: (solution) => {
+      set({ selectedSolution: solution })
+      console.log('선택된 솔루션:', solution)
     },
     setIsConnected: (isConnected) => set({ isConnected }),
     setError: (error) => set({ error }),
@@ -318,11 +296,7 @@ const useStore = create<Store>((set, get) => {
       }),
     addToCallQueue: (call) => set({ callQueue: [...get().callQueue, call] }),
     removeFromCallQueue: (phoneNumber) =>
-      set({
-        callQueue: get().callQueue.filter(
-          (call) => call.phoneNumber !== phoneNumber,
-        ),
-      }),
+      set({ callQueue: get().callQueue.filter((call) => call.phoneNumber !== phoneNumber) }),
     setNavigate: (navigate) => set({ navigate }),
   }
 })
