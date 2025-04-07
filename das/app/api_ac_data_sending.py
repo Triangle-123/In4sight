@@ -24,26 +24,25 @@ MEASUREMENT_NAMES = {
 }
 
 # 센서별 임계값 설정
-SENSOR_THRESHOLDS = {
+SENSOR_THRESHOLDS_HIGH = {
     "evaporator_humidity": {"warning": 90, "critical": 95},
     "external_humidity": {"warning": 80, "critical": 90},
     "filter_dust": {"warning": 50, "critical": 70},
-    #   "refrigerant_pressure": {"warning": None, "critical": None},
-    "refrigerant_pressure": {"warning": 0.4, "critical": 0.2},
+    "refrigerant_pressure": {"warning": None, "critical": None},
     "refrigerant_temp": {"warning": 60, "critical": 70},
     "room_temp": {"warning": 35, "critical": 40},
 }
 
-# SENSOR_THRESHOLDS_LOW = {
-#     "evaporator_humidity": {"warning": None, "critical": None},
-#     "external_humidity": {"warning": None, "critical": None},
-#     "filter_dust": {"warning": None, "critical": None},
-#     "refrigerant_pressure": {"warning": 0.4, "critical": 0.2},
-#     "refrigerant_temp": {"warning": None, "critical": None},
-#     "room_temp": {"warning": None, "critical": None},
-# }
+SENSOR_THRESHOLDS_LOW = {
+    "evaporator_humidity": {"warning": None, "critical": None},
+    "external_humidity": {"warning": None, "critical": None},
+    "filter_dust": {"warning": None, "critical": None},
+    "refrigerant_pressure": {"warning": 0.4, "critical": 0.2},
+    "refrigerant_temp": {"warning": None, "critical": None},
+    "room_temp": {"warning": None, "critical": None},
+}
 
-# SENSOR_THRESHOLDS = [SENSOR_THRESHOLDS_HIGH, SENSOR_THRESHOLDS_LOW]
+SENSOR_THRESHOLDS = [SENSOR_THRESHOLDS_HIGH, SENSOR_THRESHOLDS_LOW]
 
 # 센서별 그래프 min,max 값
 SENSOR_MIN_MAX = {
