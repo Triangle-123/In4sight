@@ -1,6 +1,6 @@
 package com.in4sight.api.dto;
 
-import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,8 +13,7 @@ import lombok.ToString;
 @Builder
 public class DeviceResponseDto {
 	String serialNumber;
-	String productType;
-	String modelSuffix;
-	String modelName;
-	LocalDate launchDate;
+	ModelInfoResponseDto modelInfo;
+	List<ModelSpecResponseDto> modelSpecs;
+	List<ModelFeatureResponseDto> modelFeatures;
 }
