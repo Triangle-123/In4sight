@@ -38,10 +38,10 @@ const getStatusColor = (status: string) => {
       }
     default:
       return {
-        accent: 'border-l-gray-300',
-        icon: 'text-gray-500',
-        badge: 'bg-gray-50 text-gray-700 border-gray-100',
-        dot: 'bg-gray-500',
+        accent: '!border-l-green-500',
+        icon: 'text-green-500',
+        badge: 'bg-green-50 text-green-700 border-green-100',
+        dot: 'bg-green-500',
       }
   }
 }
@@ -54,20 +54,15 @@ interface SolutionCardProps {
 
 export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCardProps) {
   const { failure, cause, solutions } = data.result.data
-  const personalizedSolution = solutions.personalizedSolution || []
-  const preventativeAdvice = solutions.preventativeAdvice || []
+  const personalizedSolution = solutions?.personalizedSolution ?? []
+  const preventativeAdvice = solutions?.preventativeAdvice ?? []
 
-  const status = personalizedSolution[0]?.status || 'default'
+  const status = personalizedSolution[0]?.status ?? 'default'
   const colors = getStatusColor(status)
 
   return (
-    <Card
-      className={cn('w-full shadow-lg rounded-lg border-l-4', colors.accent)}
-    >
-      <div
-        className="cursor-pointer bg-white"
-        onClick={onExpand}
-      >
+    <Card className={cn('w-full shadow-lg rounded-lg border-l-4', colors.accent)}>
+      <div className="cursor-pointer bg-white" onClick={onExpand}>
         <CardHeader className="flex flex-row items-start justify-between p-5 pb-2">
           <div className="flex items-start gap-3">
             <div className="relative mt-1">
@@ -108,29 +103,14 @@ export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCar
 
           {/* Solutions */}
           <div>
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-3">
-              해결 방법
-            </h3>
+            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-3">해결 방법</h3>
             {personalizedSolution.map(
-              (
-                solution: {
-                  recommendedSolution: string
-                  personalizedContext: string
-                },
-                index: number,
-              ) => (
+              (solution: { recommendedSolution: string; personalizedContext: string }, index: number) => (
                 <div key={index} className="mb-4">
-                  <div
-                    className={cn(
-                      'text-sm font-medium p-3 rounded-md border mb-3',
-                      colors.badge,
-                    )}
-                  >
+                  <div className={cn('text-sm font-medium p-3 rounded-md border mb-3', colors.badge)}>
                     {solution.recommendedSolution}
                   </div>
-                  <div className="text-sm text-gray-600 leading-relaxed pl-1">
-                    {solution.personalizedContext}
-                  </div>
+                  <div className="text-sm text-gray-600 leading-relaxed pl-1">{solution.personalizedContext}</div>
                 </div>
               ),
             )}
@@ -138,16 +118,12 @@ export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCar
 
           {/* Preventative Advice */}
           <div>
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-3">
-              예방 조치
-            </h3>
+            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-3">예방 조치</h3>
             <div className="space-y-2 pl-1">
               {preventativeAdvice.map((advice: string, index: number) => (
                 <div key={index} className="flex items-start gap-2">
                   <span className="text-gray-400 mt-1">•</span>
-                  <span className="text-sm text-gray-700 leading-relaxed">
-                    {advice}
-                  </span>
+                  <span className="text-sm text-gray-700 leading-relaxed">{advice}</span>
                 </div>
               ))}
             </div>
