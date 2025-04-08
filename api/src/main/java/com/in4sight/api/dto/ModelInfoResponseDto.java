@@ -14,4 +14,5 @@ public class ModelInfoResponseDto {
 	private String modelName;
 	private String productType;
 	private String launchDate;
+	private String modelImage;
 }

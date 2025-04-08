@@ -11,16 +11,16 @@ VALUES ('김싸피', '010-1234-0001', '경기도 수원시 영통구 삼성로 1
        ('홍싸피', '010-1234-0004', '경기도 수원시 영통구 삼성로 129'),
        ('조싸피', '010-1234-0005', '경기도 수원시 영통구 삼성로 129');
 
-INSERT INTO model_info (model_suffix, model_name, product_type, launch_date)
-VALUES ('RM70F63R2A', 'BESPOKE 냉장고 4도어 키친핏 Max 640L', 'REF', '2025-03-01'),
-       ('RM90F64E2W', 'BESPOKE AI 하이브리드 4도어 키친핏 Max 602L', 'REF', '2025-02-01'),
-       ('RF85DB91D1AP', 'BESPOKE 냉장고 4도어 869L', 'REF', '2024-03-01'),
-       ('RF90DG9111S9', 'BESPOKE 냉장고 4도어 902L', 'REF', '2024-03-01'),
-       ('RF85DB95A2APW', 'BESPOKE AI 패밀리허브 4도어 861L', 'REF', '2024-05-01'),
-       ('RF85DB9421AP', 'BESPOKE 냉장고 4도어 849L (빅아이스/큐브)', 'REF', '2024-03-01'),
-       ('RF91DB98J1AP01', 'BESPOKE AI 하이브리드 4도어 868L (빅아이스/위스키볼)', 'REF', '2024-03-01'),
-       ('WF21DG6650BE', '그랑데 드럼 세탁기 AI 21kg', 'WM', '2025-01-01'),
-       ('AF80F18D25WN', 'Bespoke AI 무풍콤보 갤러리 청정 58.5㎡', 'AF', '2025-02-01');
+INSERT INTO model_info (model_suffix, model_name, product_type, launch_date, model_image)
+VALUES ('RM70F63R2A', 'BESPOKE 냉장고 4도어 키친핏 Max 640L', 'REF', '2025-03-01', ''),
+       ('RM90F64E2W', 'BESPOKE AI 하이브리드 4도어 키친핏 Max 602L', 'REF', '2025-02-01', ''),
+       ('RF85DB91D1AP', 'BESPOKE 냉장고 4도어 869L', 'REF', '2024-03-01', ''),
+       ('RF90DG9111S9', 'BESPOKE 냉장고 4도어 902L', 'REF', '2024-03-01', ''),
+       ('RF85DB95A2APW', 'BESPOKE AI 패밀리허브 4도어 861L', 'REF', '2024-05-01', ''),
+       ('RF85DB9421AP', 'BESPOKE 냉장고 4도어 849L (빅아이스/큐브)', 'REF', '2024-03-01', 'https://j12s004.p.ssafy.io/image/REF_RF85DB9421AP.webp'),
+       ('RF91DB98J1AP01', 'BESPOKE AI 하이브리드 4도어 868L (빅아이스/위스키볼)', 'REF', '2024-03-01', 'https://j12s004.p.ssafy.io/image/REF_RF91DB98J1AP01.webp'),
+       ('WF21DG6650BE', '그랑데 드럼 세탁기 AI 21kg', 'WM', '2025-01-01', 'https://j12s004.p.ssafy.io/image/WM_WF21CB6650BW.webp'),
+       ('AF80F18D25WN', 'Bespoke AI 무풍콤보 갤러리 청정 58.5㎡', 'AC', '2025-02-01', 'https://j12s004.p.ssafy.io/image/AC_AF80F18D25WT.webp');
 
 INSERT INTO device (serial_number, customer_id, model_suffix)
 VALUES ('REF_TEST_IncreaseRefrigeratorTemp_001', 1, 'RM70F63R2A'),
