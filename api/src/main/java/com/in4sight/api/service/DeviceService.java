@@ -60,6 +60,7 @@ public class DeviceService {
 					.modelName(modelInfo.getModelName())
 					.productType(modelInfo.getProductType())
 					.launchDate(modelInfo.getLaunchDate())
+					.modelImage(modelInfo.getModelImage())
 					.build())
 				.modelSpecs(modelSpecResponseDtos)
 				.modelFeatures(modelFeatureResponseDtos)
