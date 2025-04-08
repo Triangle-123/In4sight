@@ -62,7 +62,7 @@ const BrushChart = ({
               animations: { enabled: false },
             },
             legend: { show: true, showForSingleSeries: true },
-            xaxis: { type: 'datetime', categories: categories, labels: { datetimeUTC: false } },
+            xaxis: { type: 'datetime', categories, labels: { datetimeUTC: false } },
             stroke: { width: 1, curve: 'smooth' },
             dataLabels: { enabled: false },
             tooltip: { x: { format: 'M월 d일 H시 mm분' } },
@@ -92,8 +92,10 @@ export function DeviceStatus() {
   const selectedSolution = useStore((state) => state.selectedSolution)
 
   const isSensorDataReady = sensorData != null && sensorData.length > 0
-  const selectedSensors =
-    sensorData?.find((sensor) => sensor.serialNumber === selectedAppliance?.serialNumber)?.sensorData || []
+  const selectedSensors = useMemo(
+    () => sensorData?.find((sensor) => sensor.serialNumber === selectedAppliance?.serialNumber)?.sensorData || [],
+    [sensorData, selectedAppliance?.serialNumber],
+  )
 
   const sortedSensors = useMemo(() => {
     return [...selectedSensors].sort((a, b) => {
@@ -181,38 +183,44 @@ export function DeviceStatus() {
                           },
                           annotations: {
                             yaxis: [
-                              {
-                                y: sensor.criteria.threshold.warning,
-                                y2: sensor.criteria.threshold.critical,
-                                borderColor: '#000',
-                                fillColor: '#FF9800',
-                                opacity: 0.1,
-                                label: {
-                                  text: '주의',
-                                  position: 'right',
-                                  style: {
-                                    color: '#FF9800',
-                                    background: '#fff',
-                                    padding: { left: 5, right: 5, top: 2, bottom: 2 },
-                                  },
-                                },
-                              },
-                              {
-                                y: sensor.criteria.threshold.critical,
-                                y2: sensor.criteria.upperLimit,
-                                borderColor: '#D32F2F',
-                                fillColor: '#D32F2F',
-                                opacity: 0.1,
-                                label: {
-                                  text: '위험',
-                                  position: 'right',
-                                  style: {
-                                    color: '#D32F2F',
-                                    background: '#fff',
-                                    padding: { left: 5, right: 5, top: 2, bottom: 2 },
-                                  },
-                                },
-                              },
+                              ...(sensor.criteria.threshold.warning.upper != null &&
+                              sensor.criteria.threshold.critical.upper != null
+                                ? [
+                                    {
+                                      y: sensor.criteria.threshold.warning.upper,
+                                      y2: sensor.criteria.threshold.critical.upper,
+                                      borderColor: '#000',
+                                      fillColor: '#FF9800',
+                                      opacity: 0.1,
+                                    },
+                                    {
+                                      y: sensor.criteria.threshold.critical.upper,
+                                      y2: Math.max(sensor.criteria.upperLimit, Math.max(...sensor.data.value)),
+                                      borderColor: '#D32F2F',
+                                      fillColor: '#D32F2F',
+                                      opacity: 0.1,
+                                    },
+                                  ]
+                                : []),
+                              ...(sensor.criteria.threshold.warning.lower != null &&
+                              sensor.criteria.threshold.critical.lower != null
+                                ? [
+                                    {
+                                      y: sensor.criteria.threshold.critical.lower,
+                                      y2: sensor.criteria.threshold.warning.lower,
+                                      borderColor: '#000',
+                                      fillColor: '#FF9800',
+                                      opacity: 0.1,
+                                    },
+                                    {
+                                      y: Math.min(sensor.criteria.lowerLimit, Math.min(...sensor.data.value)),
+                                      y2: sensor.criteria.threshold.critical.lower,
+                                      borderColor: '#D32F2F',
+                                      fillColor: '#D32F2F',
+                                      opacity: 0.1,
+                                    },
+                                  ]
+                                : []),
                             ],
                           },
                           tooltip: {
