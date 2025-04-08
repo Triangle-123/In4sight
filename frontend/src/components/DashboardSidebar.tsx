@@ -109,14 +109,19 @@ export default function DashboardSidebar() {
               상담 종료
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent className="z-50 bg-white">
             <AlertDialogHeader>
               <AlertDialogTitle>상담을 종료하시겠습니까?</AlertDialogTitle>
               <AlertDialogDescription>상담을 종료하면 현재 진행 중인 상담이 모두 종료됩니다.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
+              <AlertDialogAction
+                className="hover:bg-red-500 hover:!bg-red-500 hover:text-white"
+                onClick={handleDisconnect}
+              >
+                종료
+              </AlertDialogAction>
               <AlertDialogCancel>취소</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDisconnect}>확인</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
