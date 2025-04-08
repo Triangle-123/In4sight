@@ -17,72 +17,49 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#f5f7fb] p-4">
-      <img
-        src="/image/samsung-service.png"
-        alt="삼성전자서비스 로고"
-        className="h-16 mb-8"
-      />
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        <div className="flex flex-col items-center space-y-6 mb-8">
-          <h2 className="text-2xl font-bold text-[#1428a0]">로그인</h2>
+    <div className="flex min-h-screen items-center justify-center bg-[#f5f7fb] p-0.5">
+      <div className="flex w-full max-w-[90vw] gap-1">
+        {/* 로그인 폼 */}
+        <div className="w-1/4 bg-white rounded-lg shadow-lg p-3 flex flex-col h-[800px]">
+          {/* 상단 로고 */}
+          <div className="flex flex-col items-center space-y-2 mt-16">
+            <img
+              src="/image/logo.png"
+              alt="삼성전자서비스 로고"
+              className="h-28"
+            />
+          </div>
+
+          {/* 중간 요약 내용 */}
+          <div className="flex-1 flex flex-col justify-center items-center text-center space-y-4">
+            <h2 className="text-2xl font-bold text-gray-800">고객 데이터 기반 상담 보조 서비스</h2>
+            <div className="space-y-3">
+              <p className="text-lg text-gray-600">실시간 기기 데이터를 통한 분석</p>
+              <p className="text-lg text-gray-600">개인화된 증상 진단</p>
+              <p className="text-lg text-gray-600">최적의 해결책과 상담 제안</p>
+            </div>
+          </div>
+
+          {/* 하단 버튼 */}
+          <div className="mt-auto">
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              className="w-full py-3 px-4 bg-[#1428a0] text-white rounded-md hover:bg-[#1a237e] transition-colors duration-200 font-medium"
+            >
+              시작하기
+            </button>
+          </div>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              이메일
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1428a0] focus:border-transparent"
-            />
-          </div>
-          <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              비밀번호
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1428a0] focus:border-transparent"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              id="remember"
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="rounded border-gray-300 text-[#1428a0] focus:ring-[#1428a0]"
-            />
-            <label
-              htmlFor="remember"
-              className="text-sm font-normal text-gray-700"
-            >
-              로그인 상태 유지
-            </label>
-          </div>
-          <button
-            type="submit"
-            className="w-full py-3 px-4 bg-[#1428a0] text-white rounded-md hover:bg-[#1a237e] transition-colors duration-200 font-medium"
-          >
-            로그인
-          </button>
-        </form>
+
+        {/* GIF 영역 */}
+        <div className="w-3/4 flex items-center justify-center">
+          <img
+            src="/image/main.gif"
+            alt="로그인 애니메이션"
+            className="w-full h-[800px] object-cover rounded-lg shadow-lg"
+          />
+        </div>
       </div>
     </div>
   )
