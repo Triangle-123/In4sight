@@ -72,13 +72,13 @@ export default function DashboardSidebar() {
             {appliances?.map((appliance) => (
               <MarqueeButton
                 key={appliance.serialNumber}
-                className={`w-full ${selectedAppliance?.serialNumber === appliance.serialNumber ? '!bg-blue-600 !text-white hover:!bg-blue-700' : 'hover:bg-gray-100'}`}
+                className={`w-full text-left ${selectedAppliance?.serialNumber === appliance.serialNumber ? '!bg-blue-600 !text-white hover:!bg-blue-700' : 'hover:bg-gray-100'}`}
                 onClick={() => {
                   setSelectedAppliance(appliance)
                   setSelectedSolution(null)
                 }}
               >
-                {appliance.modelName}
+                {appliance.modelInfo.modelName}
               </MarqueeButton>
             ))}
           </div>

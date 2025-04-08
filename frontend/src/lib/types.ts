@@ -1,13 +1,9 @@
 export interface ApplianceType {
   serialNumber: string
   productType: string
-  modelSuffix: string
-
-  modelName: string
+  modelInfo: { modelSuffix: string; modelName: string; productType: string; launchDate: string }
   status: string
-  launchDate: string
 }
-
 export interface CustomerType {
   customerId: number
   customerName: string
@@ -55,12 +51,7 @@ export interface ApplianceFailureData {
     metadata: {
       userInfo: {
         // 과거 상담 이력
-        pastSupportRecords: {
-          cause: string
-          date: string
-          issue: string
-          resolved: boolean
-        }[]
+        pastSupportRecords: { cause: string; date: string; issue: string; resolved: boolean }[]
       }
       appliance: {
         type: string // 제품 타입: REF(냉장고), WM(세탁기), AC(에어컨)
@@ -91,19 +82,9 @@ export interface SensorItem {
   measurement: string
   icon: string
   unit: string
-  criteria: {
-    lowerLimit: number
-    upperLimit: number
-    threshold: {
-      warning: number
-      critical: number
-    }
-  }
+  criteria: { lowerLimit: number; upperLimit: number; threshold: { warning: number; critical: number } }
   sensorName: string
-  data: {
-    time: string[]
-    value: number[]
-  }
+  data: { time: string[]; value: number[] }
 }
 
 export interface SensorData {
@@ -113,23 +94,17 @@ export interface SensorData {
 
 export interface SolutionItem {
   result: {
-    serialNumber: string;
+    serialNumber: string
     data: {
-      failure: string;
-      cause: string[];
-      sensor: string[];
-      relatedSensorEn: string[];
+      failure: string
+      cause: string[]
+      sensor: string[]
+      relatedSensorEn: string[]
       solutions: {
-        historicalContext: {
-          previousIssues: any[];
-        };
-        personalizedSolution: {
-          personalizedContext: string;
-          recommendedSolution: string;
-          status: string;
-        }[];
-        preventativeAdvice: string[];
-      };
-    };
-  };
+        historicalContext: { previousIssues: any[] }
+        personalizedSolution: { personalizedContext: string; recommendedSolution: string; status: string }[]
+        preventativeAdvice: string[]
+      }
+    }
+  }
 }
