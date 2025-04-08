@@ -35,8 +35,11 @@ public class ModelInfo {
 	@Column(name = "product_type", nullable = false)
 	private String productType;
 
-	@Column(name = "launch_date", nullable = false)
-	private String launchDate;
+	@Column(name = "purchase_date", nullable = false)
+	private String purchaseDate;
+
+	@Column(name = "model_image", nullable = false)
+	private String modelImage;
 
 	@OneToMany(mappedBy = "modelInfo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Device> devices;
