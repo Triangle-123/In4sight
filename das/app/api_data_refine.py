@@ -12,7 +12,8 @@ def api_data_refine(df, device_info_list):
     API 서버에 보낼 데이터를 정제하는 함수입니다.
     """
     metrics_list = device_info_list[0]
-    sensor_threshold = device_info_list[1]
+    sensor_threshold_high = device_info_list[1][0]
+    sensor_threshold_low = device_info_list[1][1]
     sensor_min_max = device_info_list[2]
     unit_list = device_info_list[3]
     icon_list = device_info_list[4]
@@ -57,10 +58,14 @@ def api_data_refine(df, device_info_list):
 
         # temp_internal의 경우 location에 따라 다른 임계값 적용
         if sensor_key == "temp_internal" and location:
-            thresholds = sensor_threshold.get(sensor_key, {}).get(location, {})
+            thresholds_high = sensor_threshold_high.get(sensor_key, {}).get(
+                location, {}
+            )
+            thresholds_low = sensor_threshold_low.get(sensor_key, {}).get(location, {})
             min_max = sensor_min_max.get(sensor_key, {}).get(location, {})
         else:
-            thresholds = sensor_threshold.get(sensor_key, {})
+            thresholds_high = sensor_threshold_high.get(sensor_key, {})
+            thresholds_low = sensor_threshold_low.get(sensor_key, {})
             min_max = sensor_min_max.get(sensor_key, {})
 
         # 시계열 데이터 분리
@@ -77,8 +82,14 @@ def api_data_refine(df, device_info_list):
                     "lower_limit": min_max.get("min", 0),
                     "upper_limit": min_max.get("max", 100),
                     "threshold": {
-                        "warning": thresholds.get("warning"),
-                        "critical": thresholds.get("critical"),
+                        "warning": {
+                            "lower": thresholds_low.get("warning"),
+                            "upper": thresholds_high.get("warning"),
+                        },
+                        "critical": {
+                            "lower": thresholds_low.get("critical"),
+                            "upper": thresholds_high.get("critical"),
+                        },
                     },
                 },
                 "sensorName": f"{sensor_key}_{location}" if location else sensor_key,
