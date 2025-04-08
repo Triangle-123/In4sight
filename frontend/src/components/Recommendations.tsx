@@ -4,12 +4,13 @@
 import { SolutionItem } from '@/lib/types'
 import useStore from '@/store/store'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { AIThinking } from './AIThinking'
 import SolutionCard from './SolutionCard'
 
 export function Recommendations() {
+  const [showAllGreen, setShowAllGreen] = useState(false)
   const lastCardRef = useRef<HTMLDivElement>(null)
   const solutionData = useStore((state) => state.solutionData) as SolutionItem[] | undefined
   const selectedAppliance = useStore((state) => state.selectedAppliance)
@@ -44,6 +45,18 @@ export function Recommendations() {
     }
   }, [filteredSolutionData])
 
+  useEffect(() => {
+    if (!filteredSolutionData || filteredSolutionData.length === 0) {
+      const timer = setTimeout(() => {
+        setShowAllGreen(true)
+      }, 14000)
+
+      return () => clearTimeout(timer)
+    } else {
+      setShowAllGreen(false)
+    }
+  }, [filteredSolutionData])
+
   return (
     <div className="h-full overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div className="flex justify-between items-center sticky top-0 bg-white z-10 pb-4">
@@ -52,7 +65,15 @@ export function Recommendations() {
 
       <div className="space-y-3">
         {!filteredSolutionData || filteredSolutionData.length === 0 ? (
-          <AIThinking message="AI 어시스턴트가 해결책을 찾고 있습니다" />
+          showAllGreen ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <div className="text-green-600 text-2xl mb-2">✓</div>
+              <h3 className="text-green-800 font-semibold mb-1">기기의 모든 기능이 정상입니다</h3>
+              <p className="text-green-600 text-sm">현재 선택된 기기에서 발견된 문제가 없습니다.</p>
+            </div>
+          ) : (
+            <AIThinking message="AI 어시스턴트가 해결책을 찾고 있습니다" />
+          )
         ) : (
           <AnimatePresence>
             {filteredSolutionData.map((solution: SolutionItem, index: number) => {

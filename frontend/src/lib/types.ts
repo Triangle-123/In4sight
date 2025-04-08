@@ -3,6 +3,8 @@ export interface ApplianceType {
   productType: string
   modelInfo: { modelSuffix: string; modelName: string; productType: string; launchDate: string }
   status: string
+  modelName: string
+  modelSuffix: string
 }
 export interface CustomerType {
   customerId: number
@@ -82,7 +84,14 @@ export interface SensorItem {
   measurement: string
   icon: string
   unit: string
-  criteria: { lowerLimit: number; upperLimit: number; threshold: { warning: number; critical: number } }
+  criteria: {
+    lowerLimit: number
+    upperLimit: number
+    threshold: {
+      warning: { lower: number | null; upper: number | null }
+      critical: { lower: number | null; upper: number | null }
+    }
+  }
   sensorName: string
   data: { time: string[]; value: number[] }
 }
