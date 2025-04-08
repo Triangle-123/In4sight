@@ -28,31 +28,31 @@ MEASUREMENT_NAMES = {
     "temp_internal": "온도",
 }
 
-SENSOR_THRESHOLDS = {
+SENSOR_THRESHOLDS_HIGH = {
     "temp_internal": {
         "fridge": {"warning": 8, "critical": 12},  # 냉장실 온도 임계값
         "freezer": {"warning": -17, "critical": -15},  # 냉동실 온도 임계값
     },
     "temp_external": {"warning": 35, "critical": 40},  # 외부 온도 임계값
     "load_percent": {"warning": 75, "critical": 85},  # 부하율 임계값
-    "refrigerant_pressure": {"warning": 0.8, "critical": 0.6},  # 냉매 압력 임계값
+    "refrigerant_pressure": {"warning": None, "critical": None},  # 냉매 압력 임계값
     "fan_rpm": {"warning": 1300, "critical": 1500},  # 팬 RPM 임계값
     "heater_temp": {"warning": 60, "critical": 70},  # 히터 온도 임계값
 }
 
-# SENSOR_THRESHOLDS_LOW = {
-#     "temp_internal": {
-#         "fridge": {"warning": None, "critical": None},  # 냉장실 온도 임계값
-#         "freezer": {"warning": None, "critical": None},  # 냉동실 온도 임계값
-#     },
-#     "temp_external": {"warning": None, "critical": None},  # 외부 온도 임계값
-#     "load_percent": {"warning": None, "critical": None},  # 부하율 임계값
-#     "refrigerant_pressure": {"warning": 0.8, "critical": 0.6},  # 냉매 압력 임계값
-#     "fan_rpm": {"warning": None, "critical": None},  # 팬 RPM 임계값
-#     "heater_temp": {"warning": None, "critical": None},  # 히터 온도 임계값
-# }
+SENSOR_THRESHOLDS_LOW = {
+    "temp_internal": {
+        "fridge": {"warning": None, "critical": None},  # 냉장실 온도 임계값
+        "freezer": {"warning": None, "critical": None},  # 냉동실 온도 임계값
+    },
+    "temp_external": {"warning": None, "critical": None},  # 외부 온도 임계값
+    "load_percent": {"warning": None, "critical": None},  # 부하율 임계값
+    "refrigerant_pressure": {"warning": 0.8, "critical": 0.6},  # 냉매 압력 임계값
+    "fan_rpm": {"warning": None, "critical": None},  # 팬 RPM 임계값
+    "heater_temp": {"warning": None, "critical": None},  # 히터 온도 임계값
+}
 
-# SENSOR_THRESHOLDS = [SENSOR_THRESHOLDS_HIGH, SENSOR_THRESHOLDS_LOW]
+SENSOR_THRESHOLDS = [SENSOR_THRESHOLDS_HIGH, SENSOR_THRESHOLDS_LOW]
 
 # 센서별 그래프 min,max 값
 SENSOR_MIN_MAX = {
