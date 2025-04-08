@@ -44,7 +44,7 @@ public class TriggerController {
 			customerService.setCustomerCallRequest(phoneNumber)
 				? HttpStatus.OK
 				: HttpStatus.BAD_GATEWAY
-		).body(null);
+		).build();
 	}
 
 	/**
