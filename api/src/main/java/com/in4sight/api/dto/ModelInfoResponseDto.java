@@ -13,6 +13,6 @@ public class ModelInfoResponseDto {
 	private String modelSuffix;
 	private String modelName;
 	private String productType;
-	private String launchDate;
+	private String purchaseDate;
 	private String modelImage;
 }

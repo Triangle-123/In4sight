@@ -35,8 +35,8 @@ public class ModelInfo {
 	@Column(name = "product_type", nullable = false)
 	private String productType;
 
-	@Column(name = "launch_date", nullable = false)
-	private String launchDate;
+	@Column(name = "purchase_date", nullable = false)
+	private String purchaseDate;
 
 	@Column(name = "model_image", nullable = false)
 	private String modelImage;
