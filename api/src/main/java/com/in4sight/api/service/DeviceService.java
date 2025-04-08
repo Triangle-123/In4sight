@@ -59,7 +59,7 @@ public class DeviceService {
 					.modelSuffix(modelInfo.getModelSuffix())
 					.modelName(modelInfo.getModelName())
 					.productType(modelInfo.getProductType())
-					.launchDate(modelInfo.getLaunchDate())
+					.purchaseDate(modelInfo.getPurchaseDate())
 					.modelImage(modelInfo.getModelImage())
 					.build())
 				.modelSpecs(modelSpecResponseDtos)
