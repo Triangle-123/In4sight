@@ -11,16 +11,16 @@ VALUES ('김싸피', '010-1234-0001', '경기도 수원시 영통구 삼성로 1
        ('홍싸피', '010-1234-0004', '경기도 수원시 영통구 삼성로 129'),
        ('조싸피', '010-1234-0005', '경기도 수원시 영통구 삼성로 129');
 
-INSERT INTO model_info (model_suffix, model_name, product_type, launch_date, model_image)
+INSERT INTO model_info (model_suffix, model_name, product_type, purchase_date, model_image)
 VALUES ('RM70F63R2A', 'BESPOKE 냉장고 4도어 키친핏 Max 640L', 'REF', '2025-03-01', ''),
        ('RM90F64E2W', 'BESPOKE AI 하이브리드 4도어 키친핏 Max 602L', 'REF', '2025-02-01', ''),
        ('RF85DB91D1AP', 'BESPOKE 냉장고 4도어 869L', 'REF', '2024-03-01', ''),
        ('RF90DG9111S9', 'BESPOKE 냉장고 4도어 902L', 'REF', '2024-03-01', ''),
        ('RF85DB95A2APW', 'BESPOKE AI 패밀리허브 4도어 861L', 'REF', '2024-05-01', ''),
-       ('RF85DB9421AP', 'BESPOKE 냉장고 4도어 849L (빅아이스/큐브)', 'REF', '2024-03-01', 'https://j12s004.p.ssafy.io/image/REF_RF85DB9421AP.webp'),
-       ('RF91DB98J1AP01', 'BESPOKE AI 하이브리드 4도어 868L (빅아이스/위스키볼)', 'REF', '2024-03-01', 'https://j12s004.p.ssafy.io/image/REF_RF91DB98J1AP01.webp'),
-       ('WF21DG6650BE', '그랑데 드럼 세탁기 AI 21kg', 'WM', '2025-01-01', 'https://j12s004.p.ssafy.io/image/WM_WF21CB6650BW.webp'),
-       ('AF80F18D25WN', 'Bespoke AI 무풍콤보 갤러리 청정 58.5㎡', 'AC', '2025-02-01', 'https://j12s004.p.ssafy.io/image/AC_AF80F18D25WT.webp');
+       ('RF85DB9421AP', 'BESPOKE 냉장고 4도어 849L (빅아이스/큐브)', 'REF', '2024-04-22', 'https://j12s004.p.ssafy.io/image/REF_RF85DB9421AP.webp'),
+       ('RF91DB98J1AP01', 'BESPOKE AI 하이브리드 4도어 868L (빅아이스/위스키볼)', 'REF', '2024-04-22', 'https://j12s004.p.ssafy.io/image/REF_RF91DB98J1AP01.webp'),
+       ('WF21DG6650BE', '그랑데 드럼 세탁기 AI 21kg', 'WM', '2025-02-12', 'https://j12s004.p.ssafy.io/image/WM_WF21CB6650BW.webp'),
+       ('AF80F18D25WN', 'Bespoke AI 무풍콤보 갤러리 청정 58.5㎡', 'AC', '2025-04-09', 'https://j12s004.p.ssafy.io/image/AC_AF80F18D25WT.webp');
 
 INSERT INTO device (serial_number, customer_id, model_suffix)
 VALUES ('REF_TEST_IncreaseRefrigeratorTemp_001', 1, 'RM70F63R2A'),
@@ -49,6 +49,7 @@ VALUES ('RF85DB9421AP', '규격', '제품 타입', 'BESPOKE 냉장고 4도어'),
        ('RF85DB9421AP', '성능', '컴프레서', 'AI 인버터 컴프레서'),
        ('RF85DB9421AP', '성능', '냉매', 'R600a'),
        ('RF85DB9421AP', '성능', '냉각방식', '트리플 독립냉각'),
+       ('RF85DB9421AP', '출시 정보', '출시일', '2024-03-01'),
        ('RF91DB98J1AP01', '규격', '제품 타입', 'BESPOKE 냉장고 4도어'),
        ('RF91DB98J1AP01', '규격', '설치 타입', '프리스탠딩'),
        ('RF91DB98J1AP01', '규격', '크기(가로 × 높이 × 깊이)', '912 × 1,870 × 916 mm'),
@@ -62,6 +63,7 @@ VALUES ('RF85DB9421AP', '규격', '제품 타입', 'BESPOKE 냉장고 4도어'),
        ('RF91DB98J1AP01', '성능', '컴프레서', 'AI 인버터 컴프레서'),
        ('RF91DB98J1AP01', '성능', '냉매', 'R600a'),
        ('RF91DB98J1AP01', '성능', '냉각방식', 'AI 하이브리드 쿨링(컴프레서+펠티어 소자)'),
+       ('RF91DB98J1AP01', '출시 정보', '출시일', '2024-03-01'),
        ('WF21DG6650BE', '기본 사양', '세탁 용량', '21 kg'),
        ('WF21DG6650BE', '기본 사양', '색상', '화이트'),
        ('WF21DG6650BE', '기본 사양', '크기(폭 × 높이 × 깊이)', '686 × 984 × 796 mm'),
@@ -69,6 +71,7 @@ VALUES ('RF85DB9421AP', '규격', '제품 타입', 'BESPOKE 냉장고 4도어'),
        ('WF21DG6650BE', '기본 사양', '에너지 소비효율', '1 등급'),
        ('WF21DG6650BE', '기본 사양', '전원', '220 V/60 Hz'),
        ('WF21DG6650BE', '기본 사양', '소비전력', '가열세탁 시 2200 W'),
+       ('WF21DG6650BE', '출시 정보', '출시일', '2025-01-01'),
        ('AF80F18D25WN', '사양', '냉방 면적', '58.5 ㎡'),
        ('AF80F18D25WN', '사양', '전원', '단상, 220V, 60Hz '),
        ('AF80F18D25WN', '사양', '크기(가로 × 높이 × 깊이)', '415×1910×309 mm'),
@@ -78,7 +81,8 @@ VALUES ('RF85DB9421AP', '규격', '제품 타입', 'BESPOKE 냉장고 4도어'),
        ('AF80F18D25WN', '운전 능력', '최대 냉방 능력', '10.00 kW'),
        ('AF80F18D25WN', '운전 능력', '최소 냉방 소비전력', '0.28 kW'),
        ('AF80F18D25WN', '운전 능력', '정격 냉방 소비전력', '1.70 kW'),
-       ('AF80F18D25WN', '운전 능력', '냉방 에너지 소비효율등급', '1 등급');
+       ('AF80F18D25WN', '운전 능력', '냉방 에너지 소비효율등급', '1 등급'),
+       ('AF80F18D25WN', '출시 정보', '출시일', '2025-02-01');
 
 INSERT INTO model_feature (model_suffix, feature_name)
 VALUES ('RF85DB9421AP', '투명 도어(좌)'),
