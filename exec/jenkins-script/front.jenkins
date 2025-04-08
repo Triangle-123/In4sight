@@ -1,0 +1,84 @@
+pipeline {
+    agent {
+        label 'js-agent'
+    }
+
+    stages {
+        stage('Check Parameters') {
+            steps {
+                script {
+                    env.MR_URL = 'just_run'
+                    env.TARGET_BRANCH = 'front/develop'
+
+                    echo "Merge Request URL: ${params.MR_URL}"
+                    echo "Target Branch: ${params.TARGET_BRANCH}"
+
+                    if ((!params.MR_URL || !params.TARGET_BRANCH) && (!env.MR_URL || !env.TARGET_BRANCH)) {
+                        error("파라미터가 올바르지 않습니다.")
+                    }
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                checkout scmGit(
+                    branches: [[name: params.TARGET_BRANCH ? params.TARGET_BRANCH : env.TARGET_BRANCH]], 
+                    extensions: [], 
+                    userRemoteConfigs: [
+                        [
+                            credentialsId: '74b0ab04-f812-4119-8d9b-23d2fb4ac978',
+                            url: 'https://lab.ssafy.com/s12-s-project/S12P21S004.git'
+                        ]
+                    ]
+                )
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'cd frontend && pnpm install'
+            }
+        }
+
+        stage('Add .env') {
+            steps {
+                withCredentials([file(credentialsId: 'front-env', variable: 'ENV_FILE')]) {
+                    sh '''
+                        cd frontend
+                        if [ -f .env ]; then
+                            rm .env
+                        fi
+                        cp $ENV_FILE .env
+                    '''
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'cd frontend && npx vite build'
+            }
+        }
+
+        stage('Upload to S3') {
+            steps {
+                s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'j12s004.p.ssafy.io', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'ap-northeast-2', showDirectlyInBrowser: false, sourceFile: 'frontend/dist/**', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: true]], pluginFailureResultConstraint: 'FAILURE', profileName: 'front-deployer', userMetadata: []
+            }
+        }
+
+        stage("Notify") {
+            steps {
+                script {
+                    build job: 'in4sight-notification',
+                        parameters: [
+                            string(name: 'MR_URL', value: params.MR_URL ? params.MR_URL : env.MR_URL),
+                            string(name: 'TARGET_BRANCH', value: params.TARGET_BRANCH ? params.TARGET_BRANCH : env.TARGET_BRANCH),
+                            string(name: 'is_success', value: 'true')
+                        ],
+                        wait: false
+                }
+            }
+        }
+    }
+}

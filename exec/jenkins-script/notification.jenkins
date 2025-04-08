@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Check Parameters') {
+            steps {
+                script {
+                    echo "Merge Request URL: ${params.MR_URL}"
+                    echo "Target Branch: ${params.TARGET_BRANCH}"
+                    echo "is_success: ${params.is_success}"
+
+                    if (!params.MR_URL || !params.TARGET_BRANCH) {
+                        error("파라미터가 올바르지 않습니다.")
+                    }
+                }
+            }
+        }
+
+        stage('Send Notification') {
+            steps {
+                script {
+                    def good_message = [
+                        color: 'good',
+                        message: '배포 성공', 
+                        text: """
+# ${params.TARGET_BRANCH.split('/')[0]} 배포 성공
+[MR 링크](${params.MR_URL})
+                        """
+                    ]
+
+                    def bad_message = [
+                        color: 'danger',
+                        message: '배포 실패',
+                        text: """
+# ${params.TARGET_BRANCH.split('/')[0]} 배포 실패
+[MR 링크](${params.MR_URL})
+                        """
+                    ]
+
+                    def message = params.is_success == 'true' ? good_message : bad_message
+
+                    mattermostSend (
+                        color: message.color,
+                        message: message.message, 
+                        text: message.text
+                    )
+                }
+            }
+        }
+    }
+}

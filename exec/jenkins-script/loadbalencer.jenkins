@@ -1,0 +1,101 @@
+pipeline {
+    agent any
+    stages {
+        stage('Check Branch') {
+            steps {
+                script {
+                    // env.gitlabTargetBranch="rag/develop"
+                    // env.gitlabActionType="MERGE"
+                    // env.gitlabSourceRepoHomepage="https://lab.ssafy.com/s12-s-project/S12P21S004"
+                    // env.gitlabSourceMergeRequestIid=27
+                    
+                    sh 'printenv'
+                    
+                    echo "MR 소스 브랜치: ${env.gitlabSourceBranch}"
+                    echo "MR 대상 브랜치: ${env.gitlabTargetBranch}"
+                
+                    def targetStage = env.gitlabTargetBranch.split('/').last()
+                    
+                    if (env.gitlabActionType == 'MERGE' && (targetStage == 'production' || targetStage == 'release')) {
+                        echo "Merge Request가 승인되었습니다!"
+                    }
+                    else {
+                        echo "배포를 위한 Merge Request가 아닙니다."
+                        echo "Pipeline을 종료합니다."
+                        currentBuild.result = 'ABORTED'
+                        return
+                    }
+                }
+            }
+        }
+        
+        stage('Balancing Pipeline') {
+            when {
+                not {
+                    equals expected: 'ABORTED', actual: currentBuild.result
+                }
+            }
+            steps {
+                script {
+                    def targetProject = env.gitlabTargetBranch.split('/').first()
+                    def MR_URL = env.gitlabSourceRepoHomepage + '/-/merge_requests/' + env.gitlabMergeRequestIid
+                    
+                    echo "대상 프로젝트: ${targetProject}"
+                    
+                    switch(targetProject) {
+                        case 'api':
+                            echo "API 프로젝트 파이프라인을 트리거합니다."
+                            build job: 'in4sight-api',
+                            parameters: [
+                                string(name: 'MR_URL', value: MR_URL),
+                                string(name: 'TARGET_BRANCH', value: env.gitlabTargetBranch),
+                            ],
+                            wait: false
+                            break
+
+                        case 'das':
+                            echo "DAS 프로젝트 파이프라인을 트리거합니다."
+                            build job: 'in4sight-das',
+                            parameters: [
+                                string(name: 'MR_URL', value: MR_URL),
+                                string(name: 'TARGET_BRANCH', value: env.gitlabTargetBranch),
+                            ],
+                            wait: false
+                            break
+
+                        case 'rag':
+                            echo "RAG 프로젝트 파이프라인을 트리거합니다."
+                            build job: 'in4sight-rag',
+                            parameters: [
+                                string(name: 'MR_URL', value: MR_URL),
+                                string(name: 'TARGET_BRANCH', value: env.gitlabTargetBranch),
+                            ],
+                            wait: false
+                            break
+
+                        case 'front':
+                            echo "Frontend 프로젝트 파이프라인을 트리거합니다."
+                            build job: 'in4sight-front',
+                            parameters: [
+                                string(name: 'MR_URL', value: MR_URL),
+                                string(name: 'TARGET_BRANCH', value: env.gitlabTargetBranch),
+                            ],
+                            wait: false
+                            break
+
+                        default:
+                            echo "오류: 인식할 수 없는 프로젝트입니다."
+                            build job: 'in4sight-notification',
+                            parameters: [
+                                string(name: 'MR_URL', value: MR_URL),
+                                string(name: 'TARGET_BRANCH', value: env.gitlabTargetBranch),
+                                string(name: 'is_success', value: 'false')
+                            ],
+                            wait: false
+                            break
+                    }
+                }
+            }
+        }
+    }
+}
