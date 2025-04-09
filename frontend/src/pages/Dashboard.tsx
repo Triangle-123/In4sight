@@ -110,7 +110,7 @@ export default function Dashboard() {
                     <img
                       src={appliance.modelInfo.modelImage}
                       alt={appliance.modelInfo.modelName}
-                      className="max-h-80 w-auto object-contain -mx-10 mb-3"
+                      className="max-h-80 w-auto object-contain -mx-20 mb-3"
                     />
                     <div className="w-full whitespace-nowrap">
                       <ApplianceInfo 

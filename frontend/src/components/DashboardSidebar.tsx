@@ -43,7 +43,7 @@ export default function DashboardSidebar({
       .then((response) => {
         console.log('상담 종료 요청 성공:', response)
         reset()
-        navigate('/')
+        navigate('/call-queue')
       })
       .catch((error) => {
         console.error('상담 종료 요청 실패:', error)
