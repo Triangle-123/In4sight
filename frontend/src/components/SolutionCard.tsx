@@ -61,7 +61,7 @@ export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCar
   const colors = getStatusColor(status)
 
   return (
-    <Card className={cn('w-full shadow-lg rounded-lg border-l-4', colors.accent)}>
+    <Card className={cn('w-full shadow-lg rounded-lg border-l-4 !gap-0', colors.accent)}>
       <div className="cursor-pointer bg-white" onClick={onExpand}>
         <CardHeader className="flex flex-row items-start justify-between p-5 pb-2">
           <div className="flex items-start gap-3">
@@ -69,7 +69,7 @@ export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCar
               <AlertTriangle className={cn('h-5 w-5', colors.icon)} />
             </div>
             <div>
-              <h2 className="text-lg font-medium text-gray-800">{failure}</h2>
+              <h2 className="text-lg font-semibold">{failure}</h2>
             </div>
           </div>
           <div className="h-8 w-8 rounded-full flex items-center justify-center bg-gray-100">
@@ -89,7 +89,7 @@ export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCar
                 <div className="bg-gray-50 rounded-full p-0.5 mt-1">
                   <Check className={cn('h-3 w-3', colors.icon)} />
                 </div>
-                <span className="text-xs text-gray-600">{item}</span>
+                <span className="text-md text-muted-foreground">{item}</span>
               </div>
             ))}
           </div>
@@ -99,18 +99,18 @@ export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCar
       {isExpanded && (
         <CardContent className="p-5 pt-0 space-y-6 bg-white">
           {/* Divider */}
-          <div className="h-px bg-gray-100 -mx-5" />
+          <div className="h-px bg-gray-200 -mx-5" />
 
           {/* Solutions */}
           <div>
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-3">해결 방법</h3>
+            <h3 className="text-lg font-semibold uppercase tracking-wider mb-3">해결 방법</h3>
             {personalizedSolution.map(
               (solution: { recommendedSolution: string; personalizedContext: string }, index: number) => (
                 <div key={index} className="mb-4">
-                  <div className={cn('text-sm font-medium p-3 rounded-md border mb-3', colors.badge)}>
+                  <div className={cn('font-medium p-3 rounded-md border mb-3', colors.badge)}>
                     {solution.recommendedSolution}
                   </div>
-                  <div className="text-sm text-gray-600 leading-relaxed pl-1">{solution.personalizedContext}</div>
+                  <div className="text-md text-muted-foreground leading-relaxed pl-1">{solution.personalizedContext}</div>
                 </div>
               ),
             )}
@@ -118,12 +118,11 @@ export default function SolutionCard({ data, isExpanded, onExpand }: SolutionCar
 
           {/* Preventative Advice */}
           <div>
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-500 mb-3">예방 조치</h3>
+            <h3 className="text-lg font-semibold uppercase tracking-wider mb-3">예방 조치</h3>
             <div className="space-y-2 pl-1">
               {preventativeAdvice.map((advice: string, index: number) => (
                 <div key={index} className="flex items-start gap-2">
-                  <span className="text-gray-400 mt-1">•</span>
-                  <span className="text-sm text-gray-700 leading-relaxed">{advice}</span>
+                  <span className="text-md leading-relaxed">• {advice}</span>
                 </div>
               ))}
             </div>
