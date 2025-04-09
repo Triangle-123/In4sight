@@ -26,11 +26,14 @@ export function Recommendations() {
       ?.filter((item: SolutionItem) => item.result.serialNumber === applianceSerialNumber)
       ?.sort((a, b) => {
         // 상태 우선순위에 따른 정렬
-        const statusA = statusPriority[a.result.data.solutions.personalizedSolution[0].status]
-        const statusB = statusPriority[b.result.data.solutions.personalizedSolution[0].status]
+        const statusA = a.result.data.solutions?.personalizedSolution?.[0]?.status || '정상'
+        const statusB = b.result.data.solutions?.personalizedSolution?.[0]?.status || '정상'
 
-        if (statusA !== statusB) {
-          return statusA - statusB
+        const priorityA = statusPriority[statusA] || 3
+        const priorityB = statusPriority[statusB] || 3
+
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB
         }
 
         // 상태가 같으면 failure 문자열로 알파벳 순 정렬

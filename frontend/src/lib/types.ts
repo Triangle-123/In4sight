@@ -1,11 +1,22 @@
 export interface ApplianceType {
   serialNumber: string
-  productType: string
-  modelInfo: { modelSuffix: string; modelName: string; productType: string; launchDate: string }
-  status: string
-  modelName: string
-  modelSuffix: string
+  modelInfo: {
+    modelSuffix: string
+    modelName: string
+    productType: string
+    purchaseDate: string
+    modelImage: string
+  }
+  modelSpecs: {
+    specGroup: string
+    specName: string
+    specValue: string
+  }[]
+  modelFeatures: {
+    featureName: string
+  }[]
 }
+
 export interface CustomerType {
   customerId: number
   customerName: string
@@ -110,10 +121,17 @@ export interface SolutionItem {
       sensor: string[]
       relatedSensorEn: string[]
       solutions: {
-        historicalContext: { previousIssues: any[] }
+        historicalContext: { previousIssues: PastIssue[] }
         personalizedSolution: { personalizedContext: string; recommendedSolution: string; status: string }[]
         preventativeAdvice: string[]
       }
     }
   }
+}
+
+export interface PastIssue {
+  cause: string;
+  date: string;
+  issue: string;
+  resolved: boolean;
 }
