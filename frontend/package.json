@@ -27,6 +27,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.6.3",
     "lucide-react": "^0.487.0",
+    "pnpm": "^10.8.0",
     "react": "^19.1.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.1.0",

@@ -5,6 +5,7 @@ import useStore from '@/store/store'
 import { useEffect, useMemo, useState } from 'react'
 import Chart from 'react-apexcharts'
 import { v4 as uuidv4 } from 'uuid'
+import { ChevronLeft } from 'lucide-react'
 
 const SkeletonCard = () => (
   <Card className="h-[240px]">
@@ -24,7 +25,7 @@ const BrushChart = ({
   targets: string[]
 }) => {
   const [chartKey, setChartKey] = useState(0)
-
+  
   useEffect(() => {
     setChartKey((prev) => prev + 1)
   }, [series, categories])
@@ -86,10 +87,17 @@ const BrushChart = ({
   )
 }
 
-export function DeviceStatus() {
+export function DeviceStatus({
+  setExpandedIndex,
+}: {
+  setExpandedIndex: (index: number | null) => void
+}) {
   const sensorData = useStore((state) => state.sensorData)
   const selectedAppliance = useStore((state) => state.selectedAppliance)
   const selectedSolution = useStore((state) => state.selectedSolution)
+  const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
+  const setSelectedSolution = useStore((state) => state.setSelectedSolution)
+
 
   const isSensorDataReady = sensorData != null && sensorData.length > 0
   const selectedSensors = useMemo(
@@ -120,12 +128,24 @@ export function DeviceStatus() {
     <div className="lg:col-span-2 space-y-4 h-full overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div className="sticky top-0 bg-white z-50">
         {selectedAppliance != null ? (
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-1">{selectedAppliance.modelInfo.modelName}</h2>
-            <p className="text-sm flex items-center gap-2">
-              <Badge className="bg-gray-200 text-black">모델명: {selectedAppliance.modelInfo.modelSuffix}</Badge>
-              <Badge className="bg-gray-200 text-black">S/N: {selectedAppliance.serialNumber}</Badge>
-            </p>
+          <div className="mb-4 flex items-center justify-start gap-4">
+            <div>
+              <ChevronLeft
+                className="h-6 w-6" 
+                onClick={() => {
+                  setSelectedAppliance(null)
+                  setSelectedSolution(null)
+                  setExpandedIndex(null)
+                }}
+              />
+            </div>
+            <div>  
+              <h2 className="text-xl font-semibold mb-1">{selectedAppliance.modelInfo.modelName}</h2>
+              <p className="text-sm flex items-center gap-2">
+                <Badge className="bg-gray-200 text-black">모델명: {selectedAppliance.modelInfo.modelSuffix}</Badge>
+                <Badge className="bg-gray-200 text-black">S/N: {selectedAppliance.serialNumber}</Badge>
+              </p>
+            </div>
           </div>
         ) : (
           <>

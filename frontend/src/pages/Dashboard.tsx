@@ -8,6 +8,7 @@ import useStore from '@/store/store'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApplianceType } from '@/lib/types'
+import { ApplianceInfo } from '@/components/ApplianceInfo'
 
 export default function Dashboard() {
   const createSseConnection = useStore((state) => state.createSseConnection)
@@ -17,6 +18,9 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const setNavigate = useStore((state) => state.setNavigate)
   const [ip, setIp] = useState<string>('확인 중...')
+  const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
+  const setSelectedSolution = useStore((state) => state.setSelectedSolution)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchIP = async () => {
@@ -57,7 +61,10 @@ export default function Dashboard() {
       className="h-screen"
       style={{ "--sidebar-width": "22rem" } as React.CSSProperties}
     >
-      <DashboardSidebar />
+      <DashboardSidebar 
+        expandedIndex={expandedIndex}
+        setExpandedIndex={setExpandedIndex}
+      />
       <main className="flex-1 overflow-hidden">
         <header className="h-[5vh] border-b flex items-center justify-between px-4">
           <div className="flex gap-2">
@@ -76,37 +83,51 @@ export default function Dashboard() {
         </header>
         {selectedAppliance != null ? (
           <div className="h-[95vh] grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
-            <DeviceStatus />
+            <DeviceStatus setExpandedIndex={setExpandedIndex} />
             <Recommendations />
           </div>
         ) : (
           <div className={`h-[95vh] grid ${gridColsClass} gap-4 p-4 overflow-y-auto`}>
-             {appliances && appliances.length > 0 ? (
-               appliances.map((appliance: ApplianceType) => (
-                 <Card key={appliance.serialNumber} className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow" onClick={() => console.log(appliance.serialNumber)}>
-                   <CardHeader>
-                     <CardTitle className="text-base">{appliance.modelInfo.modelName}</CardTitle>
-                   </CardHeader>
-                   <CardContent className="flex-grow flex flex-col items-center justify-center text-center">
-                     <img
-                       src={appliance.modelInfo.modelImage}
-                       alt={appliance.modelInfo.modelName}
-                       className="max-h-32 w-auto object-contain mb-3"
-                     />
-                     <p className="text-xs text-muted-foreground mt-auto pt-2">
-                       구매일: {new Date(appliance.modelInfo.purchaseDate).toLocaleDateString()}
-                     </p>
-                   </CardContent>
-                 </Card>
-               ))
-             ) : (
+            {appliances && appliances.length > 0 ? (
+              appliances.map((appliance: ApplianceType) => (
+                <Card 
+                  key={appliance.serialNumber} 
+                  className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow" 
+                  onClick={() => {
+                    setSelectedAppliance(appliance)
+                    setSelectedSolution(null)
+                    setExpandedIndex(appliances.indexOf(appliance))
+                  }}
+                >
+                  <CardHeader>
+                    <CardTitle 
+                      title={appliance.modelInfo.modelName}
+                      subtitle={appliance.modelInfo.modelSuffix}
+                      date={appliance.modelInfo.purchaseDate}
+                    />
+                  </CardHeader>
+                  <CardContent className="flex-grow flex items-start justify-start text-center">
+                    <img
+                      src={appliance.modelInfo.modelImage}
+                      alt={appliance.modelInfo.modelName}
+                      className="max-h-80 w-auto object-contain -mx-10 mb-3"
+                    />
+                    <div className="w-full whitespace-nowrap">
+                      <ApplianceInfo 
+                        appliance={appliance}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
                 <div className="col-span-full h-full flex items-center justify-center">
                     <div className="text-center">
                     <h2 className="text-xl font-semibold mb-2">표시할 가전제품이 없습니다.</h2>
                     <p>데이터를 로드 중이거나 등록된 가전제품이 없습니다.</p>
                     </div>
                 </div>
-             )}
+            )}
           </div>
         )}
       </main>
