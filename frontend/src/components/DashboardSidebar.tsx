@@ -21,7 +21,13 @@ import { useNavigate } from 'react-router-dom'
 
 const API_URL = import.meta.env.VITE_API_BASE_URL
 
-export default function DashboardSidebar() {
+export default function DashboardSidebar({
+  expandedIndex,
+  setExpandedIndex,
+}: {
+  expandedIndex: number | null
+  setExpandedIndex: (index: number | null) => void
+}) {
   const selectedAppliance = useStore((state) => state.selectedAppliance)
   const setSelectedAppliance = useStore((state) => state.setSelectedAppliance)
   const setSelectedSolution = useStore((state) => state.setSelectedSolution)
@@ -30,7 +36,6 @@ export default function DashboardSidebar() {
   const navigate = useNavigate()
   const reset = useStore((state) => state.reset)
   const [isOpen, setIsOpen] = useState(false)
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
   // 상담사 상담 종료 요청 이벤트
   const handleDisconnect = () => {
@@ -75,7 +80,13 @@ export default function DashboardSidebar() {
                 appliance={appliance}
                 isActive={selectedAppliance?.serialNumber === appliance.serialNumber}
                 isOpen={expandedIndex === index}
-                onOpenChange={(open) => setExpandedIndex(open ? index : null)}
+                onOpenChange={(open) => {
+                  setExpandedIndex(open ? index : null)
+                  if (!open) {
+                    setSelectedAppliance(null)
+                    setSelectedSolution(null)
+                  }
+                }}
                 onClick={() => {
                   setSelectedAppliance(appliance)
                   setSelectedSolution(null)
