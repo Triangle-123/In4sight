@@ -27,12 +27,13 @@ public class CounselingService {
 	private final MongoTemplate mongoTemplate;
 
 	public void addLog(int customerId, String counselingDate, List<CustomerDevice> devices) {
-		Query query = new Query(
-			Criteria.where("customer_id").is(customerId)
-		);
-
-		Update update = new Update().push("counseling_history", new CounselingHistory(counselingDate, devices));
-		mongoTemplate.upsert(query, update, LogByCustomer.class);
+//		counselingRepository.deleteAll();
+//		Query query = new Query(
+//			Criteria.where("customer_id").is(customerId)
+//		);
+//
+//		Update update = new Update().push("counseling_history", new CounselingHistory(counselingDate, devices));
+//		mongoTemplate.upsert(query, update, LogByCustomer.class);
 	}
 
 	public LogByCustomer findLog(int customerId) {
@@ -40,24 +41,24 @@ public class CounselingService {
 	}
 
 	public void replaceLogByDevice(int customerId, String counselingDate, CustomerDevice device) {
-		Query query = new Query(
-			Criteria.where("customer_id").is(customerId)
-				.and("counseling_history.counseling_date").is(counselingDate)
-				.and("counseling_history.devices.serial_number").is(device.getSerialNumber())
-		);
-
-		Update update = new Update()
-			.set("counseling_history.$[outer].devices.$[inner]", device);
-
-		update.filterArray("outer.counseling_date", counselingDate)
-			.filterArray("inner.serial_number", device.getSerialNumber());
-
-		log.info("replace");
-		log.info("Generated Query: " + query);
-		log.info("device : {}", device);
-		UpdateResult result = mongoTemplate.updateFirst(query, update, LogByCustomer.class);
-		log.info("Matched count: " + result.getMatchedCount());
-		log.info("Modified count: " + result.getModifiedCount());
+//		Query query = new Query(
+//			Criteria.where("customer_id").is(customerId)
+//				.and("counseling_history.counseling_date").is(counselingDate)
+//				.and("counseling_history.devices.serial_number").is(device.getSerialNumber())
+//		);
+//
+//		Update update = new Update()
+//			.set("counseling_history.$[outer].devices.$[inner]", device);
+//
+//		update.filterArray("outer.counseling_date", counselingDate)
+//			.filterArray("inner.serial_number", device.getSerialNumber());
+//
+//		log.info("replace");
+//		log.info("Generated Query: " + query);
+//		log.info("device : {}", device);
+//		UpdateResult result = mongoTemplate.updateFirst(query, update, LogByCustomer.class);
+//		log.info("Matched count: " + result.getMatchedCount());
+//		log.info("Modified count: " + result.getModifiedCount());
 	}
 
 }
