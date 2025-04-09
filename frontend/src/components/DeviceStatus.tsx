@@ -121,9 +121,9 @@ export function DeviceStatus() {
       <div className="sticky top-0 bg-white z-50">
         {selectedAppliance != null ? (
           <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-1">{selectedAppliance.modelName}</h2>
+            <h2 className="text-xl font-semibold mb-1">{selectedAppliance.modelInfo.modelName}</h2>
             <p className="text-sm flex items-center gap-2">
-              <Badge className="bg-gray-200 text-black">모델명: {selectedAppliance.modelSuffix}</Badge>
+              <Badge className="bg-gray-200 text-black">모델명: {selectedAppliance.modelInfo.modelSuffix}</Badge>
               <Badge className="bg-gray-200 text-black">S/N: {selectedAppliance.serialNumber}</Badge>
             </p>
           </div>

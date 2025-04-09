@@ -1,6 +1,6 @@
 'use client'
 
-import MarqueeButton from '@/components/MarqueeButton'
+import { SidebarApplianceInfo } from '@/components/ApplianceInfoButton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader } from '@/components/ui/sidebar'
-import { callHistoryPlaceholder } from '@/lib/placeholder-data'
 import useStore from '@/store/store'
 import { X } from 'lucide-react'
 import { useState } from 'react'
@@ -31,6 +30,7 @@ export default function DashboardSidebar() {
   const navigate = useNavigate()
   const reset = useStore((state) => state.reset)
   const [isOpen, setIsOpen] = useState(false)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
   // 상담사 상담 종료 요청 이벤트
   const handleDisconnect = () => {
@@ -65,39 +65,27 @@ export default function DashboardSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup className="grow border-b">
+      <SidebarContent className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <SidebarGroup className="h-full pr-2">
           <h2 className="font-bold text-lg mb-2">고객 가전제품</h2>
           <div className="space-y-2">
-            {appliances?.map((appliance) => (
-              <MarqueeButton
+            {appliances?.map((appliance, index) => (
+              <SidebarApplianceInfo
                 key={appliance.serialNumber}
-                className={`w-full text-left ${selectedAppliance?.serialNumber === appliance.serialNumber ? '!bg-blue-600 !text-white hover:!bg-blue-700' : 'hover:bg-gray-100'}`}
+                appliance={appliance}
+                isActive={selectedAppliance?.serialNumber === appliance.serialNumber}
+                isOpen={expandedIndex === index}
+                onOpenChange={(open) => setExpandedIndex(open ? index : null)}
                 onClick={() => {
                   setSelectedAppliance(appliance)
                   setSelectedSolution(null)
                 }}
-              >
-                {appliance.modelInfo.modelName}
-              </MarqueeButton>
-            ))}
-          </div>
-        </SidebarGroup>
-
-        <SidebarGroup className="border-b">
-          <h2 className="font-semibold text-lg mb-2">통화 기록</h2>
-          <div className="space-y-2 text-sm">
-            {callHistoryPlaceholder.map((call, index) => (
-              <div key={index} className="p-2 bg-background rounded-md">
-                <p className="font-medium">
-                  {call.date} {call.time}
-                </p>
-                <p className="text-muted-foreground">{call.topic}</p>
-              </div>
+              />
             ))}
           </div>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter>
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
           <AlertDialogTrigger asChild>
@@ -116,7 +104,7 @@ export default function DashboardSidebar() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogAction
-                className="hover:bg-red-500 hover:!bg-red-500 hover:text-white"
+                className="!bg-red-500 !text-white hover:!bg-white hover:!text-red-500"
                 onClick={handleDisconnect}
               >
                 종료
