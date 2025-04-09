@@ -222,8 +222,8 @@ class GPTHandler:
             customer_history=customer_history,
             event=event,
         )
-        print("=========프롬프트!=========")
-        print(user_message)
+        # print("=========프롬프트!=========")
+        # print(user_message)
         system_message = BasePrompts.DIAGNOSTIC_SYSTEM
 
         # LLM에 완성 요청

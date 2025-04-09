@@ -84,6 +84,7 @@ class BasePrompts:
     
     """
 
+    # pylint: disable=too-many-branches
     @staticmethod
     def _parse_context(context):
         """컨텍스트 문자열에서 문서와 메타데이터 추출"""
@@ -146,7 +147,7 @@ class BasePrompts:
 
         return formatted_context
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-statements
     @staticmethod
     def _format_history(customer_history):
         """고객 상담 이력을 포맷팅된 문자열로 변환"""
@@ -154,64 +155,84 @@ class BasePrompts:
         if not customer_history:
             return formatted_customer_history
 
-        histories = customer_history.get("histories", {}).get("counselingHistory", [])
+        histories = customer_history.get("histories", {})
+        if isinstance(histories, dict):
+            counseling_history = histories.get("counselingHistory", [])
+        else:
+            counseling_history = histories
 
-        for i, history in enumerate(histories):
+        for i, history in enumerate(counseling_history):
             formatted_customer_history += f"\n\t{i + 1}번째 상담 이력"
             formatted_customer_history += "\n\n\t# 날짜: "
             formatted_customer_history += history.get("counselingDate", "")
 
-            # devices 배열의 첫 번째 항목을 사용 (있을 경우)
             devices = history.get("devices", [])
             if not devices:
                 formatted_customer_history += "\n\t# 장치 정보 없음\n"
                 continue
 
-            device = devices[0]  # 첫 번째 장치 정보 사용
+            # 모든 장치를 반복 처리
+            for device_idx, device in enumerate(devices):
+                # 장치 정보가 없는 경우 스킵 (None 값이 있는 장치)
+                if (
+                    device.get("failure") is None
+                    and device.get("cause") is None
+                    and device.get("sensor") is None
+                ):
+                    continue
 
-            failure = device.get("failure", "")
-            formatted_customer_history += "\n\t# 증상: " + (
-                failure if failure else "정보 없음"
-            )
+                formatted_customer_history += f"\n\t## 장치 {device_idx + 1}: \
+                {device.get('serialNumber', '일련번호 없음')}"
 
-            formatted_customer_history += "\n\t# 원인: \n"
-            causes = device.get("cause", [])
-            if causes:
-                for j, cause in enumerate(causes):
-                    formatted_customer_history += f"\t{j + 1}. {cause}\n"
-            else:
-                formatted_customer_history += "\t정보 없음\n"
+                failure = device.get("failure", "")
+                formatted_customer_history += "\n\t# 증상: " + (
+                    failure if failure else "정보 없음"
+                )
 
-            formatted_customer_history += "\n\t# 관련 센서: "
-            sensors = device.get("sensor", [])
-            if sensors:
-                formatted_customer_history += ", ".join(sensors)
-            else:
-                formatted_customer_history += "정보 없음"
+                formatted_customer_history += "\n\t# 원인: \n"
+                causes = device.get("cause", [])
+                if causes:
+                    for j, cause in enumerate(causes):
+                        formatted_customer_history += f"\t{j + 1}. {cause}\n"
+                else:
+                    formatted_customer_history += "\t정보 없음\n"
 
-            formatted_customer_history += "\n\t# 해결책: "
-            solutions = device.get("solutions", {})
-            if solutions:
-                personalized_solutions = solutions.get("personalized_solution", [])
-                if personalized_solutions:
-                    for k, solution in enumerate(personalized_solutions):
-                        formatted_customer_history += f"{k + 1}. "
-                        formatted_customer_history += solution.get(
-                            "personalized_context", ""
-                        )
-                        formatted_customer_history += " "
-                        formatted_customer_history += solution.get(
-                            "recommended_solution", ""
-                        )
-                        formatted_customer_history += "\t심각도: "
-                        formatted_customer_history += solution.get("status", "")
-                        formatted_customer_history += "\n"
+                formatted_customer_history += "\n\t# 관련 센서: "
+                sensors = device.get("sensor", [])
+                if sensors:
+                    formatted_customer_history += ", ".join(sensors)
+                else:
+                    formatted_customer_history += "정보 없음"
+
+                formatted_customer_history += "\n\t# 해결책: "
+                solutions = device.get("solutions", {})
+                if solutions:
+                    personalized_solutions = solutions.get(
+                        "personalizedSolution", []
+                    ) or solutions.get("personalized_solution", [])
+                    if personalized_solutions:
+                        for k, solution in enumerate(personalized_solutions):
+                            formatted_customer_history += f"{k + 1}. "
+
+                            context = solution.get(
+                                "personalizedContext", ""
+                            ) or solution.get("personalized_context", "")
+                            recommended = solution.get(
+                                "recommendedSolution", ""
+                            ) or solution.get("recommended_solution", "")
+
+                            formatted_customer_history += context
+                            formatted_customer_history += " "
+                            formatted_customer_history += recommended
+                            formatted_customer_history += "\t심각도: "
+                            formatted_customer_history += solution.get("status", "")
+                            formatted_customer_history += "\n"
+                    else:
+                        formatted_customer_history += "정보 없음\n"
                 else:
                     formatted_customer_history += "정보 없음\n"
-            else:
-                formatted_customer_history += "정보 없음\n"
 
-            formatted_customer_history += "\n"
+                formatted_customer_history += "\n"
         return formatted_customer_history
 
     @staticmethod
@@ -224,8 +245,8 @@ class BasePrompts:
 
         # 메뉴얼 구조 생성
         structured_manuals = BasePrompts._create_manuals(documents, metadatas)
-        print("이벤트 출력!!! format_rag_prompt")
-        print(event)
+        # print("이벤트 출력!!! format_rag_prompt")
+        # print(event)
         # 이벤트 포맷팅
         formatted_event = ""
         for i, e in enumerate(event):
@@ -245,6 +266,8 @@ class BasePrompts:
 
         # 고객 이력 포맷팅
         formatted_customer_history = BasePrompts._format_history(customer_history)
+        print("고객 이력 포맷팅")
+        print(formatted_customer_history)
 
         # 최종 프롬프트 반환
         return f"""
