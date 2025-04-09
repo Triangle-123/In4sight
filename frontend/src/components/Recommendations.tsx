@@ -52,7 +52,7 @@ export function Recommendations() {
     if (!filteredSolutionData || filteredSolutionData.length === 0) {
       const timer = setTimeout(() => {
         setShowAllGreen(true)
-      }, 14000)
+      }, 5000)
 
       return () => clearTimeout(timer)
     } else {
