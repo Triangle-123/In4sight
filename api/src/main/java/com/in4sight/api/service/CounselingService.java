@@ -3,17 +3,11 @@ package com.in4sight.api.service;
 import java.util.List;
 
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
-
-import com.mongodb.client.result.UpdateResult;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import com.in4sight.api.domain.CounselingHistory;
 import com.in4sight.api.domain.CustomerDevice;
 import com.in4sight.api.domain.LogByCustomer;
 import com.in4sight.api.repository.CounselingRepository;
