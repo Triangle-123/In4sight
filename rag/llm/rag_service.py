@@ -279,8 +279,8 @@ def publish_rag_completed_event(
 
         producer = get_producer()
         if producer:
-            print("=============이벤트발행==============")
-            pprint.pprint(event_data)
+            # print("=============이벤트발행==============")
+            # pprint.pprint(event_data)
             eda.event_broadcast("rag-result", event_data)
             logger.info("RAG 분석 완료 이벤트가 성공적으로 발행되었습니다.")
         else:
