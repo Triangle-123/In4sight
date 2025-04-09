@@ -24,8 +24,24 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="card-title" className={cn('leading-none font-semibold', className)} {...props} />
+type CardTitleProps = {
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  date?: React.ReactNode;
+} & React.ComponentProps<'div'>;
+
+function CardTitle({ className, title, subtitle, date, ...props }: CardTitleProps) {
+  return (
+    <div data-slot="card-title" className={cn('leading-none font-semibold space-y-2 mt-4', className)} {...props}>
+      <div className="text-lg font-bold line-clamp-1 mb-2">{title}</div>
+      <div className="text-sm text-gray-600 line-clamp-1 mb-1">
+        <span className="font-medium">S/N:</span> {subtitle}
+      </div>
+      <div className="text-sm text-gray-600 line-clamp-1">
+        <span className="font-medium">구매일:</span> {date}
+      </div>
+    </div>
+  )
 }
 
 function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {

@@ -14,9 +14,9 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f5f7fb] p-0.5">
-      <div className="flex w-full max-w-[90vw] gap-1">
+      <div className="flex w-full max-w-[90vw]">
         {/* 로그인 폼 */}
-        <div className="w-1/4 bg-white rounded-lg shadow-lg p-3 flex flex-col h-[800px]">
+        <div className="w-1/4 bg-white rounded-l-lg shadow-lg p-3 flex flex-col h-[800px]">
           {/* 상단 로고 */}
           <div className="flex flex-col items-center space-y-2 mt-16">
             <img
@@ -53,7 +53,7 @@ export default function Login() {
           <img
             src="/image/main.gif"
             alt="로그인 애니메이션"
-            className="w-full h-[800px] object-cover rounded-lg shadow-lg"
+            className="w-full h-[800px] object-cover rounded-r-lg shadow-lg"
           />
         </div>
       </div>
