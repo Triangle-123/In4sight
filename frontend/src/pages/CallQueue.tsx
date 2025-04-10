@@ -33,7 +33,6 @@ export default function CallQueue() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">고객 요청 대기열</h1>
         </div>
-
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {callQueue.length === 0 ? (
             <div className="p-8 text-center">
