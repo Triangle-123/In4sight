@@ -37,9 +37,9 @@ export default function CallQueue() {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {callQueue.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500 text-lg">No calls in the queue</p>
+              <p className="text-gray-500 text-lg">현재 대기열에 수신된 전화가 없습니다</p>
               <p className="text-gray-400">
-                New calls will appear here when received
+                전화가 수신되면 이 곳에 표시됩니다
               </p>
             </div>
           ) : (
