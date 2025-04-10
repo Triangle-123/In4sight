@@ -1,0 +1,118 @@
+pipeline {
+    agent {
+        label 'python-agent'
+    }
+
+    stages {
+        stage('Check Parameters') {
+            steps {
+                script {
+                    env.MR_URL = 'just-run'
+                    env.TARGET_BRANCH = 'das/develop'
+
+                    echo "Merge Request URL: ${params.MR_URL}"
+                    echo "Target Branch: ${params.TARGET_BRANCH}"
+
+                    if ((!params.MR_URL || !params.TARGET_BRANCH) && (!env.MR_URL || !env.TARGET_BRANCH)) {
+                        error("파라미터가 올바르지 않습니다.")
+                    }
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                checkout scmGit(
+                    branches: [[name: params.TARGET_BRANCH ? params.TARGET_BRANCH : env.TARGET_BRANCH]], 
+                    extensions: [], 
+                    userRemoteConfigs: [
+                        [
+                            credentialsId: '74b0ab04-f812-4119-8d9b-23d2fb4ac978',
+                            url: 'https://lab.ssafy.com/s12-s-project/S12P21S004.git'
+                        ]
+                    ]
+                )
+            }
+        }
+
+        // stage('Activate Virtual Environment') {
+        //     steps {
+        //         sh '''
+        //             cd das
+        //             if [ ! -d ".venv" ]; then
+        //                 python3.11 -m venv .venv
+        //             fi
+        //         '''
+        //     }
+        // }
+
+        stage('Add .env') {
+            steps {
+                withCredentials([file(credentialsId: 'das-env', variable: 'ENV_FILE')]) {
+                    sh '''
+                        cd das
+                        if [ -f .env ]; then
+                            rm .env
+                        fi
+                        cp $ENV_FILE .env
+                    '''
+                }
+            }
+        }
+
+        // stage('Install Dependencies') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'git-package-token', variable: 'GIT_TOKEN')]) {
+        //             sh '''
+        //                 cd rag
+        //                 . .venv/bin/activate
+        //                 pip install -r requirements_linux.txt --no-cache-dir --index-url https://__token__:${GIT_TOKEN}@lab.ssafy.com/api/v4/projects/951261/packages/pypi/simple
+        //             '''
+        //         }
+        //     }
+        // }
+
+        // stage('Build Docker Image') {
+        //     steps {
+        //         sh 'cd rag && docker build -t s12171934/in4sight-rag .'
+        //     }
+        // }
+
+        stage('Build Docker Image') {
+            steps {
+                withCredentials([string(credentialsId: 'git-package-token', variable: 'GIT_TOKEN')]) {
+                    sh '''
+                        cd das
+                        docker build --build-arg GITLAB_TOKEN=${GIT_TOKEN} --build-arg PROJECT_ID=951261 -t in4sight-das .
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    if [ "$(docker ps -q -f name=das-server)" ]; then
+                        docker stop das-server
+                        docker rm das-server
+                    fi
+                '''
+                sh 'cd das && docker run -d --name das-server --env-file .env --expose 8000 -e TZ=Asia/Seoul --network ubuntu_default in4sight-das'
+            }
+        }
+
+        stage("Notify") {
+            steps {
+                script {
+                    build job: 'in4sight-notification',
+                        parameters: [
+                            string(name: 'MR_URL', value: params.MR_URL ? params.MR_URL : env.MR_URL),
+                            string(name: 'TARGET_BRANCH', value: params.TARGET_BRANCH ? params.TARGET_BRANCH : env.TARGET_BRANCH),
+                            string(name: 'is_success', value: 'true')
+                        ],
+                        wait: false
+                }
+            }
+        }
+    }
+}
